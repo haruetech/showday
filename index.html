@@ -375,6 +375,11 @@ h1.headline{font-size:42px;line-height:1.12;letter-spacing:-.035em;max-width:640
 }
 
 </style>
+<style>
+img{-webkit-user-drag:none;user-drag:none}
+body{-webkit-touch-callout:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+</style>
 </head>
 <body>
 
@@ -701,5 +706,22 @@ document.getElementById('wlSubmit').addEventListener('click', () => {
 })();
 </script>
 
+<script>
+(function(){
+  document.addEventListener('contextmenu',e=>e.preventDefault(),{capture:true});
+  document.addEventListener('keydown',function(e){
+    const k=(e.key||'').toLowerCase();
+    const blocked=e.key==='F12'
+      ||(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k))
+      ||(e.ctrlKey&&['u','s'].includes(k))
+      ||(e.metaKey&&e.altKey&&['i','j','c'].includes(k))
+      ||(e.metaKey&&['u','s'].includes(k));
+    if(blocked){e.preventDefault();e.stopPropagation();return false;}
+  },{capture:true});
+  document.addEventListener('dragstart',function(e){
+    if(e.target&&(e.target.tagName==='IMG'||e.target.tagName==='A')) e.preventDefault();
+  },{capture:true});
+})();
+</script>
 </body>
 </html>
