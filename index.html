@@ -374,6 +374,55 @@ h1.headline{font-size:42px;line-height:1.12;letter-spacing:-.035em;max-width:640
   .moment-card{min-height:145px;}
 }
 
+
+/* ===== PARENTS CULTURE LINK ===== */
+.feature-link{
+  color:inherit;
+  text-decoration:none;
+  border-radius:16px;
+  padding:12px 8px;
+  transition:transform .18s ease, background .18s ease;
+}
+.feature-link:hover{
+  transform:translateY(-2px);
+  background:rgba(242,184,75,.06);
+}
+.feature-link:hover b{color:var(--amber);}
+.parents-inline-link{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:15px;
+  color:var(--amber);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:800;
+}
+.parents-inline-link:hover{color:#f6c877;}
+.parents-nav{color:#e7dfd1;}
+.parents-nav:hover{color:var(--amber) !important;}
+
+@media(max-width:899px){
+  .nav-links a.parents-nav{
+    display:inline-block;
+    white-space:nowrap;
+    font-size:12px;
+    font-weight:800;
+    color:var(--amber);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 12px;
+  }
+  .nav-links a[href="#partner"]{display:none;}
+}
+@media(max-width:640px){
+  .navrow{gap:7px;}
+  .nav-links{margin-left:auto;margin-right:0;}
+  .nav-cta{display:none;}
+  .brand .display{font-size:22px;}
+  .nav-links a.parents-nav{font-size:11.5px;padding:8px 11px;}
+}
+
 </style>
 <style>
 img{-webkit-user-drag:none;user-drag:none}
@@ -388,6 +437,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     <div class="brand"><span class="display">SHOWDAY</span><small>공연 가는 날, 필요한 모든 것</small></div>
     <div class="nav-links">
       <a href="#journey">서비스 소개</a>
+      <a href="/parents/" class="parents-nav">부모를 위한 공연</a>
       <a href="#partner">파트너</a>
       <a href="#partner-contact">제휴 문의</a>
     </div>
@@ -431,7 +481,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     <div class="feature-item"><span class="feature-icon">📅</span><b>공연 정보</b><small>한눈에, 빠르게</small></div>
     <div class="feature-item"><span class="feature-icon">📍</span><b>공연 가는 길</b><small>지도와 교통까지</small></div>
     <div class="feature-item"><span class="feature-icon">🍴</span><b>맛집 · 픽업</b><small>즐거움은 더 가깝게</small></div>
-    <div class="feature-item"><span class="feature-icon">👨‍👩‍👧</span><b>부모님과 함께</b><small>기다림도 안심하게</small></div>
+    <a class="feature-item feature-link" href="/parents/" aria-label="부모를 위한 공연 페이지로 이동"><span class="feature-icon">👨‍👩‍👧</span><b>부모를 위한 공연</b><small>기다리는 시간도 문화로</small></a>
     <div class="feature-item"><span class="feature-icon">✨</span><b>SHOWDAY AI</b><small>공연의 모든 것을 묻다</small></div>
   </div>
 </section>
@@ -492,6 +542,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
           <h3>기다리는 사람, 부모님 시간</h3>
           <p>같이 왔지만 공연은 안 보는 가족도 있죠. 그 시간 동안 뭘 하면 좋을지 근처 정보로 챙겨드려요.</p>
           <div class="stub-tags"><span>대기 시간 활용</span><span>다시 만나는 시간 안내</span></div>
+          <a href="/parents/" class="parents-inline-link">부모를 위한 공연·프로그램 보기 <span>→</span></a>
         </div>
         <div class="stub-visual"><div class="mini-card"><b>기다리는 동안</b><span>근처에서 할 일 찾기</span></div></div>
       </div>
