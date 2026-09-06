@@ -21,10 +21,116 @@ footer{padding:28px 0;color:var(--faint);font-size:11.5px}.foot{display:flex;jus
 .topbtn{position:fixed;right:18px;bottom:18px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(231,173,70,.35);background:rgba(23,18,14,.92);color:var(--amber);font-weight:900;cursor:pointer;opacity:0;visibility:hidden;transition:.2s}.topbtn.show{opacity:1;visibility:visible}
 @media(max-width:980px){.navlinks{display:none}.hero-grid{grid-template-columns:1fr}.hero-card{display:none}.cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.wrap,.navrow{width:min(var(--max),calc(100% - 30px))}.brand small{display:none}.navcta{margin-left:auto}.hero{min-height:auto;padding:72px 0 64px}h1{font-size:40px;line-height:1.15}.hero p{font-size:15px}.cards,.split{grid-template-columns:1fr}.card{min-height:auto}.head h2{font-size:29px}.callout{grid-template-columns:1fr}.callout .actions{margin-top:4px}.step{grid-template-columns:68px 1fr;padding:18px}.actions .btn{width:100%}}
-</style></head><body><nav><div class="navrow"><a class="brand" href="/"><strong>SHOWDAY</strong><small>공연 가는 날, 필요한 모든 것</small></a><div class="navlinks"><a href="/#journey">서비스 소개</a><a href="/50plus/">50+ 공연</a><a href="/parents/">부모를 위한 공연</a><a href="/live/">SHOWDAY LIVE</a><a href="/#partner">파트너</a><a href="/#partner-contact">제휴 문의</a></div><a class="navcta" href="/#partner-contact">기획 문의 ›</a></div></nav>
+
+/* ===== SHOWDAY GLOBAL NAV 2026 ===== */
+.sd-nav{
+  position:sticky;top:0;z-index:999;
+  background:rgba(11,9,7,.94);
+  border-bottom:1px solid #342A20;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.sd-nav-inner{
+  width:min(1180px,calc(100% - 48px));
+  height:72px;margin:0 auto;
+  display:flex;align-items:center;gap:18px;
+}
+.sd-brand{
+  display:flex;align-items:baseline;gap:9px;
+  text-decoration:none;color:#F7F2EA;flex:none;
+}
+.sd-brand-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:25px;letter-spacing:.06em;
+}
+.sd-brand-tag{
+  color:#E7AD46;font-size:10px;font-weight:800;
+  white-space:nowrap;
+}
+.sd-menu{
+  margin-left:auto;display:flex;align-items:center;
+  gap:17px;white-space:nowrap;
+}
+.sd-menu a{
+  color:#C4B8A8;text-decoration:none;
+  font-size:12.5px;font-weight:700;
+  transition:color .2s ease;
+}
+.sd-menu a:hover,.sd-menu a.active{color:#E7AD46}
+.sd-inquiry{
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;background:#E7AD46;color:#251A05!important;
+  padding:10px 15px;font-weight:900!important;
+}
+.sd-mobile-btn{
+  display:none;margin-left:auto;width:42px;height:42px;
+  border:1px solid #342A20;border-radius:12px;
+  background:#17120E;color:#F7F2EA;font-size:19px;cursor:pointer;
+}
+@media(max-width:1040px){
+  .sd-menu{gap:12px}
+  .sd-menu a{font-size:11.5px}
+}
+@media(max-width:900px){
+  .sd-nav-inner{width:min(1180px,calc(100% - 30px));height:64px}
+  .sd-brand-tag{display:none}
+  .sd-menu{
+    position:absolute;left:15px;right:15px;top:72px;
+    display:none;flex-direction:column;align-items:stretch;gap:0;
+    padding:10px;background:#15120E;border:1px solid #342A20;
+    border-radius:16px;box-shadow:0 18px 45px rgba(0,0,0,.36);
+  }
+  .sd-menu.open{display:flex}
+  .sd-menu a{
+    padding:13px 14px;border-radius:10px;font-size:13px;
+  }
+  .sd-menu a:hover,.sd-menu a.active{background:#211A13}
+  .sd-inquiry{margin-top:5px}
+  .sd-mobile-btn{display:inline-flex;align-items:center;justify-content:center}
+}
+@media(max-width:520px){
+  .sd-brand-name{font-size:23px}
+}
+
+</style></head><body><nav class="sd-nav" aria-label="SHOWDAY 주요 메뉴">
+  <div class="sd-nav-inner">
+    <a class="sd-brand" href="/">
+      <span class="sd-brand-name">SHOWDAY</span>
+      <span class="sd-brand-tag">공연 가는 날, 필요한 모든 것</span>
+    </a>
+    <button class="sd-mobile-btn" type="button" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+    <div class="sd-menu">
+      <a href="/#journey">서비스 소개</a>
+      <a href="/50plus/" class="active">50+ 공연</a>
+      <a href="/parents/">부모를 위한 공연</a>
+      <a href="/live/">SHOWDAY LIVE</a>
+      <a href="/#partner">파트너</a>
+      <a href="/#partner-contact" class="sd-inquiry">제휴 문의</a>
+    </div>
+  </div>
+</nav>
 <header class="hero"><div class="wrap hero-grid"><div><div class="kicker">50+ CULTURE · SECOND STAGE</div><h1>50+에게 필요한 건<br>‘시니어 행사’가 아니라 좋은 콘텐츠입니다.</h1><p>50+ 공연은 부모 대기 프로그램과 별개입니다. 공연이 없는 날에도 50+가 직접 찾아오고 비용을 지불할 수 있는 토크, 음악, 문화, 배움의 독립 콘텐츠를 만듭니다.</p><div class="actions"><a class="btn primary" href="#program">콘텐츠 보기 ›</a><a class="btn outline" href="/#partner-contact">기획 문의</a></div></div><div class="hero-card"><div class="mini">50+ ORIGINAL CONTENT</div><h3>나이를 설명하기보다<br>지금 궁금한 이야기를 무대에.</h3><div class="hero-row"><b>01</b><span>지식·인생 토크</span></div><div class="hero-row"><b>02</b><span>음악·낭독·소극장 공연</span></div><div class="hero-row"><b>03</b><span>참여형 문화 클래스</span></div><div class="hero-note">핵심은 ‘시니어 복지 프로그램’이 아니라 50+가 스스로 선택하는 유료 문화 콘텐츠입니다.</div></div></div></header>
 <section class="light"><div class="wrap"><div class="head"><div class="eyebrow">POSITIONING</div><h2>대형 콘서트와 경쟁하지 않는 ‘가까운 무대’를 만듭니다.</h2><p>대형 공연이 아티스트와 팬덤의 규모를 만든다면, 50+ 공연은 이야기의 깊이와 참여 경험으로 차별화합니다.</p></div><div class="split"><div class="panel"><h3>관객</h3><p>새로운 취미와 배움, 문화생활, 인생 2막에 관심 있는 50+와 액티브 시니어.</p></div><div class="panel"><h3>무대</h3><p>소극장, 복합문화공간, 도서관, 기업·기관 공간처럼 관객과 출연자가 가까이 만나는 장소.</p></div></div></div></section>
 <section id="program"><div class="wrap"><div class="head"><div class="eyebrow">ORIGINAL SERIES</div><h2>반복 운영할 수 있는 SHOWDAY 50+ 시리즈</h2><p>한 번의 행사가 아니라 주제와 출연자를 바꿔 지속적으로 운영할 수 있는 콘텐츠 IP를 목표로 합니다.</p></div><div class="cards"><article class="card"><div class="num">01</div><h3>인생 2막 TALK</h3><p>퇴직 이후의 일, 창업, 관계, 여행, 새로운 배움을 실제 경험자의 이야기로 풀어냅니다.</p></article><article class="card"><div class="num">02</div><h3>생활형 AI TALK</h3><p>AI를 어렵게 설명하기보다 일상, 여행, 취미, 업무에서 바로 활용하는 방법을 보여줍니다.</p></article><article class="card"><div class="num">03</div><h3>MUSIC & STORY</h3><p>세대의 음악과 개인의 기억을 연결한 라이브, 낭독, 토크형 소극장 공연을 기획합니다.</p></article><article class="card"><div class="num">04</div><h3>CULTURE CLASS</h3><p>사진, 영상, 글쓰기, 음악, 스마트폰 등 결과물이 남는 참여형 프로그램으로 확장합니다.</p></article></div></div></section>
 <section class="dark2"><div class="wrap"><div class="head"><div class="eyebrow">HARUE CONTENT LAB</div><h2>공연에서 검증된 콘텐츠는 일상으로 확장합니다.</h2><p>명상음악, 50+ 영상, 두뇌활동 게임은 SHOWDAY LIVE나 부모 프로그램이 아니라 HARUE의 디지털 콘텐츠 영역으로 연결합니다.</p></div><div class="cards"><article class="card"><div class="num">A</div><h3>명상·힐링 음악</h3><p>수면, 산책, 호흡, 휴식에 맞춘 오디오 콘텐츠를 제작합니다.</p></article><article class="card"><div class="num">B</div><h3>50+ 영상</h3><p>건강, 여행, AI, 문화, 인터뷰를 짧고 보기 편한 영상으로 만듭니다.</p></article><article class="card"><div class="num">C</div><h3>두뇌활동 게임</h3><p>기억, 언어, 집중, 계산을 활용하는 인지활동형 콘텐츠로 개발합니다.</p></article><article class="card"><div class="num">D</div><h3>콘텐츠 아카이브</h3><p>강연과 공연의 핵심 내용을 다시 볼 수 있는 디지털 자료로 축적합니다.</p></article></div></div></section>
 <section class="light"><div class="wrap"><div class="callout"><div><h3>50+가 직접 찾아오는 문화 콘텐츠를 함께 만듭니다.</h3><p>강연자, 아티스트, 문화공간, 기업·기관과 정기 시리즈를 기획합니다.</p></div><div class="actions"><a class="btn primary" href="/#partner-contact">50+ 공연 기획 문의 ›</a></div></div></div></section>
-<footer><div class="wrap foot"><span>SHOWDAY · MUSIC · PEOPLE · CITY</span><span><a href="/">메인</a> · <a href="/#partner-contact">행사·제휴 문의</a></span></div></footer><button class="topbtn" id="topbtn" aria-label="상단으로">↑</button><script>(function(){const b=document.getElementById('topbtn');const t=()=>window.scrollY>500?b.classList.add('show'):b.classList.remove('show');addEventListener('scroll',t,{passive:true});t();b.onclick=()=>scrollTo({top:0,behavior:'smooth'});})();</script></body></html>
+<footer><div class="wrap foot"><span>SHOWDAY · MUSIC · PEOPLE · CITY</span><span><a href="/">메인</a> · <a href="/#partner-contact">행사·제휴 문의</a></span></div></footer><button class="topbtn" id="topbtn" aria-label="상단으로">↑</button><script>(function(){const b=document.getElementById('topbtn');const t=()=>window.scrollY>500?b.classList.add('show'):b.classList.remove('show');addEventListener('scroll',t,{passive:true});t();b.onclick=()=>scrollTo({top:0,behavior:'smooth'});})();</script>
+<script>
+(function(){
+  const btn=document.querySelector('.sd-mobile-btn');
+  const menu=document.querySelector('.sd-menu');
+  if(!btn||!menu) return;
+  btn.addEventListener('click',function(){
+    const open=menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.textContent=open?'×':'☰';
+  });
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded','false');
+    btn.textContent='☰';
+  }));
+})();
+</script>
+
+</body></html>
