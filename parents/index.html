@@ -22,18 +22,91 @@ section{padding:92px 0;border-bottom:1px solid var(--line)}.section-head{max-wid
 .digital{background:linear-gradient(180deg,#0A0A08,#13100c)}.digital-grid{display:grid;grid-template-columns:1fr;gap:14px}.digital-card{padding:27px;border:1px solid var(--line);border-radius:20px}.digital-card .ico{font-size:29px}.digital-card h3{margin:15px 0 8px}.digital-card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.7}@media(min-width:760px){.digital-grid{grid-template-columns:repeat(3,1fr)}}
 .partner{background:var(--paper);color:#1D1810}.partner .section-head p{color:rgba(29,24,16,.64)}.partner-box{display:grid;grid-template-columns:1fr;gap:25px;align-items:center;background:#E9E1CF;border-radius:24px;padding:34px}.partner-box h3{font-size:25px;line-height:1.35;margin:0 0 10px}.partner-box p{margin:0;color:rgba(29,24,16,.68);font-size:14px;line-height:1.7}.partner-actions{display:flex;gap:10px;flex-wrap:wrap}.partner .btn-line{border-color:rgba(29,24,16,.22)}@media(min-width:800px){.partner-box{grid-template-columns:1fr auto;padding:44px}}
 footer{padding:30px 0;color:var(--faint);font-size:11.5px}.footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* ===== FINAL UX POLISH ===== */
+.brand{cursor:pointer}
+.nav-links a{white-space:nowrap}
+.hero h1 span{display:inline-block}
+.footer-links{display:flex;gap:14px;flex-wrap:wrap}
+.footer-links a{color:var(--muted);transition:.2s}
+.footer-links a:hover{color:var(--amber)}
+
+.back-to-top{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  z-index:70;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  border:1px solid rgba(242,184,75,.35);
+  background:rgba(21,18,14,.92);
+  color:var(--amber);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:900;
+  cursor:pointer;
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(8px);
+  transition:opacity .2s ease, transform .2s ease, visibility .2s ease, background .2s ease;
+  box-shadow:0 10px 28px rgba(0,0,0,.28);
+  backdrop-filter:blur(10px);
+}
+.back-to-top.show{opacity:1;visibility:visible;transform:translateY(0)}
+.back-to-top:hover{background:var(--amber);color:#241A05}
+
+@media(max-width:899px){
+  .nav-links{display:none}
+  .nav-cta{font-size:11.5px;padding:9px 14px}
+}
+@media(max-width:560px){
+  .hero{padding:70px 0 64px}
+  h1{font-size:38px;line-height:1.15}
+  .lede{font-size:15px;line-height:1.75}
+  .hero-ctas .btn{width:100%}
+  .partner-actions .btn{width:100%}
+  .back-to-top{right:16px;bottom:16px;width:44px;height:44px}
+}
+
 </style>
 </head>
 <body>
-<nav><div class="navrow"><a class="brand" href="index_SHOWDAY_부모공연메뉴추가.html"><span class="display">SHOWDAY</span><small>공연 가는 날, 필요한 모든 것</small></a><div class="nav-links"><a href="index_SHOWDAY_부모공연메뉴추가.html">서비스 소개</a><a class="active" href="#top">부모를 위한 공연</a><a href="#program">프로그램</a><a href="#partner">행사·제휴</a></div><a class="btn btn-amber btn-sm nav-cta" href="#partner">기획 문의 ›</a></div></nav>
+<nav><div class="navrow"><a class="brand" href="/" aria-label="SHOWDAY 메인으로 이동"><span class="display">SHOWDAY</span><small>공연 가는 날, 필요한 모든 것</small></a><div class="nav-links"><a href="/#journey">서비스 소개</a><a class="active" href="#top">부모를 위한 공연</a><a href="#program">프로그램</a><a href="#partner">행사·제휴</a></div><a class="btn btn-amber btn-sm nav-cta" href="/#partner-contact">기획 문의 ›</a></div></nav>
 <main id="top">
-<section class="hero"><div class="wrap hero-grid"><div><div class="kicker">PARENTS TIME · 50+ CULTURE</div><h1>아이의 공연 시간,<br><span>부모에게도 무대가 됩니다.</span></h1><p class="lede">자녀가 공연을 즐기는 2~3시간을 그냥 기다리지 않도록. SHOWDAY는 강연, 소극장 공연, 문화체험, AI와 휴식을 공연 종료시간에 맞춰 하나의 프로그램으로 연결합니다.</p><div class="hero-ctas"><a class="btn btn-amber" href="#program">프로그램 보기 ›</a><a class="btn btn-line" href="#timeline">부모의 3시간 보기</a></div></div><div class="stage-card"><div class="stage-top">TONIGHT · PARENTS PROGRAM</div><h3>자녀는 ARENA로,<br>부모는 또 하나의 문화공연으로.</h3><div class="stage-time"><b>18:00</b><span>자녀 공연장 입장</span></div><div class="stage-time"><b>18:20</b><span>부모 프로그램 체크인 · 웰컴티</span></div><div class="stage-time"><b>18:40</b><span>50+ 토크콘서트 · 소극장 공연</span></div><div class="stage-time"><b>20:10</b><span>AI · 문화체험 · 명상 · 휴식</span></div><div class="stage-time"><b>21:00</b><span>공연 종료 알림 · 가족 합류</span></div><div class="stage-note">공연 시간에 맞춰 시작하고 끝나는 SHOWDAY만의 동반가족 프로그램</div></div></div></section>
+<section class="hero"><div class="wrap hero-grid"><div><div class="kicker">PARENTS TIME · 50+ CULTURE</div><h1>아이의 공연 시간,<br><span>부모에게도 무대가<br>됩니다.</span></h1><p class="lede">자녀가 공연을 즐기는 2~3시간을 그냥 기다리지 않도록. SHOWDAY는 강연, 소극장 공연, 문화체험, AI와 휴식을 공연 종료시간에 맞춰 하나의 프로그램으로 연결합니다.</p><div class="hero-ctas"><a class="btn btn-amber" href="#program">프로그램 보기 ›</a><a class="btn btn-line" href="#timeline">부모의 3시간 보기</a></div></div><div class="stage-card"><div class="stage-top">TONIGHT · PARENTS PROGRAM</div><h3>자녀는 ARENA로,<br>부모는 또 하나의 문화공연으로.</h3><div class="stage-time"><b>18:00</b><span>자녀 공연장 입장</span></div><div class="stage-time"><b>18:20</b><span>부모 프로그램 체크인 · 웰컴티</span></div><div class="stage-time"><b>18:40</b><span>50+ 토크콘서트 · 소극장 공연</span></div><div class="stage-time"><b>20:10</b><span>AI · 문화체험 · 명상 · 휴식</span></div><div class="stage-time"><b>21:00</b><span>공연 종료 알림 · 가족 합류</span></div><div class="stage-note">공연 시간에 맞춰 시작하고 끝나는 SHOWDAY만의 동반가족 프로그램</div></div></div></section>
 <section class="problem"><div class="wrap"><div class="section-head"><div class="eyebrow">WHY SHOWDAY</div><h2>기다리는 시간을, 새로운 문화시간으로.</h2><p>공연장의 관객만 보지 않고 함께 온 가족의 시간까지 설계합니다.</p></div><div class="problem-grid"><div class="problem-card"><b>BEFORE · 그냥 기다리는 3시간</b><p>카페를 전전하거나 차 안에서 기다리고, 공연 종료시간만 확인하는 수동적인 대기시간.</p></div><div class="problem-card solution"><b>AFTER · 나를 위한 3시간</b><p>강연과 음악을 듣고, 새로운 기술을 배우고, 차와 디저트를 즐기며 다시 찾고 싶은 문화경험으로 전환합니다.</p></div></div></div></section>
 <section id="program"><div class="wrap"><div class="section-head"><div class="eyebrow">PROGRAM</div><h2>부모를 위한 공연은 이렇게 구성합니다.</h2><p>‘시니어 강좌’처럼 무겁게 보이기보다, 40·50·60대가 자연스럽게 참여하는 문화 콘텐츠를 중심으로 기획합니다.</p></div><div class="program-grid"><article class="program"><div class="num">01</div><h3>50+ TALK</h3><p>인생 2막, AI, 관계, 경제, 건강, 취미를 다루는 ‘어른을 위한 지식·인생 토크콘서트’.</p></article><article class="program"><div class="num">02</div><h3>SMALL STAGE</h3><p>어쿠스틱 음악, 낭독, 재즈, 추억의 음악, 토크와 공연을 결합한 소극장 무대.</p></article><article class="program"><div class="num">03</div><h3>CULTURE CLASS</h3><p>스마트폰, AI, 사진·영상, 걷기, 발건강, 취미 등을 직접 체험하는 참여형 클래스.</p></article><article class="program"><div class="num">04</div><h3>REST & TASTE</h3><p>명상 음악, 휴식 콘텐츠, 차와 K-라이스 디저트를 더한 편안한 마무리 시간.</p></article></div></div></section>
 <section class="timeline" id="timeline"><div class="wrap"><div class="section-head"><div class="eyebrow">PARENTS 3 HOURS</div><h2>자녀 공연과 정확히 맞물리는 시간표</h2><p>프로그램 자체보다 중요한 것은 ‘공연이 끝나기 전에 부모 프로그램도 자연스럽게 끝난다’는 경험입니다.</p></div><div class="time-grid"><div class="time-row"><div class="time">18:00</div><div><b>자녀 공연장 입장</b><small>SHOWDAY에서 공연 시작·종료 예정시간 확인</small></div></div><div class="time-row highlight"><div class="time">18:20</div><div><b>Parents Time 체크인</b><small>웰컴티 · K-라이스 디저트 · 좌석 안내</small></div></div><div class="time-row"><div class="time">18:40</div><div><b>50+ 토크콘서트 또는 소극장 공연</b><small>회차별 주제와 출연자를 달리하는 대표 콘텐츠</small></div></div><div class="time-row"><div class="time">19:50</div><div><b>AI · 문화 · 두뇌활동 체험</b><small>짧고 재미있는 참여형 프로그램</small></div></div><div class="time-row"><div class="time">20:25</div><div><b>음악 · 명상 · 자유로운 휴식</b><small>대화, 음료, 휴식과 함께 공연 종료를 기다리는 시간</small></div></div><div class="time-row highlight"><div class="time">20:55</div><div><b>자녀 공연 종료 알림</b><small>동선 안내 후 가족 합류 · 귀가</small></div></div></div></div></section>
 <section><div class="wrap"><div class="section-head"><div class="eyebrow">50+ TALK SERIES</div><h2>‘어쩌다 어른’처럼, 부모 세대가 듣고 싶은 이야기</h2><p>연령을 앞세우기보다 지금 이 세대가 실제로 궁금해하는 주제를 공연처럼 풀어냅니다.</p></div><div class="talk-grid"><article class="talk"><span class="talk-tag">AI · LIFE</span><h3>AI를 모르면 정말 뒤처질까요?</h3><p>50+가 실제 생활에서 바로 쓰는 AI와 스마트폰 활용 이야기.</p></article><article class="talk"><span class="talk-tag">SECOND LIFE</span><h3>퇴직 이후, 다시 시작하는 사람들</h3><p>일, 창업, 취미, 관계를 다시 설계한 사람들의 현실적인 인생 2막.</p></article><article class="talk"><span class="talk-tag">FAMILY</span><h3>성인 자녀와 잘 지내는 법</h3><p>부모와 자녀가 서로 독립하면서도 가까워지는 새로운 가족관계.</p></article><article class="talk"><span class="talk-tag">MONEY</span><h3>50대부터 달라지는 돈의 사용법</h3><p>연금, 소비, 노후자금과 ‘잘 쓰는 돈’에 대한 생활형 토크.</p></article><article class="talk"><span class="talk-tag">WELLNESS</span><h3>오래 걷기 위해 지금 바꿔야 할 것</h3><p>발건강, 걷기, 파크골프와 연결되는 활동형 프로그램.</p></article><article class="talk"><span class="talk-tag">CULTURE</span><h3>음악으로 다시 만나는 나의 청춘</h3><p>세대의 음악과 이야기를 함께 엮는 라이브·토크형 소극장 공연.</p></article></div></div></section>
 <section class="digital"><div class="wrap"><div class="section-head"><div class="eyebrow">SHOWDAY × HARUE CONTENT LAB</div><h2>공연장에서 시작해 일상으로 이어지는 콘텐츠</h2><p>현장 행사에서 반응을 검증한 콘텐츠는 디지털로 확장해 공연이 없는 날에도 고객과 연결합니다.</p></div><div class="digital-grid"><article class="digital-card"><div class="ico">🎵</div><h3>시니어 명상·힐링 음악</h3><p>수면, 산책, 호흡, 휴식, 회상 등 50+와 시니어의 일상에 맞춘 오디오 콘텐츠.</p></article><article class="digital-card"><div class="ico">🎬</div><h3>50+ 영상 콘텐츠</h3><p>건강, 여행, AI, 문화, 인터뷰, 인생 2막을 다루는 짧고 보기 편한 영상 시리즈.</p></article><article class="digital-card"><div class="ico">🧠</div><h3>두뇌활동 게임</h3><p>기억·언어·집중·계산을 재미있게 자극하는 인지활동형 게임과 현장 체험.</p></article></div></div></section>
-<section class="partner" id="partner"><div class="wrap"><div class="section-head"><div class="eyebrow">FOR PARTNERS</div><h2>공간과 관객에 맞는 공연·문화 프로그램을 함께 만듭니다.</h2><p>지자체, 공연기획사, 문화시설, 기업, 지역상권, 강연자·아티스트와 협업할 수 있는 B2B 프로그램으로 확장합니다.</p></div><div class="partner-box"><div><h3>우리 지역에도 ‘부모를 위한 공연’을 열어보세요.</h3><p>대형공연 연계 부모 프로그램부터 50+ 토크콘서트, 소극장 공연, 문화체험까지 SHOWDAY가 기획합니다.</p></div><div class="partner-actions"><a class="btn btn-amber" href="mailto:hello@showday.kr?subject=SHOWDAY 부모를 위한 공연 기획 문의">행사 기획 문의</a><a class="btn btn-line" href="mailto:hello@showday.kr?subject=SHOWDAY 파트너 제휴 문의">파트너 제휴</a></div></div></div></section>
+<section class="partner" id="partner"><div class="wrap"><div class="section-head"><div class="eyebrow">FOR PARTNERS</div><h2>공간과 관객에 맞는 공연·문화 프로그램을 함께 만듭니다.</h2><p>지자체, 공연기획사, 문화시설, 기업, 지역상권, 강연자·아티스트와 협업할 수 있는 B2B 프로그램으로 확장합니다.</p></div><div class="partner-box"><div><h3>우리 지역에도 ‘부모를 위한 공연’을 열어보세요.</h3><p>대형공연 연계 부모 프로그램부터 50+ 토크콘서트, 소극장 공연, 문화체험까지 SHOWDAY가 기획합니다.</p></div><div class="partner-actions"><a class="btn btn-amber" href="/#partner-contact">행사 기획 문의</a><a class="btn btn-line" href="/#partner-apply">파트너 제휴</a></div></div></div></section>
 </main>
-<footer><div class="wrap footer-row"><span>SHOWDAY · PARENTS TIME · 50+ CULTURE</span><span>© SHOWDAY · showday.kr</span></div></footer>
+<footer>
+  <div class="wrap footer-row">
+    <span>SHOWDAY · PARENTS TIME · 50+ CULTURE</span>
+    <div class="footer-links">
+      <a href="/">SHOWDAY 메인</a>
+      <a href="/#partner-contact">행사·제휴 문의</a>
+      <span>© SHOWDAY · showday.kr</span>
+    </div>
+  </div>
+</footer>
+
+<button class="back-to-top" id="backToTop" type="button" aria-label="페이지 상단으로 이동" title="상단으로">↑</button>
+<script>
+(function(){
+  const btn = document.getElementById('backToTop');
+  const toggle = () => {
+    if (window.scrollY > 500) btn.classList.add('show');
+    else btn.classList.remove('show');
+  };
+  window.addEventListener('scroll', toggle, {passive:true});
+  toggle();
+  btn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+})();
+</script>
+
 </body></html>
