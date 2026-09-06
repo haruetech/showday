@@ -482,6 +482,63 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
 }
 
 </style>
+<style>
+/* ===== SHOWDAY ALL TOP MENU VISIBLE ===== */
+.sd-nav{overflow-x:auto;overflow-y:hidden}
+.sd-nav-inner{
+  width:max-content;
+  min-width:100%;
+  padding:0 18px;
+  height:68px;
+}
+.sd-brand{position:sticky;left:0;z-index:3;background:rgba(11,9,7,.98);padding-right:14px}
+.sd-menu{
+  display:flex !important;
+  position:static !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  gap:14px !important;
+  margin-left:18px !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.sd-menu a{
+  display:inline-flex !important;
+  align-items:center;
+  white-space:nowrap;
+  padding:8px 2px !important;
+  font-size:12px !important;
+  background:transparent !important;
+}
+.sd-inquiry{
+  padding:9px 13px !important;
+  margin-top:0 !important;
+  background:#E7AD46 !important;
+  color:#251A05 !important;
+}
+.sd-mobile-btn{display:none !important}
+
+@media(max-width:900px){
+  .sd-nav-inner{
+    width:max-content !important;
+    min-width:100%;
+    height:64px;
+    padding:0 14px;
+  }
+  .sd-brand-tag{display:none}
+  .sd-menu{
+    display:flex !important;
+    position:static !important;
+    gap:12px !important;
+    margin-left:14px !important;
+  }
+  .sd-menu a{font-size:11.5px !important;padding:7px 1px !important}
+  .sd-inquiry{padding:8px 12px !important}
+}
+</style>
 </head>
 <body>
 
