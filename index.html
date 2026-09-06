@@ -170,6 +170,19 @@ section{padding:88px 0;border-top:1px solid var(--line);}
 
 footer{border-top:1px solid var(--line);padding:36px 0;}
 .footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--faint);}
+.footer-links{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.footer-links a{color:var(--muted);transition:.2s;}
+.footer-links a:hover{color:var(--amber);}
+.back-to-top{
+  position:fixed;right:22px;bottom:22px;z-index:70;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(242,184,75,.35);background:rgba(21,18,14,.92);color:var(--amber);
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;cursor:pointer;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .2s ease,transform .2s ease,visibility .2s ease,background .2s ease;
+  box-shadow:0 10px 28px rgba(0,0,0,.28);backdrop-filter:blur(10px);
+}
+.back-to-top.show{opacity:1;visibility:visible;transform:translateY(0);}
+.back-to-top:hover{background:var(--amber);color:#241A05;}
 
 :focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
 
@@ -410,153 +423,22 @@ h1.headline{font-size:42px;line-height:1.12;letter-spacing:-.035em;max-width:640
 img{-webkit-user-drag:none;user-drag:none}
 body{-webkit-touch-callout:none}
 input,textarea,select{-webkit-user-select:text;user-select:text}
-
-/* ===== SHOWDAY GLOBAL NAV 2026 ===== */
-.sd-nav{
-  position:sticky;top:0;z-index:999;
-  background:rgba(11,9,7,.94);
-  border-bottom:1px solid #342A20;
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-}
-.sd-nav-inner{
-  width:min(1180px,calc(100% - 48px));
-  height:72px;margin:0 auto;
-  display:flex;align-items:center;gap:18px;
-}
-.sd-brand{
-  display:flex;align-items:baseline;gap:9px;
-  text-decoration:none;color:#F7F2EA;flex:none;
-}
-.sd-brand-name{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:25px;letter-spacing:.06em;
-}
-.sd-brand-tag{
-  color:#E7AD46;font-size:10px;font-weight:800;
-  white-space:nowrap;
-}
-.sd-menu{
-  margin-left:auto;display:flex;align-items:center;
-  gap:17px;white-space:nowrap;
-}
-.sd-menu a{
-  color:#C4B8A8;text-decoration:none;
-  font-size:12.5px;font-weight:700;
-  transition:color .2s ease;
-}
-.sd-menu a:hover,.sd-menu a.active{color:#E7AD46}
-.sd-inquiry{
-  display:inline-flex;align-items:center;justify-content:center;
-  border-radius:999px;background:#E7AD46;color:#251A05!important;
-  padding:10px 15px;font-weight:900!important;
-}
-.sd-mobile-btn{
-  display:none;margin-left:auto;width:42px;height:42px;
-  border:1px solid #342A20;border-radius:12px;
-  background:#17120E;color:#F7F2EA;font-size:19px;cursor:pointer;
-}
-@media(max-width:1040px){
-  .sd-menu{gap:12px}
-  .sd-menu a{font-size:11.5px}
-}
-@media(max-width:900px){
-  .sd-nav-inner{width:min(1180px,calc(100% - 30px));height:64px}
-  .sd-brand-tag{display:none}
-  .sd-menu{
-    position:absolute;left:15px;right:15px;top:72px;
-    display:none;flex-direction:column;align-items:stretch;gap:0;
-    padding:10px;background:#15120E;border:1px solid #342A20;
-    border-radius:16px;box-shadow:0 18px 45px rgba(0,0,0,.36);
-  }
-  .sd-menu.open{display:flex}
-  .sd-menu a{
-    padding:13px 14px;border-radius:10px;font-size:13px;
-  }
-  .sd-menu a:hover,.sd-menu a.active{background:#211A13}
-  .sd-inquiry{margin-top:5px}
-  .sd-mobile-btn{display:inline-flex;align-items:center;justify-content:center}
-}
-@media(max-width:520px){
-  .sd-brand-name{font-size:23px}
-}
-
-</style>
-<style>
-/* ===== SHOWDAY ALL TOP MENU VISIBLE ===== */
-.sd-nav{overflow-x:auto;overflow-y:hidden}
-.sd-nav-inner{
-  width:max-content;
-  min-width:100%;
-  padding:0 18px;
-  height:68px;
-}
-.sd-brand{position:sticky;left:0;z-index:3;background:rgba(11,9,7,.98);padding-right:14px}
-.sd-menu{
-  display:flex !important;
-  position:static !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  gap:14px !important;
-  margin-left:18px !important;
-  padding:0 !important;
-  background:transparent !important;
-  border:0 !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
-.sd-menu a{
-  display:inline-flex !important;
-  align-items:center;
-  white-space:nowrap;
-  padding:8px 2px !important;
-  font-size:12px !important;
-  background:transparent !important;
-}
-.sd-inquiry{
-  padding:9px 13px !important;
-  margin-top:0 !important;
-  background:#E7AD46 !important;
-  color:#251A05 !important;
-}
-.sd-mobile-btn{display:none !important}
-
-@media(max-width:900px){
-  .sd-nav-inner{
-    width:max-content !important;
-    min-width:100%;
-    height:64px;
-    padding:0 14px;
-  }
-  .sd-brand-tag{display:none}
-  .sd-menu{
-    display:flex !important;
-    position:static !important;
-    gap:12px !important;
-    margin-left:14px !important;
-  }
-  .sd-menu a{font-size:11.5px !important;padding:7px 1px !important}
-  .sd-inquiry{padding:8px 12px !important}
-}
 </style>
 </head>
-<body>
+<body id="top">
 
-<nav class="sd-nav" aria-label="SHOWDAY 주요 메뉴">
-  <div class="sd-nav-inner">
-    <a class="sd-brand" href="/">
-      <span class="sd-brand-name">SHOWDAY</span>
-      <span class="sd-brand-tag">공연 가는 날, 필요한 모든 것</span>
-    </a>
-    <button class="sd-mobile-btn" type="button" aria-label="메뉴 열기" aria-expanded="false">☰</button>
-    <div class="sd-menu">
-      <a href="/#journey" class="active">서비스 소개</a>
+<nav>
+  <div class="navrow">
+    <a class="brand" href="#top" aria-label="SHOWDAY 맨 위로"><span class="display">SHOWDAY</span><small>공연 가는 날, 필요한 모든 것</small></a>
+    <div class="nav-links">
+      <a href="#journey">서비스 소개</a>
       <a href="/50plus/">50+ 공연</a>
       <a href="/parents/">부모를 위한 공연</a>
       <a href="/live/">SHOWDAY LIVE</a>
-      <a href="/#partner">파트너</a>
-      <a href="/#partner-contact" class="sd-inquiry">제휴 문의</a>
+      <a href="#partner">파트너</a>
+      <a href="#partner-contact">제휴 문의</a>
     </div>
+    <a class="btn btn-amber btn-sm nav-cta" href="#waitlist">오픈 알림 신청 <span>›</span></a>
   </div>
 </nav>
 
@@ -578,7 +460,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       </div>
       <div class="hero-ctas">
         <a class="btn btn-amber" href="#journey">SHOWDAY 알아보기 <span>›</span></a>
-        <a class="btn btn-line" href="#showday-original">SHOWDAY 사업 보기</a>
+        <a class="btn btn-line" href="#showday-original">3가지 사업 보기</a>
       </div>
       <p class="hero-note"><strong>티켓을 파는 플랫폼보다, 공연 가는 하루를 연결하는 플랫폼.</strong></p>
     </div>
@@ -824,9 +706,25 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
 <footer>
   <div class="wrap footer-row">
     <span>SHOWDAY — 공연 가는 날을 위한 안내 서비스 (준비 중)</span>
-    <span>© SHOWDAY · showday.kr</span>
+    <div class="footer-links">
+      <a href="/50plus/">50+ 공연</a>
+      <a href="/parents/">부모를 위한 공연</a>
+      <a href="/live/">SHOWDAY LIVE</a>
+      <a href="#partner-contact">행사·제휴 문의</a>
+      <span>© SHOWDAY · showday.kr</span>
+    </div>
   </div>
 </footer>
+<button class="back-to-top" id="backToTop" type="button" aria-label="페이지 상단으로 이동" title="상단으로">↑</button>
+
+<script>
+(function(){
+  const btn=document.getElementById('backToTop');
+  const toggle=()=>window.scrollY>500?btn.classList.add('show'):btn.classList.remove('show');
+  window.addEventListener('scroll',toggle,{passive:true});toggle();
+  btn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+})();
+</script>
 
 <script>
 // 히어로 티켓의 카운트다운은 설명용 예시입니다 (실제 공연 데이터 아님).
@@ -919,24 +817,5 @@ document.getElementById('wlSubmit').addEventListener('click', () => {
   },{capture:true});
 })();
 </script>
-
-<script>
-(function(){
-  const btn=document.querySelector('.sd-mobile-btn');
-  const menu=document.querySelector('.sd-menu');
-  if(!btn||!menu) return;
-  btn.addEventListener('click',function(){
-    const open=menu.classList.toggle('open');
-    btn.setAttribute('aria-expanded',open?'true':'false');
-    btn.textContent=open?'×':'☰';
-  });
-  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
-    menu.classList.remove('open');
-    btn.setAttribute('aria-expanded','false');
-    btn.textContent='☰';
-  }));
-})();
-</script>
-
 </body>
 </html>
