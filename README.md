@@ -13,8 +13,7 @@ npm run dev
 ## 구조
 - `src/app/page.tsx` — SHOWDAY HOME 메인 (비로그인/로그인 두 화면)
 - `src/app/onboarding/page.tsx` — 카카오 로그인 직후 "추천 설정" 온보딩 (연령대·지역·동반자·요일·거리·장르를 칩으로 선택)
-- `src/app/arena/page.tsx` — ARENA NOW 프리뷰 페이지. 기획은 보존하되 실제 기능 개발은 보류 (서울아레나 제휴 확정 후 착수)
-- `docs/arena-now-vision.md` — ARENA NOW 풀 디자인 비전 문서 (풀스크린 조감도, MY SHOW DAY 타임라인, 시간대별 상태머신 등). 착수 조건 갖춰지기 전까지는 문서로만 보존
+- `src/app/arena/page.tsx` — **ARENA NOW는 별도 저장소(`arena-now`)로 완전히 분리되어 `arena.showday.kr`에서 서비스됩니다.** 이 경로는 안내 페이지 없이 `redirect()`로 곧바로 `arena.showday.kr`로 넘깁니다. 디자인 스펙은 `docs/arena-now-vision.md`에 보존되어 있고, 실제 구현은 `arena-now` 저장소를 참고하세요.
 - `src/lib/recommend.ts` — 조건 조합형 추천 엔진. "50대=트로트" 같은 단일 속성이 아니라 연령대·지역·동반자·요일·거리·장르를 함께 점수화
 - `src/lib/profile.ts` — 추천 프로필 저장. **로그인 상태면 Supabase `profiles` 테이블을 우선 사용하고, 비로그인/미설정 시에만 localStorage로 폴백**합니다
 - `src/app/api/kopis/route.ts` — KOPIS 오픈API 프록시. `KOPIS_SERVICE_KEY`가 없으면 `src/lib/dummy-data.ts`로 자동 폴백

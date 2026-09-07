@@ -67,10 +67,15 @@ export default function Header({
           <a href="#venues" className="hover:text-paper">공연장</a>
           <a href="#fiftyplus" className="hover:text-paper">시니어 공연</a>
           <a href="#around" className="hover:text-paper">AROUND</a>
-          <a href="/arena" className="flex items-center gap-1.5 hover:text-paper">
+          <a
+            href="https://arena.showday.kr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 hover:text-paper"
+          >
             ARENA NOW
             <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-muted">
-              준비중
+              ↗
             </span>
           </a>
         </nav>

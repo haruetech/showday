@@ -54,3 +54,56 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ===================================================================
+   ARENA NOW — 컨셉 프로토타입 전용 테마.
+   SHOWDAY 본체(ink/gold, Nanum Myeongjo)와 완전히 분리된 독립 디자인 시스템.
+   .arena-scope 안에서만 적용되어 SHOWDAY 화면에는 영향을 주지 않습니다.
+   =================================================================== */
+.arena-scope {
+  --arena-bg: #05060a;
+  --arena-bg-glow: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139, 92, 246, 0.18), transparent 70%);
+  --arena-glass: rgba(255, 255, 255, 0.05);
+  --arena-glass-strong: rgba(255, 255, 255, 0.09);
+  --arena-border: rgba(255, 255, 255, 0.14);
+  --arena-text: #f1f2f8;
+  --arena-muted: #8a8ea3;
+  --arena-font-display: "Orbitron", "Gothic A1", sans-serif;
+  --arena-font-body: "Gothic A1", sans-serif;
+
+  background: var(--arena-bg);
+  color: var(--arena-text);
+  font-family: var(--arena-font-body);
+  min-height: 100vh;
+}
+
+.arena-glass {
+  background: var(--arena-glass);
+  border: 1px solid var(--arena-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.arena-glass-strong {
+  background: var(--arena-glass-strong);
+  border: 1px solid var(--arena-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@keyframes arena-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.15); }
+}
+.arena-pulse {
+  animation: arena-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes arena-drift {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+.arena-drift {
+  animation: arena-drift 4s ease-in-out infinite;
+}
