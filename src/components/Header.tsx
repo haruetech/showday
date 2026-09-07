@@ -1,0 +1,119 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import { isAuthConfigured, signInWithKakao, signOut } from "@/lib/auth";
+import { getProfile } from "@/lib/profile";
+
+type ViewMode = "guest" | "member";
+
+export default function Header({
+  mode,
+  onModeChange,
+}: {
+  mode: ViewMode;
+  onModeChange: (m: ViewMode) => void;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthConfigured) return;
+    const supabase = createClient();
+    if (!supabase) return;
+
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user ?? null);
+      if (data.user) {
+        onModeChange("member");
+        const profile = await getProfile();
+        if (!profile) router.push("/onboarding");
+      }
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      onModeChange(session?.user ? "member" : "guest");
+      if (session?.user) {
+        getProfile().then((profile) => {
+          if (!profile) router.push("/onboarding");
+        });
+      }
+    });
+
+    return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const nickname =
+    (user?.user_metadata?.name as string | undefined) ??
+    (user?.user_metadata?.full_name as string | undefined) ??
+    "회원님";
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+        <div className="flex items-baseline gap-1">
+          <span className="font-display text-2xl tracking-tight text-paper">
+            SHOWDAY
+          </span>
+          <span className="text-xs text-muted">공연비서</span>
+        </div>
+
+        <nav className="hidden items-center gap-6 text-sm text-muted md:flex">
+          <a href="#shows" className="hover:text-paper">공연</a>
+          <a href="#venues" className="hover:text-paper">공연장</a>
+          <a href="#fiftyplus" className="hover:text-paper">시니어 공연</a>
+          <a href="#around" className="hover:text-paper">AROUND</a>
+          <a href="/arena" className="flex items-center gap-1.5 hover:text-paper">
+            ARENA NOW
+            <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-muted">
+              준비중
+            </span>
+          </a>
+        </nav>
+
+        {user ? (
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-muted">{nickname}님</span>
+            <button
+              onClick={signOut}
+              className="rounded-full border border-line px-3 py-1.5 text-muted transition-colors hover:border-gold hover:text-paper"
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : isAuthConfigured ? (
+          <button
+            onClick={signInWithKakao}
+            className="flex items-center gap-1.5 rounded-full bg-[#FEE500] px-4 py-2 text-xs font-bold text-[#191600] transition-opacity hover:opacity-90"
+          >
+            카카오로 로그인
+          </button>
+        ) : (
+          // Supabase/Kakao 연동 전 프리뷰용 데모 토글
+          <div className="flex items-center gap-1 rounded-full border border-line p-1 text-xs">
+            <button
+              onClick={() => onModeChange("guest")}
+              className={`rounded-full px-3 py-1.5 transition-colors ${
+                mode === "guest" ? "bg-gold text-ink" : "text-muted hover:text-paper"
+              }`}
+            >
+              비로그인
+            </button>
+            <button
+              onClick={() => onModeChange("member")}
+              className={`rounded-full px-3 py-1.5 transition-colors ${
+                mode === "member" ? "bg-gold text-ink" : "text-muted hover:text-paper"
+              }`}
+            >
+              로그인 (데모)
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

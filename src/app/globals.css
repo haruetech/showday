@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #14111c;
+  --surface: #1e1a29;
+  --surface-raised: #262032;
+  --line: #35303f;
+  --gold: #e8a33d;
+  --gold-dim: #a9781f;
+  --brick: #b85c4a;
+  --paper: #f3eee4;
+  --muted: #9b94a8;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-brick: var(--brick);
+  --color-paper: var(--paper);
+  --color-muted: var(--muted);
+  --font-display: "Nanum Myeongjo", ui-serif, "Noto Serif KR", serif;
+  --font-sans: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;
+}
+
+html {
+  background: var(--ink);
+}
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* 티켓 절취선 느낌의 구분선 */
+.perforated {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--line) 0,
+    var(--line) 6px,
+    transparent 6px,
+    transparent 14px
+  );
+  height: 1px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
