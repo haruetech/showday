@@ -1,29 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchBoxOffice, fetchPerformanceList } from "@/lib/kopis";
+import { fetchPerformanceList } from "@/lib/kopis";
 import { popularShows, todayShows } from "@/lib/dummy-data";
 
-// GET /api/kopis?type=boxoffice|list&region=서울
-// KOPIS_SERVICE_KEY가 .env.local에 없으면 dummy-data로 자동 폴백합니다.
+// GET /api/kopis?type=today|upcoming&region=<KOPIS 지역코드>
+// Vercel Secret: KOPIS_API_KEY
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") ?? "boxoffice";
+  const type = searchParams.get("type") ?? "upcoming";
   const region = searchParams.get("region") ?? undefined;
 
-  const today = new Date();
-  const stdate = toKopisDate(today);
-  const eddate = toKopisDate(new Date(today.getTime() + 30 * 86400000));
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  if (type === "today") {
+    // 오늘 날짜에 상연기간이 걸쳐 있는 공연을 조회
+  } else {
+    end.setDate(end.getDate() + 30); // KOPIS 공연목록 조회 최대 31일 범위
+  }
+
+  const stdate = toKopisDate(start);
+  const eddate = toKopisDate(end);
 
   try {
-    if (type === "list") {
-      const list = await fetchPerformanceList({ stdate, eddate, signgucode: region });
-      return NextResponse.json({ source: list.length ? "kopis" : "dummy", shows: list.length ? list : todayShows });
-    }
-
-    const list = await fetchBoxOffice({ stdate, eddate, area: region });
-    return NextResponse.json({ source: list.length ? "kopis" : "dummy", shows: list.length ? list : popularShows });
+    const list = await fetchPerformanceList({
+      stdate,
+      eddate,
+      signgucode: region,
+      rows: type === "today" ? 30 : 50,
+    });
+    const fallback = type === "today" ? todayShows : popularShows;
+    return NextResponse.json(
+      { source: list.length ? "kopis" : "dummy", shows: list.length ? list : fallback },
+      { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } }
+    );
   } catch (err) {
     console.error("KOPIS fetch failed, falling back to dummy data:", err);
-    return NextResponse.json({ source: "dummy", shows: popularShows });
+    return NextResponse.json({ source: "dummy", shows: type === "today" ? todayShows : popularShows });
   }
 }
 

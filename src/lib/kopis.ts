@@ -5,7 +5,7 @@ import { Show } from "@/types/show";
  * KOPIS(공연예술통합전산망) 오픈API 연동.
  *
  * 서비스키 발급: https://www.data.go.kr 에서 "공연예술통합전산망" 검색 → 활용신청
- * 발급받은 키를 .env.local 의 KOPIS_SERVICE_KEY 에 넣으면 자동으로 실 데이터 사용.
+ * 발급받은 키를 .env.local 의 KOPIS_API_KEY 에 넣으면 자동으로 실 데이터 사용.
  * 키가 없으면 아래 함수들은 null/빈 배열을 반환하고, 호출부(app/api/kopis/route.ts)가
  * dummy-data.ts 로 자동 폴백합니다.
  */
@@ -13,7 +13,7 @@ import { Show } from "@/types/show";
 const KOPIS_BASE = "http://www.kopis.or.kr/openApi/restful";
 
 function hasServiceKey() {
-  return Boolean(process.env.KOPIS_SERVICE_KEY);
+  return Boolean(process.env.KOPIS_API_KEY);
 }
 
 const parser = new XMLParser({ ignoreAttributes: false });
@@ -42,7 +42,7 @@ export async function fetchBoxOffice(params: {
   if (!hasServiceKey()) return [];
 
   const qs = new URLSearchParams({
-    service: process.env.KOPIS_SERVICE_KEY!,
+    service: process.env.KOPIS_API_KEY!,
     stdate: params.stdate,
     eddate: params.eddate,
     ...(params.area ? { area: params.area } : {}),
@@ -93,7 +93,7 @@ export async function fetchPerformanceList(params: {
   if (!hasServiceKey()) return [];
 
   const qs = new URLSearchParams({
-    service: process.env.KOPIS_SERVICE_KEY!,
+    service: process.env.KOPIS_API_KEY!,
     stdate: params.stdate,
     eddate: params.eddate,
     cpage: "1",

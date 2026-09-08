@@ -16,7 +16,7 @@ npm run dev
 - `src/app/arena/page.tsx` — **ARENA NOW는 별도 저장소(`arena-now`)로 완전히 분리되어 `arena.showday.kr`에서 서비스됩니다.** 이 경로는 안내 페이지 없이 `redirect()`로 곧바로 `arena.showday.kr`로 넘깁니다. 디자인 스펙은 `docs/arena-now-vision.md`에 보존되어 있고, 실제 구현은 `arena-now` 저장소를 참고하세요.
 - `src/lib/recommend.ts` — 조건 조합형 추천 엔진. "50대=트로트" 같은 단일 속성이 아니라 연령대·지역·동반자·요일·거리·장르를 함께 점수화
 - `src/lib/profile.ts` — 추천 프로필 저장. **로그인 상태면 Supabase `profiles` 테이블을 우선 사용하고, 비로그인/미설정 시에만 localStorage로 폴백**합니다
-- `src/app/api/kopis/route.ts` — KOPIS 오픈API 프록시. `KOPIS_SERVICE_KEY`가 없으면 `src/lib/dummy-data.ts`로 자동 폴백
+- `src/app/api/kopis/route.ts` — KOPIS 오픈API 프록시. `KOPIS_API_KEY`가 없으면 `src/lib/dummy-data.ts`로 자동 폴백
 - `src/lib/kopis.ts` — KOPIS XML 응답 파싱 (박스오피스 / 공연목록)
 - `src/lib/supabase/` — 브라우저용/서버용 Supabase 클라이언트 (SSR 패턴)
 - `src/lib/auth.ts` — 카카오 로그인/로그아웃 헬퍼 (로그인 성공 시 온보딩으로 이동)
@@ -57,7 +57,7 @@ Supabase 연결 전에도 두 화면을 미리 볼 수 있습니다.
 **SHOWDAY 1.0** (현재) — 카카오 로그인 → 온보딩(추천 설정) → 개인화 메인 →
 공연·아티스트·공연장 DB(Mock) → 조건 조합 추천 → MY ARTIST/찜·알림 구조
 
-**SHOWDAY 1.5** — KOPIS 실 API 연결(승인 후 `KOPIS_SERVICE_KEY`만 채우면 됨) →
+**SHOWDAY 1.5** — KOPIS 실 API 연결(승인 후 `KOPIS_API_KEY`만 채우면 됨) →
 Supabase 사용자 데이터(현재 localStorage인 프로필 이전) → 가족 프로필
 
 **SHOWDAY 2.0** — 공연장별 AROUND 실제 제휴처 연결 → 수익모델 검증

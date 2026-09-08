@@ -21,6 +21,7 @@ import {
 } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
 import { recommendShows, reasonLabel, ScoredShow } from "@/lib/recommend";
+import { Show } from "@/types/show";
 
 type ViewMode = "guest" | "member";
 
@@ -29,6 +30,27 @@ type ViewMode = "guest" | "member";
 export default function Home() {
   const [mode, setMode] = useState<ViewMode>("guest");
   const [recommended, setRecommended] = useState<ScoredShow[]>([]);
+  const [liveToday, setLiveToday] = useState<Show[]>(todayShows);
+  const [liveUpcoming, setLiveUpcoming] = useState<Show[]>(popularShows);
+  const [kopisSource, setKopisSource] = useState<"loading" | "kopis" | "dummy">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetch("/api/kopis?type=today", { cache: "no-store" }).then((r) => r.json()),
+      fetch("/api/kopis?type=upcoming", { cache: "no-store" }).then((r) => r.json()),
+    ])
+      .then(([todayData, upcomingData]) => {
+        if (cancelled) return;
+        if (Array.isArray(todayData?.shows)) setLiveToday(todayData.shows);
+        if (Array.isArray(upcomingData?.shows)) setLiveUpcoming(upcomingData.shows);
+        setKopisSource(todayData?.source === "kopis" || upcomingData?.source === "kopis" ? "kopis" : "dummy");
+      })
+      .catch(() => {
+        if (!cancelled) setKopisSource("dummy");
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (mode !== "member") return;
@@ -75,14 +97,23 @@ export default function Home() {
           </SectionRow>
         )}
 
-        <SectionRow eyebrow="TODAY" title="오늘의 공연" id="today-shows">
-          {todayShows.map((s) => (
+        <SectionRow
+          eyebrow="TODAY"
+          title="오늘의 공연"
+          id="today-shows"
+          action={<span className="text-[11px] text-muted">{kopisSource === "kopis" ? "KOPIS 실데이터" : kopisSource === "loading" ? "공연정보 불러오는 중" : "샘플 데이터"}</span>}
+        >
+          {liveToday.map((s) => (
             <ShowCard key={s.id} show={s} />
           ))}
         </SectionRow>
 
-        <SectionRow eyebrow="UPCOMING" title="다가오는 공연">
-          {popularShows.map((s) => (
+        <SectionRow
+          eyebrow="UPCOMING"
+          title="다가오는 공연"
+          action={<span className="text-[11px] text-muted">{kopisSource === "kopis" ? "KOPIS 연동" : ""}</span>}
+        >
+          {liveUpcoming.map((s) => (
             <ShowCard key={s.id} show={s} />
           ))}
         </SectionRow>
