@@ -196,10 +196,59 @@ export async function fetchBoxOffice(params: {
       posterFrom: "#f3c9a0",
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
+      status: row.prfstate?.trim() || undefined,
     })
   );
 
   return enrichWithDetails(shows);
+}
+
+/**
+ * 아티스트/키워드로 "공연 중 + 예정 공연"을 폭넓게 찾는다.
+ * KOPIS pblprfr는 한 번 호출에 최대 31일 범위만 조회되므로, 오늘부터
+ * 이어지는 31일짜리 창을 여러 번 호출해서 이어붙인다(총 약 6개월).
+ * 이미 충분한 결과(rows)를 모았으면 더 부르지 않고 조기 종료한다.
+ */
+export async function fetchArtistShows(query: string, rows = 30): Promise<Show[]> {
+  if (!hasServiceKey() || !query.trim()) return [];
+
+  const WINDOW_DAYS = 31;
+  const MAX_WINDOWS = 6; // 약 6개월치
+  const seen = new Map<string, Show>();
+  const cursor = new Date();
+
+  for (let i = 0; i < MAX_WINDOWS && seen.size < rows; i++) {
+    const start = new Date(cursor);
+    start.setDate(start.getDate() + i * WINDOW_DAYS);
+    const end = new Date(start);
+    end.setDate(end.getDate() + WINDOW_DAYS - 1);
+
+    const windowShows = await fetchPerformanceList({
+      stdate: toKopisDate(start),
+      eddate: toKopisDate(end),
+      shprfnm: query,
+      rows: 50,
+    });
+
+    for (const show of windowShows) {
+      if (!seen.has(show.id)) seen.set(show.id, show);
+    }
+
+    // 이번 창에서 하나도 안 나왔고, 이미 한 번이라도 결과를 모았다면
+    // 뒤로 갈수록 더 안 나올 가능성이 높아 호출을 아낀다.
+    if (windowShows.length === 0 && seen.size > 0 && i >= 1) break;
+  }
+
+  return Array.from(seen.values())
+    .sort((a, b) => a.dateLabel.localeCompare(b.dateLabel))
+    .slice(0, rows);
+}
+
+function toKopisDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
 }
 
 /**
@@ -253,6 +302,7 @@ export async function fetchPerformanceList(params: {
       posterFrom: "#f3c9a0",
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
+      status: row.prfstate?.trim() || undefined,
     })
   );
 

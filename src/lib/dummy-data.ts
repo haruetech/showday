@@ -170,9 +170,15 @@ export const venues: Venue[] = [
 ];
 
 export const artists: Artist[] = [
-  { id: "A001", name: "임영웅", genre: "가요", upcoming: 2, posterFrom: "#3a1f1c", posterTo: "#e8a33d" },
+  { id: "A001", name: "임영웅", genre: "트로트", upcoming: 2, posterFrom: "#3a1f1c", posterTo: "#e8a33d" },
   { id: "A002", name: "이문세", genre: "가요", upcoming: 1, posterFrom: "#5b3a2e", posterTo: "#e8a33d" },
   { id: "A003", name: "박진영", genre: "가요", upcoming: 1, posterFrom: "#1c1f3a", posterTo: "#e8a33d" },
+  { id: "A004", name: "아이유", genre: "발라드", upcoming: 1, posterFrom: "#2a1c3a", posterTo: "#d2691e" },
+  { id: "A005", name: "DAY6", genre: "밴드", upcoming: 1, posterFrom: "#1c2f3a", posterTo: "#d2691e" },
+  { id: "A006", name: "세븐틴", genre: "K-POP", upcoming: 1, posterFrom: "#3a1c2f", posterTo: "#d2691e" },
+  { id: "A007", name: "조용필", genre: "가요", upcoming: 1, posterFrom: "#3a2a1c", posterTo: "#dd8a52" },
+  { id: "A008", name: "박효신", genre: "발라드", upcoming: 1, posterFrom: "#1c3a2f", posterTo: "#d2691e" },
+  { id: "A009", name: "뮤지컬 배우", genre: "뮤지컬", upcoming: 1, posterFrom: "#2f1c3a", posterTo: "#dd8a52" },
 ];
 
 export const myAlerts = [

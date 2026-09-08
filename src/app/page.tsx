@@ -21,6 +21,8 @@ import {
   artists,
 } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
+import { getFollowedArtistIds, toggleArtistFollow } from "@/lib/favorites";
+import { sortArtistsByAgeBand } from "@/lib/artistAffinity";
 import { recommendShows, reasonLabel, ScoredShow } from "@/lib/recommend";
 import { Show } from "@/types/show";
 
@@ -34,6 +36,8 @@ export default function Home() {
   const [liveToday, setLiveToday] = useState<Show[]>(todayShows);
   const [liveUpcoming, setLiveUpcoming] = useState<Show[]>(popularShows);
   const [kopisSource, setKopisSource] = useState<"loading" | "kopis" | "dummy">("loading");
+  const [followedArtistIds, setFollowedArtistIds] = useState<Set<string>>(new Set());
+  const [orderedArtists, setOrderedArtists] = useState(artists);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,10 +66,37 @@ export default function Home() {
       if (p) setRecommended(recommendShows(allShows, p, 6));
     });
 
+    getFollowedArtistIds().then((ids) => {
+      if (!cancelled) setFollowedArtistIds(ids);
+    });
+
     return () => {
       cancelled = true;
     };
   }, [mode]);
+
+  useEffect(() => {
+    // 연령대는 첫 화면 아티스트 "순서"만 바꾸는 초기값으로 쓴다 — 목록을 걸러내지 않는다.
+    let cancelled = false;
+    getProfile().then((p) => {
+      if (cancelled) return;
+      setOrderedArtists(p ? sortArtistsByAgeBand(artists, p.ageBand) : artists);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleToggleFollow(artistId: string) {
+    // 낙관적 업데이트 — 실패해도 눈에 띄는 지연 없이 바로 반응
+    setFollowedArtistIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(artistId)) next.delete(artistId);
+      else next.add(artistId);
+      return next;
+    });
+    await toggleArtistFollow(artistId);
+  }
 
   return (
     <>
@@ -121,10 +152,21 @@ export default function Home() {
 
         <SectionRow
           eyebrow="MY ARTISTS"
-          title={mode === "member" ? "관심 아티스트" : "공연으로 만나고 싶은 아티스트"}
+          title="관심 아티스트"
+          action={
+            mode === "guest" ? (
+              <span className="text-[11px] text-muted">로그인하면 ♡ 저장돼요</span>
+            ) : undefined
+          }
         >
-          {artists.map((a) => (
-            <ArtistCard key={a.id} artist={a} />
+          {orderedArtists.map((a) => (
+            <ArtistCard
+              key={a.id}
+              artist={a}
+              mode={mode}
+              isFollowing={followedArtistIds.has(a.id)}
+              onToggleFollow={handleToggleFollow}
+            />
           ))}
         </SectionRow>
 

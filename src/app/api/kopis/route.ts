@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPerformanceList, fetchPerformanceDetail } from "@/lib/kopis";
+import { fetchPerformanceList, fetchPerformanceDetail, fetchArtistShows } from "@/lib/kopis";
 import { popularShows, todayShows } from "@/lib/dummy-data";
 
-// GET /api/kopis?type=today|upcoming&region=<KOPIS 지역코드>
+// GET /api/kopis?type=today|upcoming|artist|search&region=<KOPIS 지역코드>
 // Vercel Secret: KOPIS_API_KEY
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -12,9 +12,29 @@ export async function GET(req: NextRequest) {
     const detail = await fetchPerformanceDetail(id);
     return NextResponse.json({ source: detail ? "kopis" : "none", detail });
   }
-  const region = searchParams.get("region") ?? undefined;
+
   const q = searchParams.get("q") ?? undefined;
   const rows = Number(searchParams.get("rows") ?? "40");
+
+  // 아티스트/특정 검색어 검색: 이번 주 같은 좁은 기간이 아니라 공연중+예정을
+  // 폭넓게(최대 6개월치) 찾는다. 결과가 없으면 무관한 인기공연을 대신 보여주지
+  // 않고 정직하게 "없음"으로 응답한다 — 특정 아티스트를 찾는 사람에게 엉뚱한
+  // 더미 공연을 보여주면 검색이 그냥 고장난 것처럼 느껴지기 때문.
+  if (type === "artist") {
+    if (!q?.trim()) return NextResponse.json({ source: "none", shows: [] });
+    try {
+      const list = await fetchArtistShows(q, Math.min(Math.max(rows, 1), 60));
+      return NextResponse.json(
+        { source: list.length ? "kopis" : "none", shows: list },
+        { headers: { "Cache-Control": "s-maxage=900, stale-while-revalidate=1800" } }
+      );
+    } catch (err) {
+      console.error("KOPIS artist search failed:", err);
+      return NextResponse.json({ source: "none", shows: [] });
+    }
+  }
+
+  const region = searchParams.get("region") ?? undefined;
   const range = searchParams.get("range") ?? (type === "today" ? "today" : "30d");
 
   const now = new Date();
@@ -47,6 +67,14 @@ export async function GET(req: NextRequest) {
       shprfnm: q,
       rows: type === "today" ? 30 : Math.min(Math.max(rows, 1), 100),
     });
+
+    // 검색어(q)가 있는 조회는 "그 검색어에 대한 결과"이므로, 0건이면 무관한
+    // 더미 인기공연으로 채우지 않고 정직하게 빈 배열로 응답한다.
+    // 검색어 없는 일반 브라우징(오늘의 공연 등)만 더미로 폴백한다.
+    if (!list.length && q?.trim()) {
+      return NextResponse.json({ source: "none", shows: [] });
+    }
+
     const fallback = type === "today" ? todayShows : popularShows;
     return NextResponse.json(
       { source: list.length ? "kopis" : "dummy", shows: list.length ? list : fallback },
@@ -54,6 +82,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (err) {
     console.error("KOPIS fetch failed, falling back to dummy data:", err);
+    if (q?.trim()) return NextResponse.json({ source: "none", shows: [] });
     return NextResponse.json({ source: "dummy", shows: type === "today" ? todayShows : popularShows });
   }
 }
