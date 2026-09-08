@@ -75,7 +75,7 @@ export default function Home() {
           </SectionRow>
         )}
 
-        <SectionRow eyebrow="TODAY" title="오늘의 공연">
+        <SectionRow eyebrow="TODAY" title="오늘의 공연" id="today-shows">
           {todayShows.map((s) => (
             <ShowCard key={s.id} show={s} />
           ))}
