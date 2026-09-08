@@ -36,7 +36,7 @@ export default function ShowCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="font-display font-bold text-lg leading-snug text-paper">
+        <h3 className="font-display text-lg leading-snug text-paper">
           {show.title}
         </h3>
         <p className="text-sm text-muted">

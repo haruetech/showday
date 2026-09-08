@@ -36,7 +36,7 @@ export default function ParentsFiftyPlusSection() {
       <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <p className="mb-2 text-xs font-bold tracking-[0.18em] text-gold">SHOWDAY 50+</p>
-          <h2 className="font-display font-bold text-3xl leading-snug text-paper">부모님과, 또는<br />나를 위한 50+ 공연</h2>
+          <h2 className="font-display text-3xl leading-snug text-paper">부모님과, 또는<br />나를 위한 50+ 공연</h2>
           <p className="mt-4 text-sm leading-7 text-muted">대형 콘서트만 보여주지 않습니다. 클래식·연극·뮤지컬·강연·지역문화공연까지 취향과 이동 편의에 맞춰 고르는 전문 카테고리입니다.</p>
           <div className="mt-5 flex flex-wrap gap-2">
             {fiftyPlusPicks.map((tag) => <span key={tag} className="rounded-full border border-line px-3 py-1 text-xs text-paper">{tag}</span>)}
@@ -53,7 +53,7 @@ export default function ParentsFiftyPlusSection() {
                 <span className="text-xs font-bold text-gold">{s.no}</span>
                 <span className="rounded-full border border-line px-2 py-1 text-[10px] text-muted">{s.badge}</span>
               </div>
-              <h3 className="mt-4 font-display font-bold text-lg text-paper">{s.title}</h3>
+              <h3 className="mt-4 font-display text-lg text-paper">{s.title}</h3>
               <p className="mt-2 text-xs leading-6 text-muted">{s.desc}</p>
             </article>
           ))}
