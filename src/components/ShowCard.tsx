@@ -9,6 +9,10 @@ export default function ShowCard({
   reason?: string;
 }) {
   const displayReason = reason ?? show.reason;
+  // 예매처 링크가 없으면 KOPIS 공연상세 페이지로 보냄(mt20id는 KOPIS 실 데이터에서만 PFxxxxxx 형태)
+  const isRealKopisId = /^PF\d{6,}$/.test(show.id);
+  const destinationUrl =
+    show.bookingUrl ?? (isRealKopisId ? `https://www.kopis.or.kr/mob/db/pblprfrView.do?mt20Id=${show.id}` : null);
 
   return (
     <div className="group flex w-64 shrink-0 flex-col overflow-hidden rounded-sm border border-line bg-surface transition-colors hover:border-gold">
@@ -65,14 +69,14 @@ export default function ShowCard({
           <p className="text-xs leading-relaxed text-gold">{displayReason}</p>
         )}
 
-        {show.bookingUrl && (
+        {destinationUrl && (
           <a
-            href={show.bookingUrl}
+            href={destinationUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-1 inline-flex items-center justify-center rounded-sm border border-line py-2 text-xs text-paper transition-colors hover:border-gold"
           >
-            예매처에서 실시간 가격·좌석 보기 ↗
+            {show.bookingUrl ? "예매처에서 실시간 가격·좌석 보기 ↗" : "공연 상세정보 보기 ↗"}
           </a>
         )}
       </div>

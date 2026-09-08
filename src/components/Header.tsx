@@ -59,7 +59,7 @@ export default function Header({
           <span className="font-display font-bold text-2xl tracking-tight text-paper">
             SHOWDAY
           </span>
-          <span className="text-xs text-muted">공연비서</span>
+          <span className="whitespace-nowrap text-xs text-muted">공연비서</span>
         </div>
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">

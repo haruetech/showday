@@ -12,7 +12,6 @@ import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
 import AroundSection from "@/components/AroundSection";
 import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
-import ShowdayTrends from "@/components/ShowdayTrends";
 import {
   todayShows,
   popularShows,
@@ -121,7 +120,7 @@ export default function Home() {
 
         <SectionRow
           eyebrow="MY ARTISTS"
-          title={mode === "member" ? "관심 아티스트" : "공연으로 만나고 싶은 아티스트"}
+          title={mode === "member" ? "데모 관심 아티스트" : "인기 아티스트"}
         >
           {artists.map((a) => (
             <ArtistCard key={a.id} artist={a} />
@@ -133,8 +132,6 @@ export default function Home() {
             <VenueCard key={v.id} venue={v} />
           ))}
         </SectionRow>
-
-        <ShowdayTrends />
 
         <ParentsFiftyPlusSection />
 
