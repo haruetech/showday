@@ -25,8 +25,10 @@ export interface Show {
   runningTime: string; // "150분"
   tags: ShowTag[];
   reason?: string; // AI 추천 사유 (정적 예시가 필요할 때만 사용, 로그인 시엔 동적 생성)
-  posterFrom: string; // 그라디언트 시작 hex
-  posterTo: string; // 그라디언트 끝 hex
+  posterFrom: string; // 그라디언트 시작 hex (실제 포스터 없을 때 폴백)
+  posterTo: string; // 그라디언트 끝 hex (실제 포스터 없을 때 폴백)
+  posterUrl?: string; // KOPIS 실제 포스터 이미지 URL (있으면 그라디언트 대신 이걸 표시)
+  bookingUrl?: string; // 예매처 딥링크 (KOPIS 상세 API의 relates.relate) — 실시간 가격/좌석은 여기서 확인
 }
 
 export interface Artist {

@@ -13,11 +13,23 @@ export default function ShowCard({
   return (
     <div className="group flex w-72 shrink-0 flex-col overflow-hidden rounded-sm border border-line bg-surface transition-colors hover:border-gold">
       <div
-        className="relative h-40 w-full"
+        className="relative h-40 w-full overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${show.posterFrom}, ${show.posterTo})`,
         }}
       >
+        {show.posterUrl && (
+          <img
+            src={show.posterUrl}
+            alt={`${show.title} 포스터`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+            // KOPIS 포스터 URL이 깨져 있는 경우, 그라디언트 배경만 남기고 이미지는 숨김
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        )}
         <span className="absolute left-3 top-3 rounded-full bg-ink/60 px-2 py-0.5 text-xs text-paper backdrop-blur-sm">
           {show.genre}
         </span>
@@ -51,6 +63,17 @@ export default function ShowCard({
         {displayReason && <div className="perforated my-1" aria-hidden />}
         {displayReason && (
           <p className="text-xs leading-relaxed text-gold">{displayReason}</p>
+        )}
+
+        {show.bookingUrl && (
+          <a
+            href={show.bookingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-flex items-center justify-center rounded-sm border border-line py-2 text-xs text-paper transition-colors hover:border-gold"
+          >
+            예매처에서 실시간 가격·좌석 보기 ↗
+          </a>
         )}
       </div>
     </div>
