@@ -94,7 +94,7 @@ interface DetailInfo {
  * 공연 상세 조회 — pblprfr/{mt20id}
  * 가격(pcseguidance) / 관람등급(prfage) / 공연시간(prfruntime) / 예매처 링크(relates.relate) 확보
  */
-async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo | null> {
+export async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo | null> {
   if (!hasServiceKey()) return null;
   try {
     const qs = new URLSearchParams({ service: process.env.KOPIS_API_KEY! });
@@ -193,8 +193,8 @@ export async function fetchBoxOffice(params: {
       ageLabel: "관람등급 정보 없음",
       runningTime: "",
       tags: [],
-      posterFrom: "#2c2440",
-      posterTo: "#e8a33d",
+      posterFrom: "#f3c9a0",
+      posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
     })
   );
@@ -250,8 +250,8 @@ export async function fetchPerformanceList(params: {
       ageLabel: "관람등급 정보 없음",
       runningTime: "",
       tags: [],
-      posterFrom: "#2c2440",
-      posterTo: "#e8a33d",
+      posterFrom: "#f3c9a0",
+      posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
     })
   );

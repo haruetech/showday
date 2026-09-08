@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPerformanceList } from "@/lib/kopis";
+import { fetchPerformanceList, fetchPerformanceDetail } from "@/lib/kopis";
 import { popularShows, todayShows } from "@/lib/dummy-data";
 
 // GET /api/kopis?type=today|upcoming&region=<KOPIS 지역코드>
@@ -7,6 +7,11 @@ import { popularShows, todayShows } from "@/lib/dummy-data";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type") ?? "upcoming";
+  const id = searchParams.get("id") ?? undefined;
+  if (type === "detail" && id) {
+    const detail = await fetchPerformanceDetail(id);
+    return NextResponse.json({ source: detail ? "kopis" : "none", detail });
+  }
   const region = searchParams.get("region") ?? undefined;
   const q = searchParams.get("q") ?? undefined;
   const rows = Number(searchParams.get("rows") ?? "40");

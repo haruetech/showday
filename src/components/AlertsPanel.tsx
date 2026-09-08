@@ -5,7 +5,7 @@ export default function AlertsPanel() {
     <section id="alerts" className="mx-auto w-full max-w-6xl px-6 py-10">
       <div className="mb-5">
         <p className="mb-1 text-xs text-muted">MY ALERTS</p>
-        <h2 className="font-display text-2xl text-paper">조건형 알림</h2>
+        <h2 className="font-display font-bold text-2xl text-paper">조건형 알림</h2>
       </div>
 
       <div className="divide-y divide-line border border-line bg-surface">
