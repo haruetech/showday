@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { signInWithKakao, isAuthConfigured } from "@/lib/auth";
 import { allShows } from "@/lib/dummy-data";
 import type { Show } from "@/types/show";
@@ -66,10 +66,24 @@ export default function Hero() {
     }
   }
 
+  useEffect(() => {
+    const onArtistSearch = (event: Event) => {
+      const detail = (event as CustomEvent<{ query?: string }>).detail;
+      const nextQuery = detail?.query?.trim();
+      if (!nextQuery) return;
+      setQuery(nextQuery);
+      setTimeout(() => {
+        document.getElementById("show-search-submit")?.click();
+      }, 0);
+    };
+    window.addEventListener("showday:search", onArtistSearch);
+    return () => window.removeEventListener("showday:search", onArtistSearch);
+  }, []);
+
   const shown = searched ? (results.length ? results : fallback) : [];
 
   return (
-    <section className="relative overflow-hidden border-b border-line">
+    <section id="show-search" className="relative scroll-mt-24 overflow-hidden border-b border-line">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -right-24 -top-28 h-96 w-96 rounded-full bg-gold/15 blur-3xl" />
         <div className="absolute -left-32 bottom-0 h-80 w-80 rounded-full bg-brick/10 blur-3xl" />
@@ -113,7 +127,7 @@ export default function Hero() {
                 className="w-full rounded-sm border border-line bg-ink/60 px-4 py-3 text-sm text-paper outline-none placeholder:text-muted focus:border-gold"
               />
             </label>
-            <button onClick={searchShows} className="rounded-sm bg-gold px-5 py-3 text-sm font-bold text-ink">검색하기</button>
+            <button id="show-search-submit" onClick={searchShows} className="rounded-sm bg-gold px-5 py-3 text-sm font-bold text-ink">검색하기</button>
           </div>
 
           <ChoiceRow label="언제 볼까요?" options={timings} value={timing} onChange={setTiming} />
