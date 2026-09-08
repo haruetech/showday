@@ -8,9 +8,8 @@ export default function ArenaNowBanner() {
             ARENA NOW
           </h2>
           <p className="mt-2 max-w-md text-sm text-muted">
-            SHOWDAY와는 다른 디자인으로 arena.showday.kr에서 별도로
-            서비스됩니다. 서울아레나와 함께할 새로운 공연 경험을 준비하고
-            있습니다.
+            SHOWDAY와는 다른 디자인으로 별도 서비스로 준비되고 있습니다.
+            서울아레나와 함께할 새로운 공연 경험을 준비하고 있습니다.
           </p>
         </div>
         <a
@@ -19,7 +18,7 @@ export default function ArenaNowBanner() {
           rel="noopener noreferrer"
           className="shrink-0 rounded-sm border border-line px-6 py-3 text-center text-sm text-paper transition-colors hover:border-gold"
         >
-          arena.showday.kr 보러가기
+          자세히 보기
         </a>
       </div>
     </section>
