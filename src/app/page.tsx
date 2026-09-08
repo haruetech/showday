@@ -12,6 +12,7 @@ import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
 import AroundSection from "@/components/AroundSection";
 import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
+import DiscoverSection from "@/components/DiscoverSection";
 import {
   todayShows,
   popularShows,
@@ -72,6 +73,8 @@ export default function Home() {
       <main id="shows" className="flex-1">
         <Hero />
 
+        <DiscoverSection />
+
         {mode === "member" && (
           <SectionRow
             eyebrow="FOR YOU"
@@ -111,7 +114,7 @@ export default function Home() {
         <SectionRow
           eyebrow="UPCOMING"
           title="다가오는 공연"
-          
+          id="upcoming-shows"
         >
           {liveUpcoming.map((s) => (
             <ShowCard key={s.id} show={s} />
@@ -119,8 +122,10 @@ export default function Home() {
         </SectionRow>
 
         <SectionRow
-          eyebrow="MY ARTISTS"
-          title={mode === "member" ? "데모 관심 아티스트" : "인기 아티스트"}
+          eyebrow="WANTED ARTISTS"
+          title="공연으로 만나고 싶은 아티스트"
+          id="wanted-artists"
+          action={<span className="text-[11px] text-muted">SHOWDAY 관심·보고싶어요 데이터로 발전 예정</span>}
         >
           {artists.map((a) => (
             <ArtistCard key={a.id} artist={a} />
