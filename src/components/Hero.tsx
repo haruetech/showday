@@ -123,32 +123,30 @@ export default function Hero() {
       </div>
 
       <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-start lg:py-16">
-        <div className="pt-2">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs text-gold">
-            <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-            로그인 없이 검색 · 로그인하면 맞춤추천 저장
-          </div>
+        <div className="order-2 pt-2 lg:order-1">
           <h1 className="font-display text-4xl leading-[1.18] text-paper sm:text-5xl lg:text-6xl">
             오늘 보고 싶은 공연,
             <br />
             <span className="text-gold">조건으로 빠르게 찾으세요.</span>
           </h1>
-          <p className="mt-5 max-w-lg text-sm leading-7 text-muted sm:text-base">
-            공연명·아티스트 검색부터 날짜, 장르, 동행, 예산까지. SHOWDAY는 수많은 목록보다 지금 조건에 맞는 선택을 먼저 정리합니다.
+          <p className="mt-4 max-w-lg text-sm leading-6 text-muted sm:text-base">
+            날짜·장르·예산까지, 지금 조건에 맞는 공연만 먼저 정리해드립니다.
           </p>
 
-          <div className="mt-6 rounded-md border border-[#FEE500]/30 bg-[#FEE500]/5 p-4">
-            <p className="text-sm font-bold text-paper">카카오 10초 로그인으로 더 편하게</p>
-            <p className="mt-1 text-xs leading-5 text-muted">관심공연 저장, 연령대·취향 기반 추천, 카톡 알림과 50+ 관람비서 기능을 이어서 사용할 수 있습니다.</p>
+          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-full border border-[#FEE500]/30 bg-[#FEE500]/5 py-2 pl-4 pr-2">
+            <p className="text-xs text-paper">카카오 10초 로그인으로 맞춤추천·알림까지</p>
             {isAuthConfigured && (
-              <button onClick={signInWithKakao} className="mt-3 rounded-full bg-[#FEE500] px-4 py-2 text-xs font-bold text-[#191600]">
-                카카오로 맞춤추천 시작 →
+              <button
+                onClick={signInWithKakao}
+                className="ml-auto shrink-0 rounded-full bg-[#FEE500] px-4 py-1.5 text-xs font-bold text-[#191600]"
+              >
+                카카오로 시작 →
               </button>
             )}
           </div>
         </div>
 
-        <div className="rounded-md border border-line bg-surface/90 p-5 shadow-2xl shadow-black/20 sm:p-6">
+        <div className="order-1 rounded-md border border-line bg-surface/90 p-5 shadow-2xl shadow-black/20 sm:p-6 lg:order-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="flex-1">
               <span className="mb-2 block text-xs text-muted">공연명 · 아티스트 · 공연장</span>
