@@ -124,7 +124,7 @@ export default function Hero() {
 
       <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-start lg:py-16">
         <div className="order-2 pt-2 lg:order-1">
-          <h1 className="font-display text-4xl leading-[1.18] text-paper sm:text-5xl lg:text-6xl">
+          <h1 className="font-display font-black text-4xl leading-[1.18] text-paper sm:text-5xl lg:text-6xl">
             오늘 보고 싶은 공연,
             <br />
             <span className="text-gold">조건으로 빠르게 찾으세요.</span>

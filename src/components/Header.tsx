@@ -56,7 +56,7 @@ export default function Header({
     <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-5 px-4 py-4 sm:px-6">
         <div className="flex items-baseline gap-1">
-          <span className="font-display text-2xl tracking-tight text-paper">
+          <span className="font-display font-bold text-2xl tracking-tight text-paper">
             SHOWDAY
           </span>
           <span className="text-xs text-muted">공연비서</span>

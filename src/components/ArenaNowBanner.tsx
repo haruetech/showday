@@ -4,7 +4,7 @@ export default function ArenaNowBanner() {
       <div className="flex flex-col justify-between gap-6 border border-line bg-surface-raised p-8 sm:flex-row sm:items-center">
         <div>
           <p className="mb-2 text-xs text-muted">ARENA NOW · 공연 당일 현장 비서</p>
-          <h2 className="font-display text-2xl text-paper sm:text-3xl">
+          <h2 className="font-display font-bold text-2xl text-paper sm:text-3xl">
             공연 가는 날, 필요한 것부터 먼저
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">

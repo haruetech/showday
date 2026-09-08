@@ -22,7 +22,7 @@ export default function AroundSection() {
       <div className="mb-6 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="mb-1 text-xs text-muted">AROUND</p>
-          <h2 className="font-display text-2xl text-paper">공연 시간을 기준으로 주변을 추천합니다</h2>
+          <h2 className="font-display font-bold text-2xl text-paper">공연 시간을 기준으로 주변을 추천합니다</h2>
           <p className="mt-2 text-sm text-muted">시간을 고르면 오른쪽 결과가 즉시 바뀝니다. 실제 장소는 지도 검색으로 이어집니다.</p>
         </div>
         <label className="w-full lg:w-64">
@@ -48,7 +48,7 @@ export default function AroundSection() {
             <div className="mt-4 flex items-start gap-4">
               <span className="text-4xl">{selected.icon}</span>
               <div>
-                <h3 className="font-display text-2xl text-paper">{selected.title}</h3>
+                <h3 className="font-display font-bold text-2xl text-paper">{selected.title}</h3>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{selected.desc}</p>
               </div>
             </div>

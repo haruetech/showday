@@ -85,7 +85,7 @@ function OnboardingForm() {
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-10 px-6 py-16">
       <div>
         <p className="mb-2 text-xs text-gold">추천 설정</p>
-        <h1 className="font-display text-3xl text-paper">
+        <h1 className="font-display font-black text-3xl text-paper">
           나에게 맞는 공연,
           <br />
           어떻게 찾아드릴까요?
