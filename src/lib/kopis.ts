@@ -94,7 +94,7 @@ interface DetailInfo {
  * 공연 상세 조회 — pblprfr/{mt20id}
  * 가격(pcseguidance) / 관람등급(prfage) / 공연시간(prfruntime) / 예매처 링크(relates.relate) 확보
  */
-async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo | null> {
+export async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo | null> {
   if (!hasServiceKey()) return null;
   try {
     const qs = new URLSearchParams({ service: process.env.KOPIS_API_KEY! });
