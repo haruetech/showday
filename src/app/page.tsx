@@ -101,7 +101,7 @@ export default function Home() {
           eyebrow="TODAY"
           title="오늘의 공연"
           id="today-shows"
-          action={<span className="text-[11px] text-muted">{kopisSource === "kopis" ? "KOPIS 실데이터" : kopisSource === "loading" ? "공연정보 불러오는 중" : "샘플 데이터"}</span>}
+          action={kopisSource === "loading" ? <span className="text-[11px] text-muted">공연정보 불러오는 중</span> : undefined}
         >
           {liveToday.map((s) => (
             <ShowCard key={s.id} show={s} />
@@ -111,7 +111,7 @@ export default function Home() {
         <SectionRow
           eyebrow="UPCOMING"
           title="다가오는 공연"
-          action={<span className="text-[11px] text-muted">{kopisSource === "kopis" ? "KOPIS 연동" : ""}</span>}
+          
         >
           {liveUpcoming.map((s) => (
             <ShowCard key={s.id} show={s} />

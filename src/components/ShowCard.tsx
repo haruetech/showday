@@ -11,9 +11,9 @@ export default function ShowCard({
   const displayReason = reason ?? show.reason;
 
   return (
-    <div className="group flex w-72 shrink-0 flex-col overflow-hidden rounded-sm border border-line bg-surface transition-colors hover:border-gold">
+    <div className="group flex w-64 shrink-0 flex-col overflow-hidden rounded-sm border border-line bg-surface transition-colors hover:border-gold">
       <div
-        className="relative h-40 w-full overflow-hidden"
+        className="relative aspect-[3/4] w-full overflow-hidden bg-ink/70"
         style={{
           background: `linear-gradient(135deg, ${show.posterFrom}, ${show.posterTo})`,
         }}
@@ -23,7 +23,7 @@ export default function ShowCard({
             src={show.posterUrl}
             alt={`${show.title} 포스터`}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
             // KOPIS 포스터 URL이 깨져 있는 경우, 그라디언트 배경만 남기고 이미지는 숨김
             onError={(e) => {
               e.currentTarget.style.display = "none";

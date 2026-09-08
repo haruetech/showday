@@ -71,3 +71,10 @@ K-라이스 디저트 직접판매는 가장 마지막)
 - 비로그인 사용자가 `동행 / 시간 / 예산` 3가지만 고르면 즉시 3개 공연을 추천하는 10초 공연비서를 메인 Hero에 추가했습니다.
 - 카카오 로그인은 첫 화면 진입 장벽으로 쓰지 않고, 관심공연 저장·알림·기기간 동기화가 필요할 때 사용하는 구조를 권장합니다.
 - 서비스 포지셔닝: 공연 목록 사이트가 아니라 “오늘 무엇을 볼지 결정해주는 개인 공연비서”.
+
+## 2026-09 SHOWDAY UX update
+- Hero: keyword + date range + companion + genre + budget (1/3/5/10만원/무관) + age-band preference.
+- "가까운 공연" is not claimed without location permission and venue coordinates.
+- KOPIS attribution is shown only in the footer; user-facing sections use normal SHOWDAY labels.
+- KOPIS poster cards use a portrait-safe `object-contain` layout to avoid cropping.
+- 50+ section includes Kakao-based viewing concierge, trusted companion concept, B2B group viewing, and after-show rest recommendations.

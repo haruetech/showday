@@ -16,7 +16,7 @@ import { Show } from "@/types/show";
  * 상위 N개만 상세 호출로 보강합니다(전체를 다 부르면 호출 수가 너무 많아짐).
  */
 
-const KOPIS_BASE = "http://www.kopis.or.kr/openApi/restful";
+const KOPIS_BASE = "https://www.kopis.or.kr/openApi/restful";
 // 상세 호출로 보강할 최대 개수 (호출량/응답속도 균형용)
 const DETAIL_ENRICH_LIMIT = 20;
 // 상세 API 동시 호출 개수 제한
@@ -45,6 +45,7 @@ function normalizePosterUrl(url?: string): string | undefined {
   if (!url) return undefined;
   const trimmed = url.trim();
   if (!trimmed) return undefined;
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
   return trimmed.startsWith("http://") ? trimmed.replace("http://", "https://") : trimmed;
 }
 

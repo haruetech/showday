@@ -8,12 +8,25 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type") ?? "upcoming";
   const region = searchParams.get("region") ?? undefined;
+  const q = searchParams.get("q") ?? undefined;
+  const rows = Number(searchParams.get("rows") ?? "40");
+  const range = searchParams.get("range") ?? (type === "today" ? "today" : "30d");
 
   const now = new Date();
   const start = new Date(now);
   const end = new Date(now);
-  if (type === "today") {
-    // 오늘 날짜에 상연기간이 걸쳐 있는 공연을 조회
+  if (range === "today") {
+    // 오늘 하루
+  } else if (range === "week") {
+    const day = now.getDay(); // 0=일
+    const daysToSunday = day === 0 ? 0 : 7 - day;
+    end.setDate(now.getDate() + daysToSunday);
+  } else if (range === "weekend") {
+    const day = now.getDay();
+    const daysToSaturday = (6 - day + 7) % 7;
+    start.setDate(now.getDate() + daysToSaturday);
+    end.setTime(start.getTime());
+    end.setDate(start.getDate() + 1);
   } else {
     end.setDate(end.getDate() + 30); // KOPIS 공연목록 조회 최대 31일 범위
   }
@@ -26,7 +39,8 @@ export async function GET(req: NextRequest) {
       stdate,
       eddate,
       signgucode: region,
-      rows: type === "today" ? 30 : 50,
+      shprfnm: q,
+      rows: type === "today" ? 30 : Math.min(Math.max(rows, 1), 100),
     });
     const fallback = type === "today" ? todayShows : popularShows;
     return NextResponse.json(
