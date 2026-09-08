@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #14111c;
-  --surface: #1e1a29;
-  --surface-raised: #262032;
-  --line: #35303f;
-  --gold: #e8a33d;
-  --gold-dim: #a9781f;
-  --brick: #b85c4a;
-  --paper: #f3eee4;
-  --muted: #9b94a8;
+  --ink: #fbf6ec;
+  --surface: #fffdf8;
+  --surface-raised: #fff6e9;
+  --line: #e7dac5;
+  --gold: #d2691e;
+  --gold-dim: #a8540f;
+  --brick: #dd8a52;
+  --paper: #5e2510;
+  --muted: #7c6a55;
 }
 
 @theme inline {

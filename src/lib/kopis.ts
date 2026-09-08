@@ -193,8 +193,8 @@ export async function fetchBoxOffice(params: {
       ageLabel: "관람등급 정보 없음",
       runningTime: "",
       tags: [],
-      posterFrom: "#2c2440",
-      posterTo: "#e8a33d",
+      posterFrom: "#f3c9a0",
+      posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
     })
   );
@@ -250,8 +250,8 @@ export async function fetchPerformanceList(params: {
       ageLabel: "관람등급 정보 없음",
       runningTime: "",
       tags: [],
-      posterFrom: "#2c2440",
-      posterTo: "#e8a33d",
+      posterFrom: "#f3c9a0",
+      posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
     })
   );
