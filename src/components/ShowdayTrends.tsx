@@ -7,9 +7,13 @@ import type { Show } from "@/types/show";
 
 export default function ShowdayTrends({ shows }: { shows: Show[] }){
   const unique=(list:Show[])=>Array.from(new Map(list.map(s=>[s.id,s])).values()).slice(0,10);
+  const weekend=unique(shows.filter(s=>!s.status?.includes("완료")&&!s.status?.includes("종료")&&(s.tags?.includes("주말") || ["금","토","일"].includes(s.dayOfWeek))));
+  const weekendIds=new Set(weekend.map(s=>s.id));
+  const genrePool=shows.filter(s=>!weekendIds.has(s.id)&&!s.status?.includes("완료")&&!s.status?.includes("종료"));
+  const genrePicks=unique(Array.from(new Map(genrePool.map(s=>[s.genre,s])).values()));
   const groups=[
-    {key:"WEEKEND", icon:CalendarIcon, title:"이번 주말", desc:"주말에 바로 선택하기 좋은 현재·예정 공연", shows:unique(shows.filter(s=>s.tags?.includes("주말") || ["금","토","일"].includes(s.dayOfWeek)))},
-    {key:"REGION", icon:PinIcon, title:"가까운 지역에서", desc:"서울·경기·인천 등 지역 기준으로 빠르게 발견", shows:unique(shows.filter(s=>!s.status?.includes("완료")&&!s.status?.includes("종료")))},
+    {key:"WEEKEND", icon:CalendarIcon, title:"이번 주말", desc:"금·토·일에 관람할 수 있는 공연만 모았습니다.", shows:weekend},
+    {key:"GENRE", icon:PinIcon, title:"장르별로 발견하기", desc:"콘서트·뮤지컬·연극·클래식 등 서로 다른 장르를 한눈에 살펴보세요.", shows:genrePicks},
   ];
   return <section id="discover" className="mx-auto max-w-[1280px] px-6 py-12">
     <div className="border-t border-line pt-8"><p className="text-[10px] font-semibold tracking-[.16em] text-gold">CURATED DISCOVERY</p><h2 className="mt-2 text-3xl font-black text-paper">전체 목록보다, 지금 필요한 기준으로</h2><p className="mt-2 text-sm text-muted">SHOWDAY는 모든 공연을 나열하기보다 선택하기 쉬운 상황별 묶음으로 보여줍니다.</p></div>
