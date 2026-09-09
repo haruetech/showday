@@ -6,10 +6,11 @@ import { useEffect, useState } from "react";
 
 const PROMO = {
   eyebrow: "SHOWDAY PICK",
-  title: "공연 가는 날, 가볍게 챙기는 한 가지",
-  description: "SHOWDAY가 준비하는 공연 데이 상품을 만나보세요.",
+  title: "하루에 렌야 키높이 여성 스니커즈 6.5cm",
+  description: "공연 가는 날에도 편안하고 가볍게.",
   cta: "상품 보기",
-  href: "https://haruepick.com",
+  href: "https://posty.kr/products/161707873?from=search_result",
+  image: "https://ca.lotteimall.com/S/storage001.daousync.com/v1/AUTH_78da087baa364fca88c704bf2ddb3904/image/1747033052723.jpg?imw=780&ol=4&sh=1280&v=250922163954",
 };
 
 const STORAGE_KEY = "showday-floating-promo-hidden-until";
@@ -68,7 +69,7 @@ export default function FloatingProductPromo() {
         className="showday-product-link"
       >
         <div className="showday-product-thumb" aria-hidden="true">
-          <span className="showday-product-mark">S</span>
+          <img src={PROMO.image} alt="" loading="lazy" />
         </div>
 
         <div className="showday-product-copy">

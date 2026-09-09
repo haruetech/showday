@@ -294,3 +294,129 @@ a, button { -webkit-tap-highlight-color: transparent; }
   }
   .showday-card-detail svg { width: 13px; height: 13px; opacity:.72; }
 }
+
+/* SHOWDAY PICK — real product, balanced desktop/mobile presentation */
+.showday-product-thumb {
+  overflow: hidden;
+  background: #f3eee8;
+}
+.showday-product-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (min-width: 1024px) {
+  .showday-product-float {
+    width: 330px;
+  }
+  .showday-product-thumb {
+    width: 64px;
+    height: 76px;
+    border-radius: 12px;
+  }
+  .showday-product-copy strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Long, calm bottom bar. It sits above the mobile dock and never covers it. */
+  .showday-product-float,
+  .showday-product-float.is-compact {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: max(82px, calc(env(safe-area-inset-bottom) + 74px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 28px rgba(60,36,27,.12) !important;
+    background: rgba(255,252,248,.97);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .showday-product-link,
+  .showday-product-float.is-compact .showday-product-link {
+    display: grid;
+    grid-template-columns: 52px minmax(0,1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 62px;
+    padding: 7px 36px 7px 7px;
+    color: var(--paper);
+  }
+  .showday-product-thumb,
+  .showday-product-float.is-compact .showday-product-thumb {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    border-radius: 11px;
+  }
+  .showday-product-copy {
+    min-width: 0;
+    padding: 0;
+  }
+  .showday-product-eyebrow {
+    margin: 0 0 2px;
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+  .showday-product-copy strong,
+  .showday-product-float.is-compact .showday-product-copy strong {
+    display: block !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: var(--paper);
+  }
+  .showday-product-copy p {
+    display: none !important;
+  }
+  .showday-product-cta,
+  .showday-product-float.is-compact .showday-product-cta {
+    display: inline-flex;
+    grid-column: auto;
+    align-items: center;
+    gap: 3px;
+    margin: 0;
+    padding-right: 2px;
+    white-space: nowrap;
+    font-size: 9px !important;
+    font-weight: 800;
+  }
+  .showday-product-cta svg {
+    width: 12px;
+    height: 12px;
+  }
+  .showday-product-close {
+    top: 6px;
+    right: 6px;
+    transform: none;
+    width: 24px;
+    height: 24px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 390px) {
+  .showday-product-link,
+  .showday-product-float.is-compact .showday-product-link {
+    grid-template-columns: 48px minmax(0,1fr) auto;
+    min-height: 58px;
+    gap: 8px;
+  }
+  .showday-product-thumb,
+  .showday-product-float.is-compact .showday-product-thumb {
+    width: 48px;
+    height: 48px;
+  }
+  .showday-product-copy strong { font-size: 10.5px; }
+}
