@@ -64,6 +64,7 @@ export default function Header({
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
           <a href="#shows" className="hover:text-paper">공연</a>
+          <a href="#my-area" className="hover:text-paper">MY AREA</a>
           <a href="#venues" className="hover:text-paper">공연장</a>
           <a href="#fiftyplus" className="hover:text-paper">시니어 공연</a>
           <a href="#around" className="hover:text-paper">AROUND</a>

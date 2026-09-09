@@ -13,6 +13,7 @@ import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
 import ShowdayNow from "@/components/ShowdayNow";
+import MyAreaSection from "@/components/MyAreaSection";
 import { todayShows, popularShows, allShows } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
 import { getFollowedArtistIds, toggleArtistFollow } from "@/lib/favorites";
@@ -67,6 +68,7 @@ export default function Home(){
     </SectionRow>}
 
     <ShowdayTrends shows={visibleShows}/>
+    <MyAreaSection/>
     <ShowdayNow/>
 
     <SectionRow eyebrow="TODAY" title="오늘 바로 볼 수 있는 공연">{liveToday.length?liveToday.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">오늘 공연 정보를 확인하고 있습니다.</p>}</SectionRow>

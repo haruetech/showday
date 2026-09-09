@@ -5,8 +5,8 @@ import { CalendarIcon, PinIcon, SearchIcon, SparkIcon, TicketIcon } from "@/comp
 const items = [
   { href: "#show-search", label: "찾기", icon: SearchIcon },
   { href: "#popular-now", label: "인기", icon: SparkIcon },
-  { href: "#shows", label: "공연", icon: CalendarIcon },
-  { href: "#venues", label: "공연장", icon: PinIcon },
+  { href: "#my-area", label: "내 주변", icon: PinIcon },
+  { href: "#venues", label: "공연장", icon: CalendarIcon },
 ];
 
 export default function ResponsiveDock(){
