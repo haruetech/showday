@@ -161,12 +161,12 @@ export const popularShows: Show[] = [
 export const allShows: Show[] = [...todayShows, ...popularShows];
 
 export const venues: Venue[] = [
-  { id: "V001", name: "서울아레나", region: "서울 도봉", showCount: 0, tag: "새로운 공연 경험 준비 중" },
-  { id: "V002", name: "KSPO DOME", region: "서울 송파", showCount: 8, tag: "대형 콘서트" },
-  { id: "V003", name: "고척스카이돔", region: "서울 구로", showCount: 5, tag: "시니어 공연 중점" },
-  { id: "V004", name: "인스파이어 아레나", region: "인천", showCount: 6, tag: "복합 리조트" },
-  { id: "V005", name: "세종문화회관", region: "서울 종로", showCount: 15, tag: "클래식·전통·강연" },
-  { id: "V006", name: "예술의전당", region: "서울 서초", showCount: 20, tag: "오페라·발레" },
+  { id: "V001", name: "서울아레나", region: "서울 도봉", showCount: 0, tag: "K-POP 전문 아레나", imageUrl: "/venues/seoul-arena.svg" },
+  { id: "V002", name: "KSPO DOME", region: "서울 송파", showCount: 8, tag: "대형 콘서트", imageUrl: "/venues/kspo.svg" },
+  { id: "V003", name: "고척스카이돔", region: "서울 구로", showCount: 5, tag: "대형 돔 공연", imageUrl: "/venues/고척.svg" },
+  { id: "V004", name: "인스파이어 아레나", region: "인천", showCount: 6, tag: "복합 리조트", imageUrl: "/venues/inspire.svg" },
+  { id: "V005", name: "세종문화회관", region: "서울 종로", showCount: 15, tag: "클래식·뮤지컬·전통", imageUrl: "/venues/세종.svg" },
+  { id: "V006", name: "예술의전당", region: "서울 서초", showCount: 20, tag: "오페라·발레·클래식", imageUrl: "/venues/arts-center.svg" },
 ];
 
 export const artists: Artist[] = [

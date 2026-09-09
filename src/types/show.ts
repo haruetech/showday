@@ -47,6 +47,7 @@ export interface Venue {
   region: string;
   showCount: number;
   tag: string;
+  imageUrl?: string;
 }
 
 // 온보딩("추천 설정")에서 사용자가 고른 조건 조합

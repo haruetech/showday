@@ -9,10 +9,10 @@ import VenueCard from "@/components/VenueCard";
 import ArtistCard from "@/components/ArtistCard";
 import ArenaNowBanner from "@/components/ArenaNowBanner";
 import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
-import AroundSection from "@/components/AroundSection";
 import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
+import ShowdayNow from "@/components/ShowdayNow";
 import {
   todayShows,
   popularShows,
@@ -28,8 +28,8 @@ import { Show } from "@/types/show";
 
 type ViewMode = "guest" | "member";
 
-// 섹션 순서: HERO(AI QUICK PICK) → FOR YOU(로그인시) → TODAY/UPCOMING →
-// MY ARTISTS → VENUES → 50+(전문 카테고리) → AROUND → ARENA NOW(준비중)
+// 섹션 순서: HERO(AI SEARCH) → 컨셉별 DISCOVER → TODAY/UPCOMING →
+// ARTISTS → VENUES → SHOWDAY NOW → 50+ LIFE → ARENA NOW
 export default function Home() {
   const [mode, setMode] = useState<ViewMode>("guest");
   const [recommended, setRecommended] = useState<ScoredShow[]>([]);
@@ -98,6 +98,8 @@ export default function Home() {
     await toggleArtistFollow(artistId);
   }
 
+  const visibleShows = Array.from(new Map([...liveToday, ...liveUpcoming].map((s) => [s.id, s])).values());
+
   return (
     <>
       <Header mode={mode} onModeChange={setMode} />
@@ -129,6 +131,8 @@ export default function Home() {
           </SectionRow>
         )}
 
+        <ShowdayTrends shows={visibleShows} />
+
         <SectionRow
           eyebrow="TODAY"
           title="오늘 바로 볼 수 있는 공연"
@@ -152,7 +156,7 @@ export default function Home() {
 
         <SectionRow
           eyebrow="MY ARTISTS"
-          title="좋아하는 아티스트의 다음 공연"
+          title="아티스트 · 다음 공연을 한눈에"
           action={
             mode === "guest" ? (
               <span className="text-[11px] text-muted">로그인하면 ♡ 저장돼요</span>
@@ -163,6 +167,7 @@ export default function Home() {
             <ArtistCard
               key={a.id}
               artist={a}
+              shows={visibleShows.filter((s) => s.artist?.toLowerCase().includes(a.name.toLowerCase()) || s.title.toLowerCase().includes(a.name.toLowerCase()))}
               mode={mode}
               isFollowing={followedArtistIds.has(a.id)}
               onToggleFollow={handleToggleFollow}
@@ -172,17 +177,15 @@ export default function Home() {
 
         <SectionRow eyebrow="VENUE" title="어디에서 볼까? · 주요 공연장" id="venues">
           {venues.map((v) => (
-            <VenueCard key={v.id} venue={v} />
+            <VenueCard key={v.id} venue={v} shows={visibleShows.filter((s) => s.venue.includes(v.name) || v.name.includes(s.venue))} />
           ))}
         </SectionRow>
 
-        <ShowdayTrends />
-
+        <ShowdayNow />
         <ParentsFiftyPlusSection />
 
         {mode === "member" && <AlertsPanel />}
 
-        <AroundSection />
         <ArenaNowBanner />
       </main>
       <Footer />
