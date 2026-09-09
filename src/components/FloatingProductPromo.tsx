@@ -21,7 +21,7 @@ export default function FloatingProductPromo() {
   const [compact, setCompact] = useState(false);
 
   useEffect(() => {
-    if (pathname?.startsWith("/arena")) return;
+    if (pathname !== "/") return;
 
     const until = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
     if (until > Date.now()) return;
@@ -37,7 +37,7 @@ export default function FloatingProductPromo() {
     };
   }, [pathname]);
 
-  if (!visible || pathname?.startsWith("/arena")) return null;
+  if (!visible || pathname !== "/") return null;
 
   const close = () => {
     window.localStorage.setItem(

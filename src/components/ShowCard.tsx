@@ -21,7 +21,7 @@ export default function ShowCard({ show, reason }: { show: Show; reason?: string
           <span>{show.priceLabel && show.priceLabel !== "가격 정보 없음" ? show.priceLabel : "가격은 상세에서 확인"}</span>
         </div>
         {displayReason && <p className="mt-3 border-l-2 border-gold/50 pl-3 text-xs leading-5 text-muted">{displayReason}</p>}
-        <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper">상세보기 <ArrowIcon className="h-3.5 w-3.5"/></span>
+        <span className="showday-card-detail mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper">공연정보 <ArrowIcon className="h-3.5 w-3.5"/></span>
       </div>
     </Link>
   </article>

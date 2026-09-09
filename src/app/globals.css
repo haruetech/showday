@@ -112,169 +112,100 @@ body {
 ::selection { background: rgba(184,95,53,.2); }
 a, button { -webkit-tap-highlight-color: transparent; }
 
-/* SHOWDAY floating commerce — desktop side card / mobile quiet bottom bar */
+/* SHOWDAY floating commerce — desktop card / mobile unobtrusive chip */
 .showday-product-float {
   position: fixed;
   right: max(18px, calc((100vw - 1500px) / 2));
   bottom: 24px;
-  z-index: 70;
+  z-index: 62;
   width: min(340px, calc(100vw - 36px));
-  border: 1px solid rgba(60, 36, 27, .12);
-  border-radius: 20px;
+  border: 1px solid rgba(60, 36, 27, .10);
+  border-radius: 18px;
   background: rgba(252, 248, 242, .94);
-  box-shadow: 0 18px 48px rgba(60, 36, 27, .14);
+  box-shadow: 0 16px 42px rgba(60, 36, 27, .12);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   transition: width .28s ease, transform .28s ease, box-shadow .28s ease;
-  animation: showday-product-in .45s cubic-bezier(.22,1,.36,1) both;
+  animation: showday-product-in .4s cubic-bezier(.22,1,.36,1) both;
 }
-
 .showday-product-link {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
-  gap: 13px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  min-height: 108px;
-  padding: 15px 18px 14px 15px;
+  min-height: 102px;
+  padding: 14px 17px 13px 14px;
   color: var(--paper);
   text-decoration: none;
 }
-
 .showday-product-thumb {
-  width: 54px;
-  height: 70px;
-  border-radius: 14px;
+  width: 52px;
+  height: 66px;
+  border-radius: 13px;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #b85f35, #8f4528);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+  background: linear-gradient(145deg, #a85b3b, #7e3f2b);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
 }
-
-.showday-product-mark {
-  font-family: Georgia, serif;
-  font-size: 26px;
-  font-style: italic;
-  color: #fff9f2;
-}
-
+.showday-product-mark { font-family: Georgia, serif; font-size: 25px; font-style: italic; color: #fff9f2; }
 .showday-product-copy { min-width: 0; padding-right: 18px; }
-.showday-product-eyebrow {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .12em;
-  color: var(--gold-dim);
-}
-.showday-product-copy strong {
-  display: block;
-  font-size: 14px;
-  line-height: 1.45;
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-.showday-product-copy p {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
-.showday-product-cta {
-  grid-column: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: -2px;
-  width: max-content;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--gold-dim);
-}
-.showday-product-cta svg { width: 15px; height: 15px; }
-
+.showday-product-eyebrow { display:block; margin-bottom:4px; font-size:9px; font-weight:800; letter-spacing:.14em; color:var(--gold-dim); }
+.showday-product-copy strong { display:block; font-size:13px; line-height:1.45; font-weight:800; letter-spacing:-.02em; }
+.showday-product-copy p { margin-top:4px; color:var(--muted); font-size:11px; line-height:1.5; }
+.showday-product-cta { grid-column:2; display:inline-flex; align-items:center; gap:5px; width:max-content; font-size:10px; font-weight:800; color:var(--gold-dim); }
+.showday-product-cta svg { width:14px; height:14px; }
 .showday-product-close {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  z-index: 2;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(60,36,27,.5);
-  font-size: 21px;
-  line-height: 1;
-  cursor: pointer;
+  position:absolute; right:7px; top:7px; z-index:2; width:28px; height:28px;
+  border:0; border-radius:999px; background:transparent; color:rgba(60,36,27,.45);
+  font-size:20px; line-height:1; cursor:pointer;
 }
-.showday-product-close:hover { background: rgba(60,36,27,.06); color: var(--paper); }
-
-@media (min-width: 900px) {
-  .showday-product-float.is-compact { width: 286px; }
-  .showday-product-float.is-compact .showday-product-copy p { display: none; }
-  .showday-product-float.is-compact .showday-product-link { min-height: 88px; }
-  .showday-product-float.is-compact .showday-product-thumb { height: 58px; }
+.showday-product-close:hover { background:rgba(60,36,27,.05); color:var(--paper); }
+@media (min-width: 1024px) {
+  .showday-product-float.is-compact { width:282px; }
+  .showday-product-float.is-compact .showday-product-copy p { display:none; }
+  .showday-product-float.is-compact .showday-product-link { min-height:84px; }
+  .showday-product-float.is-compact .showday-product-thumb { height:56px; }
 }
-
-@media (max-width: 899px) {
+@media (max-width: 1023px) {
   .showday-product-float,
   .showday-product-float.is-compact {
-    left: 12px;
-    right: 12px;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: auto;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(60,36,27,.14);
+    left:auto;
+    right:12px;
+    bottom:max(82px, calc(env(safe-area-inset-bottom) + 74px));
+    width:auto;
+    max-width:220px;
+    border-radius:999px;
+    box-shadow:0 10px 28px rgba(60,36,27,.10);
   }
-  .showday-product-link {
-    grid-template-columns: 42px minmax(0, 1fr) auto;
-    gap: 10px;
-    min-height: 64px;
-    padding: 9px 42px 9px 10px;
+  .showday-product-link,
+  .showday-product-float.is-compact .showday-product-link {
+    display:flex;
+    min-height:48px;
+    gap:9px;
+    padding:6px 36px 6px 7px;
   }
-  .showday-product-thumb {
-    width: 42px;
-    height: 46px;
-    border-radius: 11px;
+  .showday-product-thumb,
+  .showday-product-float.is-compact .showday-product-thumb {
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    border-radius:50%;
   }
-  .showday-product-mark { font-size: 21px; }
-  .showday-product-copy { padding-right: 0; }
-  .showday-product-copy strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 12px;
-  }
-  .showday-product-copy p { display: none; }
-  .showday-product-eyebrow { margin-bottom: 2px; font-size: 8px; }
-  .showday-product-cta {
-    grid-column: 3;
-    margin: 0;
-    white-space: nowrap;
-    font-size: 10px;
-  }
-  .showday-product-cta svg { width: 13px; height: 13px; }
-  .showday-product-close {
-    right: 4px;
-    top: 3px;
-    width: 28px;
-    height: 28px;
-    font-size: 19px;
-  }
+  .showday-product-mark { font-size:18px; }
+  .showday-product-copy { padding:0; }
+  .showday-product-copy strong,
+  .showday-product-copy p { display:none !important; }
+  .showday-product-eyebrow { margin:0; white-space:nowrap; font-size:9px; letter-spacing:.11em; }
+  .showday-product-cta { grid-column:auto; margin:0; white-space:nowrap; font-size:10px; }
+  .showday-product-close { top:50%; right:6px; transform:translateY(-50%); width:26px; height:26px; font-size:18px; }
 }
-
 @media (max-width: 390px) {
-  .showday-product-cta { display: none; }
+  .showday-product-float, .showday-product-float.is-compact { max-width:180px; }
+  .showday-product-cta { font-size:0; gap:0; }
+  .showday-product-cta svg { width:15px; height:15px; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .showday-product-float { animation: none; transition: none; }
-}
-
-@keyframes showday-product-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@media (prefers-reduced-motion: reduce) { .showday-product-float { animation:none; transition:none; } }
+@keyframes showday-product-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
 /* ================================================================
    SHOWDAY responsive multi-UI
@@ -325,4 +256,41 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .showday-responsive-dock { width: 500px; }
+}
+
+/* Mobile polish: cards are the tap target; keep secondary CTA quiet */
+@media (max-width: 639px) {
+  .showday-card-detail {
+    margin-top: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    opacity: .78;
+  }
+  .showday-card-detail svg { opacity: .65; }
+}
+
+/* Final phone refinements */
+@media (max-width: 767px) {
+  .showday-product-float,
+  .showday-product-float.is-compact {
+    left: auto !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: 210px !important;
+  }
+}
+@media (max-width: 639px) {
+  /* Swipe is the primary affordance on phones; avoid repetitive “more” buttons. */
+  .showday-card-detail {
+    font-size: 0;
+    width: 24px;
+    height: 24px;
+    margin-top: 8px;
+    justify-content: center;
+    border: 1px solid rgba(60,36,27,.10);
+    border-radius: 999px;
+    color: var(--muted);
+  }
+  .showday-card-detail svg { width: 13px; height: 13px; opacity:.72; }
 }
