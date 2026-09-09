@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
 import ShowdayNow from "@/components/ShowdayNow";
 import MyAreaSection from "@/components/MyAreaSection";
+import SectionQuickNav from "@/components/SectionQuickNav";
 import { todayShows, popularShows, allShows } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
 import { getFollowedArtistIds, toggleArtistFollow } from "@/lib/favorites";
@@ -71,13 +72,13 @@ export default function Home(){
     <MyAreaSection/>
     <ShowdayNow/>
 
-    <SectionRow eyebrow="TODAY" title="오늘 바로 볼 수 있는 공연">{liveToday.length?liveToday.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">오늘 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
-    <SectionRow eyebrow="UPCOMING" title="다음 공연을 미리 확인하세요">{liveUpcoming.length?liveUpcoming.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">예정 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
+    <SectionRow eyebrow="TODAY" title="오늘 바로 볼 수 있는 공연" id="today-shows">{liveToday.length?liveToday.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">오늘 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
+    <SectionRow eyebrow="UPCOMING" title="다음 공연을 미리 확인하세요" id="upcoming-shows">{liveUpcoming.length?liveUpcoming.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">예정 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
 
-    {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="아티스트의 다음 공연" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
+    {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="아티스트의 다음 공연" id="artists" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
 
     {venues.length>0&&<SectionRow eyebrow="VENUES" title="공연장별 현재·예정 공연" id="venues">{venues.map(v=><VenueCard key={v.id} venue={v} shows={visibleShows.filter(s=>s.venue===v.name)}/>)}</SectionRow>}
 
     <ParentsFiftyPlusSection/>{mode==="member"&&<AlertsPanel/>}<ArenaNowBanner/>
-  </main><Footer/></>
+  </main><SectionQuickNav/><Footer/></>
 }

@@ -440,6 +440,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .my-area-pills button:hover:not(:disabled) { color:var(--paper); background:rgba(184,95,53,.07); }
 .my-area-pills button.is-active { background:var(--paper); color:var(--ink); }
 .my-area-pills button:disabled { opacity:.28; cursor:not-allowed; }
+
+.my-area-genre-row { display:flex; align-items:center; gap:12px; margin-top:10px; }
+.my-area-filter-label { flex:0 0 auto; color:var(--muted); font-size:10px; font-weight:900; letter-spacing:.02em; }
+.my-area-genre-pills { display:flex; align-items:center; gap:6px; min-width:0; overflow-x:auto; scrollbar-width:none; }
+.my-area-genre-pills::-webkit-scrollbar { display:none; }
+.my-area-genre-pills button { flex:0 0 auto; min-height:34px; padding:0 13px; border:1px solid rgba(60,36,27,.09); border-radius:999px; background:rgba(252,248,242,.58); color:var(--muted); font-size:10px; font-weight:850; transition:.18s ease; }
+.my-area-genre-pills button:hover { border-color:rgba(184,95,53,.26); color:var(--paper); }
+.my-area-genre-pills button.is-active { border-color:var(--paper); background:var(--paper); color:var(--ink); box-shadow:0 5px 16px rgba(60,36,27,.08); }
 .my-area-note,.my-area-source { margin-top:10px; color:var(--muted); font-size:10px; }
 .my-area-head-actions { display:flex; align-items:center; gap:10px; }
 .my-area-carousel-actions { display:flex; align-items:center; gap:7px; }
@@ -512,4 +520,52 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .my-area-grid { grid-template-columns:1fr; gap:12px; }
   .my-area-page-shell .my-area-section { padding-top:36px; }
   .my-area-head-actions .my-area-location-btn { width:100%; justify-content:center; }
+}
+
+
+/* MY AREA genre discovery */
+@media (max-width: 767px) {
+  .my-area-genre-row { align-items:flex-start; gap:8px; margin-top:9px; }
+  .my-area-filter-label { padding-top:9px; }
+  .my-area-genre-pills { margin-right:-16px; padding-right:16px; }
+  .my-area-genre-pills button { min-height:32px; padding:0 12px; font-size:10px; }
+}
+
+/* ================================================================
+   SHOWDAY section quick navigation — desktop rail + compact mobile sheet
+   ================================================================ */
+html { scroll-behavior:smooth; }
+#show-search,#popular-now,#discover,#my-area,#showday-now,#today-shows,#upcoming-shows,#artists,#venues,#fiftyplus,#arena-now { scroll-margin-top:88px; }
+
+.section-quick-nav { position:fixed; z-index:45; right:18px; top:50%; transform:translateY(-50%); display:none; }
+.section-quick-nav__rail { display:flex; flex-direction:column; gap:2px; padding:9px 7px; border:1px solid rgba(60,36,27,.09); border-radius:18px; background:rgba(252,248,242,.82); box-shadow:0 12px 38px rgba(60,36,27,.09); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.section-quick-nav__rail button { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:7px; min-height:29px; max-width:132px; padding:0 7px; border-radius:10px; color:rgba(83,63,52,.64); font-size:10px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; transition:background .18s ease,color .18s ease,transform .18s ease; }
+.section-quick-nav__rail button:hover { background:rgba(184,95,53,.07); color:var(--paper); transform:translateX(-1px); }
+.section-quick-nav__rail button.is-active { background:rgba(184,95,53,.09); color:var(--gold-dim); }
+.section-quick-nav__dot { width:5px; height:5px; flex:0 0 auto; border-radius:999px; background:rgba(83,63,52,.24); transition:transform .18s ease,background .18s ease; }
+.section-quick-nav__rail button.is-active .section-quick-nav__dot { background:var(--gold-dim); transform:scale(1.35); }
+
+.section-quick-nav-mobile { position:fixed; z-index:58; right:12px; bottom:calc(82px + env(safe-area-inset-bottom)); display:block; }
+.section-quick-nav-mobile__toggle { display:flex; align-items:center; gap:6px; min-height:38px; padding:0 11px; border:1px solid rgba(60,36,27,.10); border-radius:999px; background:rgba(252,248,242,.91); color:var(--paper); box-shadow:0 8px 26px rgba(60,36,27,.11); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); font-size:10px; font-weight:900; }
+.section-quick-nav-mobile__lines { display:flex; width:12px; flex-direction:column; gap:2px; }
+.section-quick-nav-mobile__lines i { display:block; height:1.5px; border-radius:999px; background:currentColor; }
+.section-quick-nav-mobile__sheet { position:absolute; right:0; bottom:48px; width:min(88vw,330px); padding:14px; border:1px solid rgba(60,36,27,.10); border-radius:19px; background:rgba(252,248,242,.97); box-shadow:0 18px 52px rgba(60,36,27,.18); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+.section-quick-nav-mobile__head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:1px 1px 11px; border-bottom:1px solid rgba(60,36,27,.08); }
+.section-quick-nav-mobile__head strong { font-size:12px; color:var(--paper); }
+.section-quick-nav-mobile__head button { width:28px; height:28px; border-radius:999px; color:var(--muted); font-size:20px; line-height:1; }
+.section-quick-nav-mobile__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:11px; }
+.section-quick-nav-mobile__grid button { min-height:38px; padding:0 7px; border:1px solid rgba(60,36,27,.08); border-radius:11px; background:rgba(255,255,255,.4); color:var(--muted); font-size:10px; font-weight:850; }
+.section-quick-nav-mobile__grid button.is-active { border-color:rgba(184,95,53,.25); background:rgba(184,95,53,.09); color:var(--gold-dim); }
+
+@media (min-width:1280px) {
+  .section-quick-nav { display:block; }
+  .section-quick-nav-mobile { display:none; }
+}
+@media (min-width:1024px) and (max-width:1279px) {
+  .section-quick-nav-mobile { right:16px; bottom:24px; }
+}
+@media (max-width:767px) {
+  .section-quick-nav-mobile { right:10px; bottom:calc(78px + env(safe-area-inset-bottom)); }
+  .section-quick-nav-mobile__toggle { min-height:36px; padding:0 10px; }
+  .section-quick-nav-mobile__sheet { width:min(92vw,318px); }
 }

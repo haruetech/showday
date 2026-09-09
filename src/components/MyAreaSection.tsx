@@ -49,6 +49,7 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
   const [district,setDistrict]=useState("");
   const [radius,setRadius]=useState<3|5|10|99>(fullPage ? 99 : 5);
   const [filter,setFilter]=useState<"all"|"today"|"weekend"|"free">("all");
+  const [genre,setGenre]=useState<"all"|"콘서트"|"뮤지컬"|"연극"|"클래식"|"무용"|"국악"|"기타">("all");
   const [geoState,setGeoState]=useState<"idle"|"loading"|"denied">("idle");
   const scrollRef=useRef<HTMLDivElement|null>(null);
 
@@ -77,7 +78,12 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
     const now=new Date(); const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);
     return events.map(e=>({...e,distanceKm:location&&e.lat!=null&&e.lng!=null?haversine(location.lat,location.lng,e.lat,e.lng):null}))
       .filter(e=>location&&radius<99&&e.distanceKm!=null?e.distanceKm<=radius:district?e.district===district:true)
-            .filter(e=>{
+      .filter(e=>{
+        if(genre==="all") return true;
+        if(genre==="기타") return !["콘서트","뮤지컬","연극","클래식","무용","국악"].some(g=>e.category.includes(g));
+        return e.category.includes(genre);
+      })
+      .filter(e=>{
         if(filter==="free") return e.isFree;
         if(filter==="weekend") return isWeekend(e.startDate);
         if(filter==="today"){
@@ -90,7 +96,7 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
       })
       .sort((a,b)=>location?(a.distanceKm??999)-(b.distanceKm??999):(a.startDate||"9999").localeCompare(b.startDate||"9999"))
       .slice(0,fullPage?72:24);
-  },[events,location,district,radius,filter,fullPage]);
+  },[events,location,district,radius,filter,genre,fullPage]);
 
   function scrollMore(direction:1|-1=1){
     const el=scrollRef.current;
@@ -120,12 +126,22 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
         <div className="my-area-pills" aria-label="일정 필터">{[["all","전체"],["today","오늘"],["weekend","이번 주말"],["free","무료"]].map(([v,label])=><button key={v} onClick={()=>setFilter(v as typeof filter)} className={filter===v?"is-active":""}>{label}</button>)}</div>
       </div>
 
+      <div className="my-area-genre-row" aria-label="장르 선택">
+        <span className="my-area-filter-label">장르</span>
+        <div className="my-area-genre-pills no-scrollbar">
+          {(fullPage
+            ? [["all","전체"],["콘서트","콘서트"],["뮤지컬","뮤지컬"],["연극","연극"],["클래식","클래식"],["무용","무용"],["국악","국악"],["기타","기타 공연"]]
+            : [["all","전체"],["콘서트","콘서트"],["뮤지컬","뮤지컬"],["연극","연극"],["클래식","클래식"]]
+          ).map(([v,label])=><button key={v} type="button" onClick={()=>setGenre(v as typeof genre)} className={genre===v?"is-active":""}>{label}</button>)}
+        </div>
+      </div>
+
       {geoState==="denied"&&<p className="my-area-note">위치 권한을 사용할 수 없습니다. 관심 지역을 직접 선택해도 동일하게 이용할 수 있습니다.</p>}
       {!configured&&<div className="my-area-empty"><SparkIcon className="h-5 w-5"/><div><strong>서울시 문화행사 API 연결 준비 중</strong><p>Vercel 환경변수에 SEOUL_OPEN_DATA_API_KEY를 추가하면 MY AREA가 자동으로 활성화됩니다.</p></div></div>}
       {configured&&loading&&<div className="my-area-empty">가까운 공연과 행사를 불러오고 있습니다.</div>}
       {configured&&!loading&&visible.length===0&&<div className="my-area-empty">선택한 조건에 맞는 현재·예정 공연이나 행사가 없습니다. 반경이나 지역을 넓혀보세요.</div>}
 
-      {fullPage&&visible.length>0&&<div className="my-area-result-summary"><strong>{visible.length}</strong>개의 서울 공연·행사를 보고 있습니다.</div>}
+      {fullPage&&visible.length>0&&<div className="my-area-result-summary"><strong>{visible.length}</strong>개의 {genre==="all"?"서울 공연·행사":`${genre} 공연`}를 보고 있습니다.</div>}
       {visible.length>0&&<div ref={fullPage?undefined:scrollRef} className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=><article key={event.id} className="my-area-card">
         <a href={event.officialUrl||event.bookingUrl||"#"} target="_blank" rel="noopener noreferrer" className="my-area-card-link">
           <div className="my-area-image">{event.imageUrl?<img src={event.imageUrl} alt="" loading="lazy"/>:<div className="my-area-image-fallback"><TicketIcon className="h-6 w-6"/></div>}<span>{event.category}</span>{event.isFree&&<b>FREE</b>}</div>
