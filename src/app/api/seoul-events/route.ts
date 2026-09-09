@@ -9,7 +9,7 @@ type SeoulRow = {
   LOT?: string | number; LAT?: string | number; IS_FREE?: string; HMPG_ADDR?: string; PRO_TIME?: string;
 };
 
-const ALLOWED = ["콘서트","연극","뮤지컬/오페라","뮤지컬","클래식","국악","무용","독주/독창회","문화교양/강좌","기타"];
+const BLOCKED = ["교육", "체험", "전시", "미술", "강좌", "강의"];
 
 function normalizeDate(value?: string) {
   if (!value) return null;
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
         ended:endDate?endDate<todayKst:false,
       };
     }).filter((e)=>!e.ended)
-      .filter((e)=>ALLOWED.some((c)=>e.category.includes(c)) || !e.category.includes("전시"))
+      .filter((e)=>!BLOCKED.some((word)=>e.category.includes(word)))
       .sort((a,b)=>(a.startDate||"9999").localeCompare(b.startDate||"9999"));
 
     return NextResponse.json({ configured:true, source:"서울특별시 문화행사 정보", total:root?.list_total_count??events.length, page, rows, events });
