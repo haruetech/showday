@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarIcon, PinIcon, SparkIcon, TicketIcon } from "@/components/Icons";
 
 type LocalEvent = {
@@ -47,13 +47,14 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
   const [configured,setConfigured]=useState(true);
   const [location,setLocation]=useState<{lat:number;lng:number}|null>(null);
   const [district,setDistrict]=useState("");
-  const [radius,setRadius]=useState<3|5|10|99>(5);
+  const [radius,setRadius]=useState<3|5|10|99>(fullPage ? 99 : 5);
   const [filter,setFilter]=useState<"all"|"today"|"weekend"|"free">("all");
   const [geoState,setGeoState]=useState<"idle"|"loading"|"denied">("idle");
+  const scrollRef=useRef<HTMLDivElement|null>(null);
 
   useEffect(()=>{
     let ignore=false;
-    const pages=fullPage?[1,2,3]:[1];
+    const pages=fullPage?[1,2,3,4,5]:[1,2,3];
     Promise.all(pages.map(page=>fetch(`/api/seoul-events?rows=1000&page=${page}`,{cache:"no-store"}).then(r=>r.json())))
       .then(results=>{
         if(ignore)return;
@@ -88,22 +89,34 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
         return true;
       })
       .sort((a,b)=>location?(a.distanceKm??999)-(b.distanceKm??999):(a.startDate||"9999").localeCompare(b.startDate||"9999"))
-      .slice(0,fullPage?72:6);
+      .slice(0,fullPage?72:24);
   },[events,location,district,radius,filter,fullPage]);
+
+  function scrollMore(direction:1|-1=1){
+    const el=scrollRef.current;
+    if(!el)return;
+    const amount=Math.max(320,Math.round(el.clientWidth*0.82));
+    el.scrollBy({left:amount*direction,behavior:"smooth"});
+  }
+
+  function setDistanceRadius(r:3|5|10|99){
+    setRadius(r);
+    if(r===99)setDistrict("");
+  }
 
   return <section id="my-area" className="my-area-section border-t border-line px-4 py-12 sm:px-6 sm:py-16">
     <div className="mx-auto max-w-[1440px]">
       <div className="my-area-head">
-        <div><p className="my-area-eyebrow">MY AREA</p><h2>{fullPage?"내 주변 공연·행사 전체보기":"내 주변에서 만나는 공연과 문화"}</h2><p>{fullPage?"현재 위치 또는 관심 지역을 기준으로 거리·날짜·무료 여부를 세밀하게 탐색해보세요.":"현재 위치나 관심 지역을 기준으로 오늘부터 예정된 공연·행사를 골라 보여드립니다."}</p></div>
+        <div><p className="my-area-eyebrow">MY AREA</p><h2>{fullPage?"서울 공연·행사 전체보기":"내 주변에서 만나는 공연과 문화"}</h2><p>{fullPage?"서울 전체 공연·행사를 기본으로 보여드리고, 원할 때 현재 위치·관심 지역·거리·날짜·무료 여부로 좁혀볼 수 있습니다.":"현재 위치나 관심 지역을 기준으로 오늘부터 예정된 공연·행사를 골라 보여드립니다."}</p></div>
         <div className="my-area-head-actions">
-          {!fullPage&&<a href="/my-area" className="my-area-more-link">내 주변 더보기 <span aria-hidden="true">›</span></a>}
+          {!fullPage&&<div className="my-area-carousel-actions"><button type="button" onClick={()=>scrollMore(-1)} aria-label="이전 공연" className="my-area-arrow">‹</button><button type="button" onClick={()=>scrollMore(1)} className="my-area-more-link">공연 더보기 <span aria-hidden="true">›</span></button></div>}
           <button type="button" onClick={useCurrentLocation} className="my-area-location-btn"><PinIcon className="h-4 w-4"/>{geoState==="loading"?"위치 확인 중":location?`현재 위치 · ${district}`:"현재 위치로 찾기"}</button>
         </div>
       </div>
 
       <div className="my-area-toolbar">
-        <div className="my-area-select-wrap"><span>관심 지역</span><select value={district} onChange={e=>{setDistrict(e.target.value);setLocation(null)}}><option value="">서울 전체</option>{DISTRICTS.map(d=><option key={d}>{d}</option>)}</select></div>
-        <div className="my-area-pills" aria-label="거리 선택">{([3,5,10,99] as const).map(r=><button key={r} onClick={()=>setRadius(r)} className={radius===r?"is-active":""} disabled={!location&&r!==99}>{r===99?"서울 전체":`${r}km`}</button>)}</div>
+        <div className="my-area-select-wrap"><span>관심 지역</span><select value={district} onChange={e=>{setDistrict(e.target.value);setLocation(null);setRadius(99)}}><option value="">서울 전체</option>{DISTRICTS.map(d=><option key={d}>{d}</option>)}</select></div>
+        <div className="my-area-pills" aria-label="거리 선택">{([3,5,10,99] as const).map(r=><button key={r} onClick={()=>setDistanceRadius(r)} className={radius===r?"is-active":""} disabled={!location&&r!==99}>{r===99?"서울 전체":`${r}km`}</button>)}</div>
         <div className="my-area-pills" aria-label="일정 필터">{[["all","전체"],["today","오늘"],["weekend","이번 주말"],["free","무료"]].map(([v,label])=><button key={v} onClick={()=>setFilter(v as typeof filter)} className={filter===v?"is-active":""}>{label}</button>)}</div>
       </div>
 
@@ -112,13 +125,14 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
       {configured&&loading&&<div className="my-area-empty">가까운 공연과 행사를 불러오고 있습니다.</div>}
       {configured&&!loading&&visible.length===0&&<div className="my-area-empty">선택한 조건에 맞는 현재·예정 공연이나 행사가 없습니다. 반경이나 지역을 넓혀보세요.</div>}
 
-      {visible.length>0&&<div className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=><article key={event.id} className="my-area-card">
+      {fullPage&&visible.length>0&&<div className="my-area-result-summary"><strong>{visible.length}</strong>개의 서울 공연·행사를 보고 있습니다.</div>}
+      {visible.length>0&&<div ref={fullPage?undefined:scrollRef} className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=><article key={event.id} className="my-area-card">
         <a href={event.officialUrl||event.bookingUrl||"#"} target="_blank" rel="noopener noreferrer" className="my-area-card-link">
           <div className="my-area-image">{event.imageUrl?<img src={event.imageUrl} alt="" loading="lazy"/>:<div className="my-area-image-fallback"><TicketIcon className="h-6 w-6"/></div>}<span>{event.category}</span>{event.isFree&&<b>FREE</b>}</div>
           <div className="my-area-copy"><div className="my-area-meta"><span><PinIcon className="h-3 w-3"/>{event.district}</span>{event.distanceKm!=null&&<span>{event.distanceKm<1?`${Math.round(event.distanceKm*1000)}m`:`${event.distanceKm.toFixed(1)}km`}</span>}</div><h3>{event.title}</h3><p><CalendarIcon className="h-3.5 w-3.5"/>{event.dateText}{event.showTime?` · ${event.showTime}`:""}</p><p className="my-area-venue">{event.venue}</p><div className="my-area-price"><span>{event.priceText}</span><span>정보 보기</span></div></div>
         </a>
       </article>)}</div>}
-      {!fullPage&&visible.length>0&&<div className="my-area-mobile-more"><a href="/my-area">전체보기 <span aria-hidden="true">›</span></a></div>}
+      {!fullPage&&visible.length>0&&<div className="my-area-mobile-more"><button type="button" onClick={()=>scrollMore(1)}>다음 공연 보기 <span aria-hidden="true">›</span></button></div>}
       <p className="my-area-source">문화행사 정보 제공: 서울특별시 · 종료된 행사는 자동 제외됩니다.</p>
     </div>
   </section>

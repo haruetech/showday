@@ -55,19 +55,17 @@ export default function Header({
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
-        <div className="flex items-baseline gap-1">
-          <span className="font-display font-bold text-[21px] tracking-tight text-paper sm:text-2xl">
-            SHOWDAY
-          </span>
+        <a href="/" className="flex items-baseline gap-1" aria-label="SHOWDAY 홈">
+          <span className="font-display font-bold text-[21px] tracking-tight text-paper sm:text-2xl">SHOWDAY</span>
           <span className="hidden text-xs text-muted sm:inline">공연비서</span>
-        </div>
+        </a>
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
-          <a href="#shows" className="hover:text-paper">공연</a>
-          <a href="#my-area" className="hover:text-paper">MY AREA</a>
-          <a href="#venues" className="hover:text-paper">공연장</a>
-          <a href="#fiftyplus" className="hover:text-paper">시니어 공연</a>
-          <a href="#around" className="hover:text-paper">AROUND</a>
+          <a href="/#shows" className="hover:text-paper">공연</a>
+          <a href="/#my-area" className="hover:text-paper">MY AREA</a>
+          <a href="/#venues" className="hover:text-paper">공연장</a>
+          <a href="/#fiftyplus" className="hover:text-paper">시니어 공연</a>
+          <a href="/#around" className="hover:text-paper">AROUND</a>
           <a
             href="https://arena.showday.kr"
             target="_blank"
