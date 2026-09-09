@@ -528,3 +528,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .my-area-page-shell .my-area-section { padding-top:36px; }
   .my-area-head-actions .my-area-location-btn { width:100%; justify-content:center; }
 }
+
+.my-area-result-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;margin-bottom:-2px}.my-area-result-head strong{font-size:13px;color:var(--paper);letter-spacing:-.02em}.my-area-result-head a{display:inline-flex;align-items:center;gap:5px;color:var(--gold-dim);font-size:11px;font-weight:900}.my-area-result-head a:hover{color:var(--paper)}
+@media(max-width:640px){.my-area-result-head{align-items:flex-start;flex-direction:column;gap:7px}.my-area-result-head a{font-size:10.5px}}
