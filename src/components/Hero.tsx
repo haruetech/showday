@@ -78,31 +78,31 @@ export default function Hero() {
   const artistGroupsEmpty=artistMode&&liveNow.length===0&&upcoming.length===0;
 
   return <section id="show-search" className="scroll-mt-24 border-b border-line/80">
-    <div className="relative min-h-[410px] overflow-hidden border-b border-line/70">
+    <div className="relative min-h-[330px] overflow-hidden border-b border-line/70 sm:min-h-[410px]">
       <img src="/showday-hero-audience.png" alt="공연을 즐기는 관객" className="absolute inset-0 h-full w-full object-cover object-center" />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(37,16,8,.88)_0%,rgba(37,16,8,.58)_48%,rgba(37,16,8,.18)_100%)]" />
-      <div className="relative mx-auto flex min-h-[410px] max-w-[1280px] items-center px-6 py-14">
+      <div className="relative mx-auto flex min-h-[330px] max-w-[1280px] items-center px-4 py-10 sm:min-h-[410px] sm:px-6 sm:py-14">
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · PERFORMANCE DISCOVERY</p>
-          <h1 className="font-display text-4xl font-black leading-[1.08] text-white sm:text-6xl">오늘 뭐 볼까?<br/><span className="text-[#f3b37f]">공연 가는 날, 가장 먼저.</span></h1>
-          <p className="mt-5 whitespace-nowrap text-sm text-white/78 sm:text-base">지금 볼 수 있는 공연부터 다음 공연까지, SHOWDAY가 한 번에 정리합니다.</p>
+          <h1 className="font-display text-[2.15rem] font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">오늘 뭐 볼까?<br/><span className="text-[#f3b37f]">공연 가는 날, 가장 먼저.</span></h1>
+          <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">지금 볼 수 있는 공연부터 다음 공연까지, SHOWDAY가 한 번에 정리합니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">내 공연 찾기 <ArrowIcon className="h-4 w-4"/></a>
         </div>
       </div>
     </div>
 
-    <div id="quick-search" className="mx-auto max-w-[1280px] px-6 py-9">
-      <div className="border-y border-line bg-surface/65 py-7">
+    <div id="quick-search" className="mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-9">
+      <div className="border-y border-line bg-surface/65 py-6 sm:py-7">
         <div className="mb-5 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-          <div><p className="text-[11px] font-semibold tracking-[.18em] text-gold">SMART SEARCH</p><h2 className="mt-2 text-2xl font-black text-paper">말하듯 찾고, 조건은 쉽게 조정하세요.</h2></div>
+          <div><p className="text-[11px] font-semibold tracking-[.18em] text-gold">SMART SEARCH</p><h2 className="mt-2 text-xl font-black leading-7 text-paper sm:text-2xl">말하듯 찾고, 조건은 쉽게 조정하세요.</h2></div>
           <p className="max-w-md text-xs leading-5 text-muted">공연명·아티스트·공연장뿐 아니라 날짜, 지역, 장르를 함께 이해해 현재·예정 공연만 보여드립니다.</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-[1.55fr_.85fr]">
           <div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 서울에서 볼 뮤지컬" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
             {query.trim() && <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">SHOWDAY 해석</span><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{parsed.timing}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{parsed.region}</Chip><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{parsed.genre}</Chip>{parsed.query&&<Chip>{parsed.query}</Chip>}</div>}
-            <div className="mt-5 grid gap-5 lg:grid-cols-3"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/></div>
-            <div className="mt-6 flex flex-wrap gap-2"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
+            <div className="mt-5 grid gap-4 md:grid-cols-3 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/></div>
+            <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
           </div>
           <aside className="border-l-0 border-line pl-0 lg:border-l lg:pl-6">
             <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 상황을 그대로 입력해보세요.</p></div></div>

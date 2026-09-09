@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPerformanceList, fetchPerformanceDetail, fetchArtistShows, fetchBoxOffice } from "@/lib/kopis";
-import { popularShows, todayShows } from "@/lib/dummy-data";
 
 // GET /api/kopis?type=today|upcoming|artist|search&region=<KOPIS 지역코드>
 // Vercel Secret: KOPIS_API_KEY
@@ -10,7 +9,11 @@ export async function GET(req: NextRequest) {
   const id = searchParams.get("id") ?? undefined;
   if (type === "detail" && id) {
     const detail = await fetchPerformanceDetail(id);
-    return NextResponse.json({ source: detail ? "kopis" : "none", detail });
+    const ended = Boolean(detail && (
+      detail.status.includes("완료") || detail.status.includes("종료") || detail.status === "03" ||
+      (detail.endDate && /^\d{8}$/.test(detail.endDate) && detail.endDate < toKopisDate(new Date()))
+    ));
+    return NextResponse.json({ source: detail && !ended ? "kopis" : "none", detail: ended ? null : detail, ended });
   }
 
   const q = searchParams.get("q") ?? undefined;
@@ -106,15 +109,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ source: "none", shows: [] });
     }
 
-    const fallback = type === "today" ? todayShows : popularShows;
     return NextResponse.json(
-      { source: list.length ? "kopis" : "dummy", shows: list.length ? list : fallback },
+      { source: list.length ? "kopis" : "none", shows: list },
       { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } }
     );
   } catch (err) {
     console.error("KOPIS fetch failed, falling back to dummy data:", err);
     if (q?.trim()) return NextResponse.json({ source: "none", shows: [] });
-    return NextResponse.json({ source: "dummy", shows: type === "today" ? todayShows : popularShows });
+    return NextResponse.json({ source: "none", shows: [] });
   }
 }
 

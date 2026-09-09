@@ -18,7 +18,7 @@ import { Show } from "@/types/show";
 
 const KOPIS_BASE = "https://www.kopis.or.kr/openApi/restful";
 // 상세 호출로 보강할 최대 개수 (호출량/응답속도 균형용)
-const DETAIL_ENRICH_LIMIT = 20;
+const DETAIL_ENRICH_LIMIT = 40;
 // 상세 API 동시 호출 개수 제한
 const DETAIL_CONCURRENCY = 5;
 
@@ -33,11 +33,41 @@ function toArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-function formatDate(yyyymmdd: string) {
-  if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd;
+function normalizeDateInput(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const raw = String(value).trim();
+  if (!raw || raw === "undefined" || raw === "null") return "";
+  return raw.replace(/[^0-9]/g, "");
+}
+
+function formatDate(value: unknown) {
+  const yyyymmdd = normalizeDateInput(value);
+  if (yyyymmdd.length !== 8) return "";
   const m = Number(yyyymmdd.slice(4, 6));
   const d = Number(yyyymmdd.slice(6, 8));
   return `${m}.${d}`;
+}
+
+function formatPeriod(from: unknown, to: unknown) {
+  const start = formatDate(from);
+  const end = formatDate(to);
+  if (start && end) return start === end ? start : `${start} ~ ${end}`;
+  return start || end || "일정 확인 중";
+}
+
+function isEndedStatus(status?: string) {
+  const value = String(status || "").trim();
+  return value.includes("완료") || value.includes("종료") || value === "03";
+}
+
+function isPastEndDate(value: unknown) {
+  const raw = normalizeDateInput(value);
+  if (raw.length !== 8) return false;
+  const y = Number(raw.slice(0, 4));
+  const m = Number(raw.slice(4, 6));
+  const d = Number(raw.slice(6, 8));
+  const end = new Date(y, m - 1, d, 23, 59, 59, 999);
+  return end.getTime() < Date.now();
 }
 
 // KOPIS 포스터는 http로 내려오는 경우가 많아, https 페이지에서 깨지지 않도록 보정
@@ -100,6 +130,7 @@ export interface PerformanceDetail {
   ageLabel: string;
   runningTime: string;
   status: string;
+  endDate?: string;
   bookingUrl?: string;
 }
 
@@ -132,7 +163,7 @@ export async function fetchPerformanceDetail(mt20id: string): Promise<Performanc
       title: String(row.prfnm || "공연 상세정보"),
       genre: String(row.genrenm || "공연"),
       venue: String(row.fcltynm || "공연장 정보 없음"),
-      period: `${formatDate(String(row.prfpdfrom || ""))} ~ ${formatDate(String(row.prfpdto || ""))}`,
+      period: formatPeriod(row.prfpdfrom, row.prfpdto),
       timeGuide: String(row.dtguidance || "공연시간 정보 없음"),
       cast: String(row.prfcast || ""),
       crew: String(row.prfcrew || ""),
@@ -145,6 +176,7 @@ export async function fetchPerformanceDetail(mt20id: string): Promise<Performanc
       ageLabel: row.prfage?.trim() || "관람등급 정보 없음",
       runningTime: row.prfruntime?.trim() || "",
       status: String(row.prfstate || ""),
+      endDate: normalizeDateInput(row.prfpdto) || undefined,
       bookingUrl,
     };
   } catch (err) {
@@ -215,7 +247,7 @@ export async function fetchBoxOffice(params: {
       district: "", // KOPIS 응답엔 구 단위 정보가 없어 비워둠 — Supabase 연동 시 공연장 DB에서 채움
       dayOfWeek: "토",
       distanceFromDobongKm: 999,
-      dateLabel: `${formatDate(row.prfpdfrom)} ~ ${formatDate(row.prfpdto)}`,
+      dateLabel: formatPeriod(row.prfpdfrom, row.prfpdto),
       priceLabel: "가격 정보 없음",
       priceValue: 0,
       ageLabel: "관람등급 정보 없음",
@@ -228,7 +260,7 @@ export async function fetchBoxOffice(params: {
     })
   );
 
-  return enrichWithDetails(shows);
+  return enrichWithDetails(shows.filter((show, idx) => !isEndedStatus(show.status) && !isPastEndDate((rows[idx] as Record<string, unknown>)?.prfpdto)));
 }
 
 /**
@@ -324,7 +356,7 @@ export async function fetchPerformanceList(params: {
       district: "",
       dayOfWeek: "토",
       distanceFromDobongKm: 999,
-      dateLabel: `${formatDate(row.prfpdfrom)} ~ ${formatDate(row.prfpdto)}`,
+      dateLabel: formatPeriod(row.prfpdfrom, row.prfpdto),
       priceLabel: "가격 정보 없음",
       priceValue: 0,
       ageLabel: "관람등급 정보 없음",
@@ -337,5 +369,10 @@ export async function fetchPerformanceList(params: {
     })
   );
 
-  return enrichWithDetails(shows);
+  const activeShows = shows.filter((show, idx) => {
+    const row = rows[idx] as Record<string, unknown>;
+    return !isEndedStatus(show.status) && !isPastEndDate(row?.prfpdto);
+  });
+
+  return enrichWithDetails(activeShows);
 }

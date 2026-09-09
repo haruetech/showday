@@ -275,3 +275,54 @@ a, button { -webkit-tap-highlight-color: transparent; }
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ================================================================
+   SHOWDAY responsive multi-UI
+   One information architecture, adaptive desktop/tablet/mobile views.
+   ================================================================ */
+.showday-responsive-dock { display:none; }
+
+@media (max-width: 1023px) {
+  body { padding-bottom: 74px; }
+  .showday-responsive-dock {
+    position: fixed;
+    left: 50%;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    z-index: 65;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    width: min(520px, calc(100vw - 24px));
+    transform: translateX(-50%);
+    border: 1px solid rgba(60,36,27,.11);
+    border-radius: 18px;
+    background: rgba(252,248,242,.93);
+    box-shadow: 0 14px 38px rgba(60,36,27,.13);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    overflow: hidden;
+  }
+  .showday-dock-item {
+    min-height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .showday-dock-item:active { background: rgba(184,95,53,.07); color: var(--gold-dim); }
+  .showday-product-float,
+  .showday-product-float.is-compact { bottom: max(80px, calc(env(safe-area-inset-bottom) + 72px)); }
+}
+
+@media (max-width: 767px) {
+  .showday-product-float,
+  .showday-product-float.is-compact { left: 10px; right: 10px; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .showday-responsive-dock { width: 500px; }
+}

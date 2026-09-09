@@ -54,12 +54,12 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-5 px-4 py-4 sm:px-6">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
         <div className="flex items-baseline gap-1">
-          <span className="font-display font-bold text-2xl tracking-tight text-paper">
+          <span className="font-display font-bold text-[21px] tracking-tight text-paper sm:text-2xl">
             SHOWDAY
           </span>
-          <span className="text-xs text-muted">공연비서</span>
+          <span className="hidden text-xs text-muted sm:inline">공연비서</span>
         </div>
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
@@ -93,9 +93,9 @@ export default function Header({
         ) : isAuthConfigured ? (
           <button
             onClick={signInWithKakao}
-            className="flex items-center gap-1.5 rounded-full bg-[#FEE500] px-4 py-2 text-xs font-bold text-[#191600] transition-opacity hover:opacity-90"
+            className="flex min-h-10 items-center gap-1.5 rounded-full bg-[#FEE500] px-3.5 py-2 text-[11px] font-bold text-[#191600] transition-opacity hover:opacity-90 sm:px-4 sm:text-xs"
           >
-            카카오로 로그인
+            <span className="sm:hidden">로그인</span><span className="hidden sm:inline">카카오로 로그인</span>
           </button>
         ) : (
           // Supabase/Kakao 연동 전 프리뷰용 데모 토글
