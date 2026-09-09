@@ -53,14 +53,20 @@ export default function Hero() {
 
   function aiSearchPrompt(prompt:string){
     let nextTiming:Timing=timing, nextRegion:Region=region, nextGenre=genre;
-    if(prompt.includes("오늘")) nextTiming="오늘";
-    else if(prompt.includes("이번 주말")||prompt.includes("주말")) nextTiming="이번 주말";
-    else if(prompt.includes("이번 주")) nextTiming="이번 주";
-    const foundRegion=regions.find(r=>r!=="전국"&&prompt.includes(r)); if(foundRegion) nextRegion=foundRegion;
-    const genreMap:[string,string][]=[["콘서트","대중음악"],["뮤지컬","뮤지컬"],["연극","연극"],["클래식","클래식"],["국악","국악"],["무용","무용"]];
-    const foundGenre=genreMap.find(([word])=>prompt.includes(word)); if(foundGenre) nextGenre=foundGenre[1];
-    setTiming(nextTiming); setRegion(nextRegion); setGenre(nextGenre); setQuery(prompt);
-    const cleaned=prompt.replace(/이번 주말|이번 주|오늘|서울|경기|인천|부산|에서|볼|공연|콘서트|뮤지컬|클래식|연극|다음|50대가|편하게/g," ").replace(/\s+/g," ").trim();
+    const normalized=prompt.trim();
+    if(/오늘|지금|오늘밤|오늘 저녁/.test(normalized)) nextTiming="오늘";
+    else if(/이번\s*주말|주말|토요일|일요일/.test(normalized)) nextTiming="이번 주말";
+    else if(/이번\s*주|이번주/.test(normalized)) nextTiming="이번 주";
+    else if(/다음\s*공연|예정|앞으로|한달|30일/.test(normalized)) nextTiming="30일 이내";
+
+    const foundRegion=regions.find(r=>r!=="전국"&&normalized.includes(r)); if(foundRegion) nextRegion=foundRegion;
+    const genreMap:[RegExp,string][]=[[/콘서트|가요|아이돌|k-?pop/i,"대중음악"],[/뮤지컬/,"뮤지컬"],[/연극/,"연극"],[/클래식|오케스트라|피아노|성악/,"클래식"],[/국악/,"국악"],[/무용|발레/,"무용"],[/아동|어린이|키즈/,"아동"]];
+    const foundGenre=genreMap.find(([rx])=>rx.test(normalized)); if(foundGenre) nextGenre=foundGenre[1];
+
+    setTiming(nextTiming); setRegion(nextRegion); setGenre(nextGenre); setQuery(normalized);
+    const cleaned=normalized
+      .replace(/이번\s*주말|이번주말|이번\s*주|이번주|오늘밤|오늘\s*저녁|오늘|지금|서울|경기|인천|부산|에서|근처|가까운|볼\s*만한|볼|추천|해줘|찾아줘|공연|콘서트|뮤지컬|클래식|연극|다음|예정|50대|60대|부모님|편하게|힐링/gi," ")
+      .replace(/\s+/g," ").trim();
     searchShows(cleaned,{timing:nextTiming,region:nextRegion,genre:nextGenre});
   }
 
@@ -114,7 +120,7 @@ export default function Hero() {
           <aside className="rounded-xl border border-gold/30 bg-gold/5 p-4">
             <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-sm font-black text-white">AI</span><div><p className="text-sm font-black text-paper">SHOWDAY AI 찾기</p><p className="text-[11px] text-muted">말하듯 입력해도 조건을 찾아드립니다.</p></div></div>
             <div className="mt-4 space-y-2">{["이번 주말 서울에서 볼 콘서트","50대가 편하게 볼 클래식","아이유 다음 공연","오늘 KSPO DOME 공연"].map(ex=><button key={ex} onClick={()=>aiSearchPrompt(ex)} className="block w-full rounded-lg border border-line bg-surface px-3 py-2 text-left text-xs text-paper hover:border-gold"><span className="mr-2 text-gold">↗</span>{ex}</button>)}</div>
-            <p className="mt-4 border-t border-line pt-3 text-[11px] leading-5 text-muted">AI는 검색어에서 <b className="text-paper">날짜·지역·장르·아티스트·공연장</b>을 읽고 현재·예정 공연만 우선 보여주는 방향으로 설계했습니다.</p>
+            <p className="mt-4 border-t border-line pt-3 text-[11px] leading-5 text-muted">말하듯 입력하면 <b className="text-paper">언제 · 어디서 · 무엇을 · 누구를</b> 찾는지 정리해 현재·예정 공연부터 보여드립니다.</p>
           </aside>
         </div>
         {searched && <div className="mt-6 border-t border-line pt-5">

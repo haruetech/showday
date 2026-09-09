@@ -82,11 +82,24 @@ async function limitedMap<T, R>(
   return results;
 }
 
-interface DetailInfo {
+export interface PerformanceDetail {
+  id: string;
+  title: string;
+  genre: string;
+  venue: string;
+  period: string;
+  timeGuide: string;
+  cast: string;
+  crew: string;
+  producer: string;
+  synopsis: string;
+  posterUrl?: string;
   priceLabel: string;
   priceValue: number;
+  priceGuide: string;
   ageLabel: string;
   runningTime: string;
+  status: string;
   bookingUrl?: string;
 }
 
@@ -94,7 +107,7 @@ interface DetailInfo {
  * 공연 상세 조회 — pblprfr/{mt20id}
  * 가격(pcseguidance) / 관람등급(prfage) / 공연시간(prfruntime) / 예매처 링크(relates.relate) 확보
  */
-export async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo | null> {
+export async function fetchPerformanceDetail(mt20id: string): Promise<PerformanceDetail | null> {
   if (!hasServiceKey()) return null;
   try {
     const qs = new URLSearchParams({ service: process.env.KOPIS_API_KEY! });
@@ -115,10 +128,23 @@ export async function fetchPerformanceDetail(mt20id: string): Promise<DetailInfo
       .find((u?: string) => !!u);
 
     return {
+      id: String(row.mt20id || mt20id),
+      title: String(row.prfnm || "공연 상세정보"),
+      genre: String(row.genrenm || "공연"),
+      venue: String(row.fcltynm || "공연장 정보 없음"),
+      period: `${formatDate(String(row.prfpdfrom || ""))} ~ ${formatDate(String(row.prfpdto || ""))}`,
+      timeGuide: String(row.dtguidance || "공연시간 정보 없음"),
+      cast: String(row.prfcast || ""),
+      crew: String(row.prfcrew || ""),
+      producer: String(row.entrpsnm || ""),
+      synopsis: String(row.sty || ""),
+      posterUrl: normalizePosterUrl(row.poster),
       priceLabel,
       priceValue,
+      priceGuide: String(row.pcseguidance || priceLabel),
       ageLabel: row.prfage?.trim() || "관람등급 정보 없음",
       runningTime: row.prfruntime?.trim() || "",
+      status: String(row.prfstate || ""),
       bookingUrl,
     };
   } catch (err) {
@@ -144,6 +170,7 @@ async function enrichWithDetails(shows: Show[]): Promise<Show[]> {
       ageLabel: detail.ageLabel,
       runningTime: detail.runningTime || show.runningTime,
       bookingUrl: detail.bookingUrl,
+      posterUrl: detail.posterUrl || show.posterUrl,
     };
   });
 
