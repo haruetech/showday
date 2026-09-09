@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPerformanceList, fetchPerformanceDetail, fetchArtistShows } from "@/lib/kopis";
+import { fetchPerformanceList, fetchPerformanceDetail, fetchArtistShows, fetchBoxOffice } from "@/lib/kopis";
 import { popularShows, todayShows } from "@/lib/dummy-data";
 
 // GET /api/kopis?type=today|upcoming|artist|search&region=<KOPIS 지역코드>
@@ -15,6 +15,24 @@ export async function GET(req: NextRequest) {
 
   const q = searchParams.get("q") ?? undefined;
   const rows = Number(searchParams.get("rows") ?? "40");
+
+  if (type === "popular") {
+    try {
+      const end = new Date();
+      end.setDate(end.getDate() - 1);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 6);
+      const list = (await fetchBoxOffice({ stdate: toKopisDate(start), eddate: toKopisDate(end) }))
+        .filter(show => !(show.status?.includes("완료") || show.status?.includes("종료")));
+      return NextResponse.json(
+        { source: list.length ? "kopis-boxoffice" : "none", shows: list.slice(0, Math.min(rows, 30)) },
+        { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } }
+      );
+    } catch (err) {
+      console.error("KOPIS boxoffice fetch failed:", err);
+      return NextResponse.json({ source: "none", shows: [] });
+    }
+  }
 
   // 아티스트/특정 검색어 검색: 이번 주 같은 좁은 기간이 아니라 공연중+예정을
   // 폭넓게(최대 6개월치) 찾는다. 결과가 없으면 무관한 인기공연을 대신 보여주지

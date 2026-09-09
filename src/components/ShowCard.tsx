@@ -1,70 +1,24 @@
 import Link from "next/link";
+import { ArrowIcon } from "@/components/Icons";
 import { Show } from "@/types/show";
 
-export default function ShowCard({
-  show,
-  reason,
-}: {
-  show: Show;
-  reason?: string;
-}) {
+export default function ShowCard({ show, reason }: { show: Show; reason?: string }) {
   const displayReason = reason ?? show.reason;
-
-  return (
-    <article className="group flex w-64 shrink-0 flex-col overflow-hidden rounded-sm border border-line bg-surface transition-colors hover:border-gold">
-      <Link href={`/show/${encodeURIComponent(show.id)}`} className="block">
-        <div
-          className="relative aspect-[3/4] w-full overflow-hidden bg-ink/70"
-          style={{ background: `linear-gradient(135deg, ${show.posterFrom}, ${show.posterTo})` }}
-        >
-          {show.posterUrl && (
-            <img
-              src={show.posterUrl}
-              alt={`${show.title} 포스터`}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]"
-            />
-          )}
-          <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2 py-0.5 text-xs text-paper backdrop-blur-sm">
-            {show.genre}
-          </span>
-          {show.status && (
-            <span className="absolute right-3 top-3 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-ink">
-              {show.status}
-            </span>
-          )}
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <Link href={`/show/${encodeURIComponent(show.id)}`}>
-          <h3 className="font-display line-clamp-2 text-lg font-bold leading-snug text-paper group-hover:text-gold">
-            {show.title}
-          </h3>
-        </Link>
-        <p className="text-sm text-muted">{show.venue} · {show.dateLabel}</p>
-        <p className="text-xs text-muted">
-          {show.priceLabel} · {show.ageLabel}{show.runningTime ? ` · ${show.runningTime}` : ""}
-        </p>
-
-        {show.tags.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {show.tags.map((tag) => (
-              <span key={tag} className="rounded-sm border border-line px-1.5 py-0.5 text-[11px] text-muted">{tag}</span>
-            ))}
-          </div>
-        )}
-
-        {displayReason && <div className="perforated my-1" aria-hidden />}
-        {displayReason && <p className="text-xs leading-relaxed text-gold">{displayReason}</p>}
-
-        <Link
-          href={`/show/${encodeURIComponent(show.id)}`}
-          className="mt-auto inline-flex items-center justify-center rounded-sm border border-line py-2.5 text-xs font-bold text-paper transition-colors hover:border-gold hover:text-gold"
-        >
-          SHOWDAY에서 상세보기 →
-        </Link>
+  return <article className="group w-[236px] shrink-0 border-b border-line pb-4 sm:w-[252px]">
+    <Link href={`/show/${encodeURIComponent(show.id)}`} className="block">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-raised">
+        {show.posterUrl ? <img src={show.posterUrl} alt={`${show.title} 포스터`} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"/> : <div className="absolute inset-0" style={{background:`linear-gradient(145deg,${show.posterFrom},${show.posterTo})`}}/>}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent"/>
+        {show.status && <span className="absolute left-3 top-3 bg-white/92 px-2 py-1 text-[10px] font-bold text-paper backdrop-blur">{show.status}</span>}
       </div>
-    </article>
-  );
+      <div className="pt-4">
+        <p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p>
+        <h3 className="mt-1.5 line-clamp-2 min-h-[48px] text-base font-black leading-6 text-paper transition group-hover:text-gold">{show.title}</h3>
+        <p className="mt-2 line-clamp-1 text-xs text-muted">{show.venue}</p>
+        <p className="mt-1 text-xs text-muted">{show.dateLabel}</p>
+        {displayReason && <p className="mt-3 border-l-2 border-gold/50 pl-3 text-xs leading-5 text-muted">{displayReason}</p>}
+        <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper">상세보기 <ArrowIcon className="h-3.5 w-3.5"/></span>
+      </div>
+    </Link>
+  </article>
 }

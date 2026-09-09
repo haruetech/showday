@@ -171,6 +171,7 @@ async function enrichWithDetails(shows: Show[]): Promise<Show[]> {
       runningTime: detail.runningTime || show.runningTime,
       bookingUrl: detail.bookingUrl,
       posterUrl: detail.posterUrl || show.posterUrl,
+      artist: show.artist || (detail.cast && detail.cast.length < 80 ? detail.cast : undefined),
     };
   });
 

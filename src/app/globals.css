@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #fbf1e2;
-  --surface: #fffaf1;
-  --surface-raised: #fbe8d3;
-  --line: #e8d2b0;
-  --gold: #d2691e;
-  --gold-dim: #a8540f;
-  --brick: #dd8a52;
-  --paper: #5e2510;
-  --muted: #8a6f52;
+  --ink: #f8f1e7;
+  --surface: #fcf8f2;
+  --surface-raised: #efe2d2;
+  --line: #dac9b7;
+  --gold: #b85f35;
+  --gold-dim: #934625;
+  --brick: #c9784f;
+  --paper: #3c241b;
+  --muted: #77685d;
 }
 
 @theme inline {
@@ -107,3 +107,7 @@ body {
 .arena-drift {
   animation: arena-drift 4s ease-in-out infinite;
 }
+
+
+::selection { background: rgba(184,95,53,.2); }
+a, button { -webkit-tap-highlight-color: transparent; }

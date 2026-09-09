@@ -1,72 +1,17 @@
 "use client";
-
+import { ArrowIcon, HeartIcon } from "@/components/Icons";
 import { Artist, Show } from "@/types/show";
 import { signInWithKakao, isAuthConfigured } from "@/lib/auth";
 
-export default function ArtistCard({
-  artist,
-  shows = [],
-  mode,
-  isFollowing,
-  onToggleFollow,
-}: {
-  artist: Artist;
-  shows?: Show[];
-  mode: "guest" | "member";
-  isFollowing?: boolean;
-  onToggleFollow?: (artistId: string) => void;
-}) {
-  const nextShow = shows[0];
-  const searchArtist = () => {
-    window.dispatchEvent(new CustomEvent("showday:search", { detail: { query: artist.name, mode: "artist" } }));
-    document.getElementById("show-search")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleHeartClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (mode !== "member") {
-      if (isAuthConfigured) signInWithKakao();
-      else alert("관심 아티스트로 저장하려면 카카오 로그인이 필요합니다.");
-      return;
-    }
-    onToggleFollow?.(artist.id);
-  };
-
-  return (
-    <article className="relative w-64 shrink-0 overflow-hidden rounded-xl border border-line bg-surface transition-all hover:-translate-y-1 hover:border-gold hover:shadow-lg">
-      <button type="button" onClick={handleHeartClick} aria-label={`${artist.name} 관심 저장`} className={`absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-xl shadow ${isFollowing ? "text-gold" : "text-muted"}`}>
-        {isFollowing ? "♥" : "♡"}
-      </button>
-      <button type="button" onClick={searchArtist} className="block w-full text-left">
-        <div className="relative aspect-[4/3] overflow-hidden bg-surface-raised" style={{ background: `linear-gradient(135deg, ${artist.posterFrom}, ${artist.posterTo})` }}>
-          {nextShow?.posterUrl ? (
-            <img src={nextShow.posterUrl} alt={`${artist.name} 공연 이미지`} className="h-full w-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
-          ) : (
-            <div className="flex h-full items-end p-5"><span className="font-display text-4xl font-black text-white/80">{artist.name.slice(0,1)}</span></div>
-          )}
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/65 to-transparent" />
-          <div className="absolute bottom-3 left-4 right-4 text-white">
-            <p className="text-[10px] font-bold tracking-[.12em] text-white/75">ARTIST</p>
-            <h3 className="mt-1 text-xl font-black">{artist.name}</h3>
-          </div>
-        </div>
-        <div className="p-4">
-          <p className="text-xs text-muted">{artist.genre}</p>
-          {nextShow ? (
-            <div className="mt-3 rounded-lg bg-ink/60 p-3">
-              <p className="text-[10px] font-bold text-gold">NEXT SHOW</p>
-              <p className="mt-1 line-clamp-2 text-sm font-bold text-paper">{nextShow.title}</p>
-              <p className="mt-1 text-xs text-muted">{nextShow.dateLabel} · {nextShow.venue}</p>
-              <p className="mt-2 text-xs font-bold text-gold">공연 내용 바로보기 →</p>
-            </div>
-          ) : (
-            <div className="mt-3 rounded-lg border border-line p-3">
-              <p className="text-xs text-muted">현재 확인된 예정 공연이 없습니다.</p>
-              <p className="mt-2 text-xs font-bold text-gold">공연 알림 받기 →</p>
-            </div>
-          )}
-        </div>
-      </button>
-    </article>
-  );
+export default function ArtistCard({artist,shows=[],mode,isFollowing,onToggleFollow}:{artist:Artist;shows?:Show[];mode:"guest"|"member";isFollowing?:boolean;onToggleFollow?:(artistId:string)=>void}){
+  const nextShow=shows[0];
+  const searchArtist=()=>{window.dispatchEvent(new CustomEvent("showday:search",{detail:{query:artist.name,mode:"artist"}}));document.getElementById("show-search")?.scrollIntoView({behavior:"smooth",block:"start"})};
+  const handleHeart=(e:React.MouseEvent)=>{e.stopPropagation();if(mode!=="member"){if(isAuthConfigured)signInWithKakao();else alert("관심 아티스트 저장은 로그인 후 이용할 수 있습니다.");return}onToggleFollow?.(artist.id)};
+  return <article className="group relative w-[236px] shrink-0 border-b border-line pb-4 sm:w-[252px]">
+    <button type="button" onClick={handleHeart} aria-label={`${artist.name} 관심 저장`} className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/92 text-paper shadow-sm backdrop-blur"><HeartIcon filled={isFollowing} className={`h-4.5 w-4.5 ${isFollowing?"text-gold":"text-paper"}`}/></button>
+    <button type="button" onClick={searchArtist} className="block w-full text-left">
+      <div className="relative aspect-[4/3] overflow-hidden bg-surface-raised">{nextShow?.posterUrl?<img src={nextShow.posterUrl} alt={`${artist.name} 공연 이미지`} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"/>:<div className="flex h-full items-end bg-[linear-gradient(145deg,#c8875e,#7a351d)] p-5"><span className="text-5xl font-black text-white/90">{artist.name.slice(0,1)}</span></div>}<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent"/><div className="absolute bottom-3 left-4 text-white"><p className="text-[9px] font-semibold tracking-[.14em] text-white/70">ARTIST</p><h3 className="mt-1 text-xl font-black">{artist.name}</h3></div></div>
+      <div className="pt-4"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{artist.genre}</p>{nextShow?<><p className="mt-2 line-clamp-2 min-h-[40px] text-sm font-bold leading-5 text-paper">{nextShow.title}</p><p className="mt-2 text-xs text-muted">{nextShow.dateLabel}</p><p className="mt-1 line-clamp-1 text-xs text-muted">{nextShow.venue}</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper group-hover:text-gold">다음 공연 보기 <ArrowIcon className="h-3.5 w-3.5"/></span></>:<><p className="mt-2 text-sm text-muted">현재 확인된 예정 공연이 없습니다.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper">공연 알림 받기 <ArrowIcon className="h-3.5 w-3.5"/></span></>}</div>
+    </button>
+  </article>
 }

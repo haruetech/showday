@@ -1,15 +1,17 @@
+import { ArrowIcon, BrainIcon, PlayIcon, WalkIcon, WellnessIcon } from "@/components/Icons";
+
 const services = [
-  { icon:"🧘", title:"힐링 · 마음 휴식", desc:"명상, 음악, 가벼운 호흡과 휴식 콘텐츠를 공연·문화와 연결합니다.", badge:"HEALING" },
-  { icon:"🧠", title:"뇌 휴식 · 인지 콘텐츠", desc:"집중과 이완을 돕는 짧은 음악·영상·두뇌활동 콘텐츠를 큐레이션합니다.", badge:"BRAIN REST" },
-  { icon:"🦶", title:"발 건강 · 걷기", desc:"공연이나 외출 전후에 활용할 수 있는 발 건강, 스트레칭, 걷기 정보를 제공합니다.", badge:"FOOT CARE" },
-  { icon:"✨", title:"50+ AI 생활", desc:"AI 배우기, 취미, 문화생활처럼 바로 참여 가능한 50+ 라이프 콘텐츠를 소개합니다.", badge:"AI LIFE" },
+  { icon:WellnessIcon, title:"힐링 · 마음 휴식", desc:"5~15분 음악·호흡·명상처럼 바로 이용할 수 있는 짧은 휴식 콘텐츠", badge:"WELLNESS" },
+  { icon:BrainIcon, title:"뇌 휴식 · 인지 콘텐츠", desc:"집중과 이완을 돕는 음악·영상·가벼운 두뇌활동 콘텐츠", badge:"BRAIN REST" },
+  { icon:WalkIcon, title:"발 건강 · 걷기", desc:"공연·외출 전후에 활용하는 스트레칭, 보행, 발 관리 정보", badge:"FOOT & WALK" },
+  { icon:PlayIcon, title:"50+ AI 생활", desc:"AI 배우기, 취미, 문화생활을 짧고 쉽게 시작하는 생활 콘텐츠", badge:"AI LIFE" },
 ];
 
-export default function ParentsFiftyPlusSection() {
-  return <section id="fiftyplus" className="mx-auto w-full max-w-6xl px-6 py-12">
-    <div className="rounded-2xl border border-line bg-surface p-6 lg:p-8">
-      <div className="mb-6 max-w-2xl"><p className="text-xs font-bold tracking-[.18em] text-gold">SHOWDAY 50+ LIFE & CULTURE</p><h2 className="mt-2 text-3xl font-black text-paper">공연을 넘어, 50+의 좋은 하루로</h2><p className="mt-3 text-sm leading-7 text-muted">당장 운영 가능한 힐링·뇌 휴식·발 건강·AI 생활 콘텐츠부터 시작해 SHOWDAY만의 50+ 문화 영역으로 확장합니다.</p></div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{services.map(s=><article key={s.title} className="rounded-xl border border-line bg-ink/55 p-5"><div className="text-3xl">{s.icon}</div><span className="mt-4 inline-block text-[10px] font-bold text-gold">{s.badge}</span><h3 className="mt-2 text-lg font-black text-paper">{s.title}</h3><p className="mt-2 text-xs leading-6 text-muted">{s.desc}</p><button className="mt-4 text-xs font-bold text-gold">콘텐츠 보기 →</button></article>)}</div>
+export default function ParentsFiftyPlusSection(){return <section id="fiftyplus" className="mx-auto w-full max-w-[1280px] px-6 py-14">
+  <div className="border-t border-line pt-9">
+    <div className="grid gap-7 lg:grid-cols-[.75fr_1.25fr]">
+      <div className="max-w-md"><p className="text-[11px] font-semibold tracking-[.18em] text-gold">SHOWDAY 50+ LIFE</p><h2 className="mt-3 text-3xl font-black leading-tight text-paper">공연을 넘어,<br/>좋은 하루를 위한 콘텐츠</h2><p className="mt-4 text-sm leading-7 text-muted">당장 운영 가능한 힐링·뇌 휴식·발 건강·AI 생활부터 시작합니다.</p></div>
+      <div className="grid border-t border-line sm:grid-cols-2 lg:border-t-0 lg:grid-cols-2">{services.map((s,i)=>{const Icon=s.icon;return <article key={s.title} className={`group border-b border-line py-5 sm:px-5 ${i%2===0?"sm:border-r":""} lg:py-6`}><div className="flex items-start gap-4"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-gold"><Icon className="h-5 w-5"/></div><div><span className="text-[10px] font-semibold tracking-[.12em] text-muted">{s.badge}</span><h3 className="mt-1.5 text-lg font-black text-paper">{s.title}</h3><p className="mt-2 text-xs leading-6 text-muted">{s.desc}</p><button className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-paper transition group-hover:text-gold">콘텐츠 보기 <ArrowIcon className="h-3.5 w-3.5"/></button></div></div></article>})}</div>
     </div>
-  </section>;
-}
+  </div>
+</section>}
