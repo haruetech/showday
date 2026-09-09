@@ -231,7 +231,8 @@ export async function fetchArtistShows(query: string, rows = 30): Promise<Show[]
     });
 
     for (const show of windowShows) {
-      if (!seen.has(show.id)) seen.set(show.id, show);
+      const ended = show.status?.includes("완료") || show.status?.includes("종료");
+      if (!ended && !seen.has(show.id)) seen.set(show.id, show);
     }
 
     // 이번 창에서 하나도 안 나왔고, 이미 한 번이라도 결과를 모았다면
@@ -259,6 +260,7 @@ export async function fetchPerformanceList(params: {
   stdate: string;
   eddate: string;
   shprfnm?: string;
+  shprfnmfct?: string; // 공연시설/공연장명 검색
   signgucode?: string; // 지역 코드
   rows?: number;
 }): Promise<Show[]> {
@@ -271,6 +273,7 @@ export async function fetchPerformanceList(params: {
     cpage: "1",
     rows: String(params.rows ?? 20),
     ...(params.shprfnm ? { shprfnm: params.shprfnm } : {}),
+    ...(params.shprfnmfct ? { shprfnmfct: params.shprfnmfct } : {}),
     ...(params.signgucode ? { signgucode: params.signgucode } : {}),
   });
 

@@ -131,8 +131,8 @@ export default function Home() {
 
         <SectionRow
           eyebrow="TODAY"
-          title="오늘의 공연"
-          id="today-shows"
+          title="오늘 바로 볼 수 있는 공연"
+          id="popular-now"
           action={kopisSource === "loading" ? <span className="text-[11px] text-muted">공연정보 불러오는 중</span> : undefined}
         >
           {liveToday.map((s) => (
@@ -142,7 +142,7 @@ export default function Home() {
 
         <SectionRow
           eyebrow="UPCOMING"
-          title="다가오는 공연"
+          title="곧 만나요 · 예정 공연"
           
         >
           {liveUpcoming.map((s) => (
@@ -152,7 +152,7 @@ export default function Home() {
 
         <SectionRow
           eyebrow="MY ARTISTS"
-          title="관심 아티스트"
+          title="좋아하는 아티스트의 다음 공연"
           action={
             mode === "guest" ? (
               <span className="text-[11px] text-muted">로그인하면 ♡ 저장돼요</span>
@@ -170,7 +170,7 @@ export default function Home() {
           ))}
         </SectionRow>
 
-        <SectionRow eyebrow="VENUE" title="공연장" id="venues">
+        <SectionRow eyebrow="VENUE" title="어디에서 볼까? · 주요 공연장" id="venues">
           {venues.map((v) => (
             <VenueCard key={v.id} venue={v} />
           ))}

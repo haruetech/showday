@@ -60,13 +60,26 @@ export async function GET(req: NextRequest) {
   const eddate = toKopisDate(end);
 
   try {
-    const list = await fetchPerformanceList({
+    const limit = type === "today" ? 30 : Math.min(Math.max(rows, 1), 100);
+    const titleList = await fetchPerformanceList({
       stdate,
       eddate,
       signgucode: region,
       shprfnm: q,
-      rows: type === "today" ? 30 : Math.min(Math.max(rows, 1), 100),
+      rows: limit,
     });
+    // 통합검색은 공연명뿐 아니라 공연장명도 찾는다. KOPIS 시설명 검색 결과를 합치고 중복 제거.
+    const venueList = q?.trim() ? await fetchPerformanceList({
+      stdate,
+      eddate,
+      signgucode: region,
+      shprfnmfct: q,
+      rows: limit,
+    }) : [];
+    const merged = new Map([...titleList, ...venueList].map(show => [show.id, show]));
+    const list = Array.from(merged.values()).filter(show =>
+      !(show.status?.includes("완료") || show.status?.includes("종료"))
+    );
 
     // 검색어(q)가 있는 조회는 "그 검색어에 대한 결과"이므로, 0건이면 무관한
     // 더미 인기공연으로 채우지 않고 정직하게 빈 배열로 응답한다.
