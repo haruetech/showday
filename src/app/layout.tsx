@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import FloatingProductPromo from "@/components/FloatingProductPromo";
 
 export const metadata: Metadata = {
   title: "SHOWDAY — 오늘, 어떤 공연을 만나고 싶으세요?",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col font-sans bg-ink text-paper">
         {children}
+        <FloatingProductPromo />
       </body>
     </html>
   );
