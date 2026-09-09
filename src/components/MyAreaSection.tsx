@@ -41,7 +41,7 @@ function closestDistrict(lat:number,lng:number){
 }
 function isWeekend(iso:string|null){if(!iso)return false;const d=new Date(iso);const day=d.getDay();return day===5||day===6||day===0}
 
-export default function MyAreaSection(){
+export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
   const [events,setEvents]=useState<LocalEvent[]>([]);
   const [loading,setLoading]=useState(true);
   const [configured,setConfigured]=useState(true);
@@ -51,7 +51,20 @@ export default function MyAreaSection(){
   const [filter,setFilter]=useState<"all"|"today"|"weekend"|"free">("all");
   const [geoState,setGeoState]=useState<"idle"|"loading"|"denied">("idle");
 
-  useEffect(()=>{let ignore=false;fetch("/api/seoul-events?rows=1000",{cache:"no-store"}).then(r=>r.json()).then(data=>{if(ignore)return;setEvents(Array.isArray(data?.events)?data.events:[]);setConfigured(data?.configured!==false)}).catch(()=>{}).finally(()=>{if(!ignore)setLoading(false)});return()=>{ignore=true}},[]);
+  useEffect(()=>{
+    let ignore=false;
+    const pages=fullPage?[1,2,3]:[1];
+    Promise.all(pages.map(page=>fetch(`/api/seoul-events?rows=1000&page=${page}`,{cache:"no-store"}).then(r=>r.json())))
+      .then(results=>{
+        if(ignore)return;
+        const configuredOk=results.every(data=>data?.configured!==false);
+        const merged=results.flatMap(data=>Array.isArray(data?.events)?data.events:[]);
+        const unique=Array.from(new Map(merged.map(event=>[event.id,event])).values());
+        setEvents(unique);
+        setConfigured(configuredOk);
+      }).catch(()=>{}).finally(()=>{if(!ignore)setLoading(false)});
+    return()=>{ignore=true};
+  },[fullPage]);
 
   function useCurrentLocation(){
     if(!navigator.geolocation){setGeoState("denied");return}
@@ -75,14 +88,17 @@ export default function MyAreaSection(){
         return true;
       })
       .sort((a,b)=>location?(a.distanceKm??999)-(b.distanceKm??999):(a.startDate||"9999").localeCompare(b.startDate||"9999"))
-      .slice(0,16);
-  },[events,location,district,radius,filter]);
+      .slice(0,fullPage?72:6);
+  },[events,location,district,radius,filter,fullPage]);
 
   return <section id="my-area" className="my-area-section border-t border-line px-4 py-12 sm:px-6 sm:py-16">
     <div className="mx-auto max-w-[1440px]">
       <div className="my-area-head">
-        <div><p className="my-area-eyebrow">MY AREA</p><h2>내 주변에서 만나는 공연과 문화</h2><p>현재 위치나 관심 지역을 기준으로 오늘부터 예정된 공연·행사를 골라 보여드립니다.</p></div>
-        <button type="button" onClick={useCurrentLocation} className="my-area-location-btn"><PinIcon className="h-4 w-4"/>{geoState==="loading"?"위치 확인 중":location?`현재 위치 · ${district}`:"현재 위치로 찾기"}</button>
+        <div><p className="my-area-eyebrow">MY AREA</p><h2>{fullPage?"내 주변 공연·행사 전체보기":"내 주변에서 만나는 공연과 문화"}</h2><p>{fullPage?"현재 위치 또는 관심 지역을 기준으로 거리·날짜·무료 여부를 세밀하게 탐색해보세요.":"현재 위치나 관심 지역을 기준으로 오늘부터 예정된 공연·행사를 골라 보여드립니다."}</p></div>
+        <div className="my-area-head-actions">
+          {!fullPage&&<a href="/my-area" className="my-area-more-link">내 주변 더보기 <span aria-hidden="true">›</span></a>}
+          <button type="button" onClick={useCurrentLocation} className="my-area-location-btn"><PinIcon className="h-4 w-4"/>{geoState==="loading"?"위치 확인 중":location?`현재 위치 · ${district}`:"현재 위치로 찾기"}</button>
+        </div>
       </div>
 
       <div className="my-area-toolbar">
@@ -96,12 +112,13 @@ export default function MyAreaSection(){
       {configured&&loading&&<div className="my-area-empty">가까운 공연과 행사를 불러오고 있습니다.</div>}
       {configured&&!loading&&visible.length===0&&<div className="my-area-empty">선택한 조건에 맞는 현재·예정 공연이나 행사가 없습니다. 반경이나 지역을 넓혀보세요.</div>}
 
-      {visible.length>0&&<div className="my-area-scroll no-scrollbar">{visible.map(event=><article key={event.id} className="my-area-card">
+      {visible.length>0&&<div className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=><article key={event.id} className="my-area-card">
         <a href={event.officialUrl||event.bookingUrl||"#"} target="_blank" rel="noopener noreferrer" className="my-area-card-link">
           <div className="my-area-image">{event.imageUrl?<img src={event.imageUrl} alt="" loading="lazy"/>:<div className="my-area-image-fallback"><TicketIcon className="h-6 w-6"/></div>}<span>{event.category}</span>{event.isFree&&<b>FREE</b>}</div>
           <div className="my-area-copy"><div className="my-area-meta"><span><PinIcon className="h-3 w-3"/>{event.district}</span>{event.distanceKm!=null&&<span>{event.distanceKm<1?`${Math.round(event.distanceKm*1000)}m`:`${event.distanceKm.toFixed(1)}km`}</span>}</div><h3>{event.title}</h3><p><CalendarIcon className="h-3.5 w-3.5"/>{event.dateText}{event.showTime?` · ${event.showTime}`:""}</p><p className="my-area-venue">{event.venue}</p><div className="my-area-price"><span>{event.priceText}</span><span>정보 보기</span></div></div>
         </a>
       </article>)}</div>}
+      {!fullPage&&visible.length>0&&<div className="my-area-mobile-more"><a href="/my-area">전체보기 <span aria-hidden="true">›</span></a></div>}
       <p className="my-area-source">문화행사 정보 제공: 서울특별시 · 종료된 행사는 자동 제외됩니다.</p>
     </div>
   </section>
