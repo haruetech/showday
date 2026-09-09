@@ -63,7 +63,17 @@ export default function MyAreaSection(){
     const now=new Date(); const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);
     return events.map(e=>({...e,distanceKm:location&&e.lat!=null&&e.lng!=null?haversine(location.lat,location.lng,e.lat,e.lng):null}))
       .filter(e=>location&&radius<99&&e.distanceKm!=null?e.distanceKm<=radius:district?e.district===district:true)
-      .filter(e=>filter==="free"?e.isFree:filter==="weekend"?isWeekend(e.startDate):filter==="today"?(e.startDate?.slice(0,10)<=todayKey && (e.endDate?.slice(0,10)||e.startDate?.slice(0,10))>=todayKey):true)
+            .filter(e=>{
+        if(filter==="free") return e.isFree;
+        if(filter==="weekend") return isWeekend(e.startDate);
+        if(filter==="today"){
+          const startKey=e.startDate?.slice(0,10);
+          if(!startKey) return false;
+          const endKey=e.endDate?.slice(0,10) ?? startKey;
+          return startKey<=todayKey && endKey>=todayKey;
+        }
+        return true;
+      })
       .sort((a,b)=>location?(a.distanceKm??999)-(b.distanceKm??999):(a.startDate||"9999").localeCompare(b.startDate||"9999"))
       .slice(0,16);
   },[events,location,district,radius,filter]);
