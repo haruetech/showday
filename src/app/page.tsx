@@ -62,7 +62,7 @@ export default function Home(){
   const popularDisplay=livePopular;
 
   return <><Header mode={mode} onModeChange={setMode}/><main id="shows" className="flex-1"><Hero/>
-    {mode==="member"&&<SectionRow eyebrow="FOR YOU" title="회원님을 위한 추천" action={<a href="/onboarding" className="text-xs text-muted underline underline-offset-4 hover:text-paper">추천 설정 변경</a>}>{recommended.length?recommended.map(({show,matchedReasons})=><ShowCard key={show.id} show={show} reason={reasonLabel(matchedReasons)}/>):<p className="text-sm text-muted">조건에 맞는 공연을 찾는 중입니다.</p>}</SectionRow>}
+    {mode==="member"&&<SectionRow id="for-you" eyebrow="FOR YOU" title="회원님을 위한 추천" action={<a href="/onboarding" className="text-xs text-muted underline underline-offset-4 hover:text-paper">추천 설정 변경</a>}>{recommended.length?recommended.map(({show,matchedReasons})=><ShowCard key={show.id} show={show} reason={reasonLabel(matchedReasons)}/>):<p className="text-sm text-muted">조건에 맞는 공연을 찾는 중입니다.</p>}</SectionRow>}
 
     {popularSource==="kopis" && popularDisplay.length>0 && <SectionRow eyebrow="KOPIS BOX OFFICE" title="지금 실제로 많이 선택되는 공연" id="popular-now" action={<span className="text-[11px] text-muted">최근 KOPIS 박스오피스 기준</span>}>
       {popularDisplay.map(s=><ShowCard key={s.id} show={s}/>)}
@@ -79,6 +79,6 @@ export default function Home(){
 
     {venues.length>0&&<SectionRow eyebrow="VENUES" title="공연장별 현재·예정 공연" id="venues">{venues.map(v=><VenueCard key={v.id} venue={v} shows={visibleShows.filter(s=>s.venue===v.name)}/>)}</SectionRow>}
 
-    <ParentsFiftyPlusSection/>{mode==="member"&&<AlertsPanel/>}<ArenaNowBanner/>
+    <ParentsFiftyPlusSection/>{mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}<ArenaNowBanner/>
   </main><SectionQuickNav/><Footer/></>
 }

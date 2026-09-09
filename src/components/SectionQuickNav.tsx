@@ -5,16 +5,21 @@ import { useEffect, useMemo, useState } from "react";
 type NavItem = { id: string; label: string; short?: string };
 
 const ITEMS: NavItem[] = [
-  { id: "show-search", label: "상단 · AI 찾기", short: "상단" },
-  { id: "popular-now", label: "실제 인기", short: "인기" },
-  { id: "discover", label: "컨셉별 공연", short: "발견" },
-  { id: "my-area", label: "MY AREA", short: "내 주변" },
-  { id: "showday-now", label: "티켓 · 공연 소식", short: "NOW" },
-  { id: "today-shows", label: "오늘 공연", short: "오늘" },
-  { id: "upcoming-shows", label: "예정 공연", short: "예정" },
-  { id: "artists", label: "아티스트", short: "아티스트" },
-  { id: "venues", label: "공연장", short: "공연장" },
+  { id: "show-search", label: "상단으로 · AI 공연찾기", short: "상단" },
+  { id: "for-you", label: "나를 위한 추천", short: "추천" },
+  { id: "popular-now", label: "실제로 많이 선택되는 공연", short: "실제 인기" },
+  { id: "discover", label: "전체 목록보다 · 공연 발견", short: "공연 발견" },
+  { id: "weekend-shows", label: "이번 주말", short: "주말" },
+  { id: "genre-discovery", label: "장르별로 발견하기", short: "장르" },
+  { id: "my-area", label: "MY AREA · 내 주변 공연", short: "내 주변" },
+  { id: "showday-now", label: "SHOWDAY NOW · 공연 소식", short: "NOW" },
+  { id: "ticket-open-news", label: "티켓 오픈 · 예매 소식", short: "티켓" },
+  { id: "today-shows", label: "오늘 바로 볼 수 있는 공연", short: "오늘" },
+  { id: "upcoming-shows", label: "전체 예정 공연", short: "예정" },
+  { id: "artists", label: "아티스트의 다음 공연", short: "아티스트" },
+  { id: "venues", label: "공연장별 현재·예정 공연", short: "공연장" },
   { id: "fiftyplus", label: "50+ LIFE", short: "50+" },
+  { id: "alerts-nav", label: "내 공연 알림", short: "알림" },
   { id: "arena-now", label: "ARENA NOW", short: "ARENA" },
 ];
 
