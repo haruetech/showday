@@ -13,11 +13,11 @@ export default function ShowdayTrends({ shows }: { shows: Show[] }){
   ];
   return <section id="discover" className="mx-auto max-w-6xl px-6 py-12">
     <div className="mb-7"><p className="text-xs font-bold tracking-[.18em] text-gold">DISCOVER BY CONCEPT</p><h2 className="mt-2 text-3xl font-black text-paper">취향대로 공연 발견하기</h2><p className="mt-2 text-sm text-muted">전체 공연을 나열하지 않고, 지금 선택하기 쉬운 기준으로 나눠 보여드립니다.</p></div>
-    <div className="space-y-10">{groups.map(g=><ConceptRow key={g.key} {...g}/>)}</div>
+    <div className="space-y-10">{groups.map(g=><ConceptRow key={g.key} title={g.title} desc={g.desc} shows={g.shows}/>)}</div>
   </section>
 }
 
-function ConceptRow({key:_,title,desc,shows}:{key?:string;title:string;desc:string;shows:Show[]}){
+function ConceptRow({title,desc,shows}:{title:string;desc:string;shows:Show[]}){
   const ref=useRef<HTMLDivElement>(null); const [left,setLeft]=useState(false); const [right,setRight]=useState(false);
   const update=()=>{const el=ref.current;if(!el)return;setLeft(el.scrollLeft>4);setRight(el.scrollLeft+el.clientWidth<el.scrollWidth-4)};
   useEffect(()=>{update();const on=()=>update();window.addEventListener('resize',on);const ro=new ResizeObserver(update);if(ref.current)ro.observe(ref.current);return()=>{window.removeEventListener('resize',on);ro.disconnect()}},[shows.length]);
