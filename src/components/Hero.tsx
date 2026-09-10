@@ -16,7 +16,7 @@ const timings: Timing[] = ["오늘", "이번 주말", "이번 달", "날짜 선�
 const regions: Region[] = ["내 주변", "서울", "경기", "인천", "부산", "전국"];
 const companions: Companion[] = ["아이와 함께", "데이트", "친구·부부", "부모님과", "혼자"];
 const childAges: ChildAge[] = ["0~3세", "4~7세", "8~10세", "11~13세", "전체관람가"];
-const genres = ["전체", "콘서트", "뮤지컬", "연극", "클래식", "아동·가족"] as const;
+const genres = ["전체", "콘서트", "뮤지컬", "연극", "클래식", "전시회", "축제", "체험·가족행사"] as const;
 const prices: Price[] = ["가격 무관", "무료", "1만원 이하", "3만원 이하", "5만원 이하"];
 const regionCodes: Record<Exclude<Region, "내 주변">, string> = { 서울:"11", 경기:"41", 인천:"28", 부산:"26", 전국:"" };
 
@@ -42,7 +42,10 @@ function matchesCompanion(show:Show, value:Companion){
 function genreMatches(show:Show, genre:string){
   if(genre==="전체") return true;
   if(genre==="콘서트") return /콘서트|대중음악|대중/.test(show.genre);
-  if(genre==="아동·가족") return /아동|어린이|가족/.test(show.genre) || show.tags?.includes("가족");
+  if(genre==="클래식") return /클래식|서양음악|오페라|독주|독창|관현악|실내악/.test(show.genre);
+  if(genre==="전시회") return /전시|미술|박람회|아트|갤러리/.test(`${show.genre} ${show.title}`);
+  if(genre==="축제") return /축제|페스티벌/.test(`${show.genre} ${show.title}`);
+  if(genre==="체험·가족행사") return /체험|아동|어린이|가족|키즈/.test(`${show.genre} ${show.title}`) || show.tags?.includes("가족");
   return show.genre?.includes(genre);
 }
 function minAllowedAge(label?:string){
@@ -119,9 +122,11 @@ export default function Hero(){
 
     if(/뮤지컬/.test(t)) setGenre("뮤지컬");
     else if(/연극/.test(t)) setGenre("연극");
-    else if(/클래식/.test(t)) setGenre("클래식");
+    else if(/클래식|오페라|관현악|실내악/.test(t)) setGenre("클래식");
+    else if(/전시|전시회|미술|박람회|갤러리/.test(t)) setGenre("전시회");
+    else if(/축제|페스티벌/.test(t)) setGenre("축제");
+    else if(/체험|아동|어린이|가족|키즈/.test(t)) setGenre("체험·가족행사");
     else if(/콘서트|공연/.test(t)) setGenre("콘서트");
-    else if(/아동|어린이|가족/.test(t)) setGenre("아동·가족");
 
     if(/전체\s*관람/.test(t)) setChildAge("전체관람가");
     else {
@@ -275,7 +280,7 @@ export default function Hero(){
         </div>
 
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible">
-          <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와 함께");setTiming("이번 주말");setGenre("아동·가족")}}/>
+          <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와 함께");setTiming("이번 주말");setGenre("체험·가족행사")}}/>
           <Quick label="데이트 공연" onClick={()=>{chooseCompanion("데이트");setTiming("이번 주말");setGenre("전체")}}/>
           <Quick label="부모님과" onClick={()=>{chooseCompanion("부모님과");setTiming("이번 주말");setGenre("전체")}}/>
           <Quick label="오늘 내 주변" onClick={()=>{setRegion("내 주변");setTiming("오늘")}}/>
