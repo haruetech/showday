@@ -17,6 +17,7 @@ export interface ScoredShow {
 
 const companionToTag: Record<RecommendationProfile["companion"], Show["tags"][number] | null> = {
   "혼자": null,
+  "연인과 함께": "데이트",
   "배우자와 함께": "데이트",
   "부모님과 함께": "부모님",
   "자녀와 함께": "가족",

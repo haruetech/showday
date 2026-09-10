@@ -55,7 +55,8 @@ function OnboardingForm() {
   const [ageBand, setAgeBand] = useState<RecommendationProfile["ageBand"] | null>(null);
   const [district, setDistrict] = useState<string | null>(null);
   const [companion, setCompanion] = useState<RecommendationProfile["companion"] | null>(null);
-  const [childAge, setChildAge] = useState<RecommendationProfile["childAge"] | null>(null);
+  type ChildAge = (typeof onboardingOptions.childAges)[number];
+  const [childAge, setChildAge] = useState<ChildAge | null>(null);
   const [preferredDay, setPreferredDay] = useState<RecommendationProfile["preferredDay"] | null>(null);
   const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(null);
   const [genres, setGenres] = useState<string[]>([]);
