@@ -10,7 +10,8 @@ import type { Show } from "@/types/show";
 type Timing = "오늘" | "이번 주" | "이번 주말" | "다음 달" | "30일 이내";
 type Region = "전국" | "서울" | "경기" | "인천" | "부산";
 type Travel = "상관없음" | "30분 이내" | "1시간 이내" | "1시간 30분 이내";
-type Price = "가격 무관" | "5만원 이하" | "10만원 이하" | "15만원 이하";
+type TravelMode = "대중교통" | "자동차";
+type Price = "가격 무관" | "무료" | "5만원 이하" | "10만원 이하" | "15만원 이하";
 type Companion = "누구와든" | "혼자" | "부모님" | "아이와" | "연인·배우자" | "친구";
 
 type InterpretedPrompt = {
@@ -29,20 +30,30 @@ const regions: Region[] = ["전국", "서울", "경기", "인천", "부산"];
 const regionCodes: Record<Region,string> = {전국:"",서울:"11",경기:"41",인천:"28",부산:"26"};
 const genres = ["전체", "대중음악", "뮤지컬", "연극", "클래식", "국악", "무용", "아동"];
 const travels: Travel[] = ["상관없음", "30분 이내", "1시간 이내", "1시간 30분 이내"];
-const prices: Price[] = ["가격 무관", "5만원 이하", "10만원 이하", "15만원 이하"];
+const prices: Price[] = ["가격 무관", "무료", "5만원 이하", "10만원 이하", "15만원 이하"];
+const travelModes: TravelMode[] = ["대중교통", "자동차"];
 const companions: Companion[] = ["누구와든", "혼자", "부모님", "아이와", "연인·배우자", "친구"];
 
 function isEnded(status?: string){ return Boolean(status && (status.includes("완료") || status.includes("종료"))); }
 
 function priceLimit(value:Price){
+  if(value==="무료") return 0;
   if(value==="5만원 이하") return 50000;
   if(value==="10만원 이하") return 100000;
   if(value==="15만원 이하") return 150000;
   return Infinity;
 }
 function matchesPrice(show:Show, value:Price){
-  if(value==="가격 무관" || !show.priceValue) return true;
+  if(value==="가격 무관") return true;
+  if(value==="무료") return /무료/.test(show.priceLabel||"");
+  if(!show.priceValue) return false;
   return show.priceValue<=priceLimit(value);
+}
+function travelLimitMinutes(value:Travel){
+  if(value==="30분 이내") return 30;
+  if(value==="1시간 이내") return 60;
+  if(value==="1시간 30분 이내") return 90;
+  return Infinity;
 }
 function matchesCompanion(show:Show, value:Companion){
   if(value==="누구와든" || !show.tags?.length) return true;
@@ -70,7 +81,8 @@ function interpretPrompt(prompt:string, current:{timing:Timing;region:Region;gen
   else if(/1\s*시간\s*30\s*분|한\s*시간\s*반|90\s*분/.test(normalized)) nextTravel="1시간 30분 이내";
   else if(/1\s*시간|한\s*시간|60\s*분/.test(normalized)) nextTravel="1시간 이내";
 
-  if(/15\s*만\s*원|십오\s*만\s*원|150,?000\s*원/.test(normalized)) nextPrice="15만원 이하";
+  if(/무료|공짜/.test(normalized)) nextPrice="무료";
+  else if(/15\s*만\s*원|십오\s*만\s*원|150,?000\s*원/.test(normalized)) nextPrice="15만원 이하";
   else if(/10\s*만\s*원|십\s*만\s*원|100,?000\s*원/.test(normalized)) nextPrice="10만원 이하";
   else if(/(?:^|\s)5\s*만\s*원|오\s*만\s*원|50,?000\s*원/.test(normalized)) nextPrice="5만원 이하";
 
@@ -86,7 +98,7 @@ function interpretPrompt(prompt:string, current:{timing:Timing;region:Region;gen
     .replace(/오늘밤|오늘\s*저녁|오늘|지금|다음\s*달|내달|이번\s*주말|이번주말|주말|토요일|일요일|이번\s*주|이번주|다음\s*공연|예정|앞으로|한달|한\s*달|30일/gi," ")
     .replace(/서울|경기|인천|부산|전국|에서|근처|가까운|주변|볼\s*만한|보고\s*싶은|볼|추천|해줘|찾아줘|찾아|공연|콘서트|뮤지컬|클래식|오케스트라|연극|국악|무용|발레|트로트|k-?pop|아이돌/gi," ")
     .replace(/30\s*분|삼십\s*분|반\s*시간|1\s*시간\s*30\s*분|한\s*시간\s*반|90\s*분|1\s*시간|한\s*시간|60\s*분|안쪽|이내/gi," ")
-    .replace(/5\s*만\s*원|오\s*만\s*원|50,?000\s*원|10\s*만\s*원|십\s*만\s*원|100,?000\s*원|15\s*만\s*원|십오\s*만\s*원|150,?000\s*원|이하|미만/gi," ")
+    .replace(/무료|공짜|5\s*만\s*원|오\s*만\s*원|50,?000\s*원|10\s*만\s*원|십\s*만\s*원|100,?000\s*원|15\s*만\s*원|십오\s*만\s*원|150,?000\s*원|이하|미만/gi," ")
     .replace(/부모님|엄마|아빠|어머니|아버지|아이들?|자녀|아들|딸|어린이|연인|애인|남자친구|여자친구|남편|아내|배우자|데이트|친구|동료|혼자|나\s*혼자|함께|같이|랑|와|과/gi," ")
     .replace(/50대|60대|편하게|힐링|좋은|괜찮은/gi," ")
     .replace(/\s+/g," ").trim();
@@ -100,6 +112,9 @@ export default function Hero() {
   const [region,setRegion]=useState<Region>("전국");
   const [genre,setGenre]=useState("전체");
   const [travel,setTravel]=useState<Travel>("상관없음");
+  const [travelMode,setTravelMode]=useState<TravelMode>("대중교통");
+  const [travelTimes,setTravelTimes]=useState<Record<string,{transitMinutes:number|null;driveMinutes:number|null;distanceKm:number|null}>>({});
+  const [locationMsg,setLocationMsg]=useState("");
   const [price,setPrice]=useState<Price>("가격 무관");
   const [companion,setCompanion]=useState<Companion>("누구와든");
   const [results,setResults]=useState<Show[]>([]);
@@ -112,23 +127,38 @@ export default function Hero() {
   const fallback=useMemo(()=>allShows.filter(s=>!isEnded(s.status)).filter(s=>genre==="전체"||s.genre.includes(genre)).filter(s=>region==="전국"||s.region.includes(region)).filter(s=>matchesPrice(s,price)).filter(s=>matchesCompanion(s,companion)).filter(s=>!query.trim()||`${s.title} ${s.artist??""} ${s.venue}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0,12),[query,genre,region,price,companion]);
   const parsed=useMemo(()=>interpretPrompt(query,{timing,region,genre,travel,price,companion}),[query,timing,region,genre,travel,price,companion]);
 
-  async function searchShows(q=query, opts?:{timing?:Timing;region?:Region;genre?:string;price?:Price;companion?:Companion}){
+  async function searchShows(q=query, opts?:{timing?:Timing;region?:Region;genre?:string;price?:Price;companion?:Companion;travel?:Travel;travelMode?:TravelMode}){
     setArtistMode(false); setLoading(true); setSearched(true);
-    const activeTiming=opts?.timing??timing, activeRegion=opts?.region??region, activeGenre=opts?.genre??genre, activePrice=opts?.price??price, activeCompanion=opts?.companion??companion;
+    const activeTiming=opts?.timing??timing, activeRegion=opts?.region??region, activeGenre=opts?.genre??genre, activePrice=opts?.price??price, activeCompanion=opts?.companion??companion, activeTravel=opts?.travel??travel, activeTravelMode=opts?.travelMode??travelMode;
     try{
       const range=activeTiming==="오늘"?"today":activeTiming==="이번 주"?"week":activeTiming==="이번 주말"?"weekend":activeTiming==="다음 달"?"nextmonth":"30d";
       const p=new URLSearchParams({type:"search",range,rows:"40"});
       if(q.trim())p.set("q",q.trim()); if(regionCodes[activeRegion])p.set("region",regionCodes[activeRegion]);
       const d=await fetch(`/api/kopis?${p}`,{cache:"no-store"}).then(r=>r.json());
-      const list:(Show[])=(d?.shows??[]).filter((s:Show)=>!isEnded(s.status)).filter((s:Show)=>activeGenre==="전체"||s.genre?.includes(activeGenre)).filter((s:Show)=>matchesPrice(s,activePrice)).filter((s:Show)=>matchesCompanion(s,activeCompanion));
+      let list:(Show[])=(d?.shows??[]).filter((s:Show)=>!isEnded(s.status)).filter((s:Show)=>activeGenre==="전체"||s.genre?.includes(activeGenre)).filter((s:Show)=>matchesPrice(s,activePrice)).filter((s:Show)=>matchesCompanion(s,activeCompanion));
+      if(activeTravel!=="상관없음" && list.length){
+        setLocationMsg("현재 위치를 확인해 실제 이동시간을 계산하고 있습니다.");
+        try{
+          const pos=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,timeout:8000,maximumAge:300000}));
+          const candidates=list.slice(0,16);
+          const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:{lat:pos.coords.latitude,lng:pos.coords.longitude},venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
+          if(tt?.configured===false){ setLocationMsg("카카오 지도 API 키 설정 후 실제 이동시간 필터가 활성화됩니다."); setTravelTimes({}); } else {
+          const map=tt?.times||{}; setTravelTimes(map);
+          const limit=travelLimitMinutes(activeTravel);
+          list=candidates.filter(s=>{const t=map[s.id];const mins=activeTravelMode==="자동차"?t?.driveMinutes:t?.transitMinutes;return typeof mins==="number"&&mins<=limit});
+          setLocationMsg(`현재 위치 기준 · ${activeTravelMode} 실제 예상시간으로 걸러냈습니다.`);
+          }
+        }catch{ setLocationMsg("현재 위치 또는 길찾기 정보를 사용할 수 없어 이동시간 필터를 적용하지 못했습니다."); }
+      } else { setLocationMsg(""); setTravelTimes({}); }
       setResults(list.slice(0,12));
     }catch{setResults(fallback)}finally{setLoading(false)}
   }
 
   function smartSearch(prompt:string){
     const next=interpretPrompt(prompt,{timing,region,genre,travel,price,companion});
-    setTiming(next.timing);setRegion(next.region);setGenre(next.genre);setTravel(next.travel);setPrice(next.price);setCompanion(next.companion);setQuery(prompt);
-    searchShows(next.query,{timing:next.timing,region:next.region,genre:next.genre,price:next.price,companion:next.companion});
+    const nextTravelMode:TravelMode=/자동차|차로|운전/.test(prompt)?"자동차":/대중교통|지하철|버스/.test(prompt)?"대중교통":travelMode;
+    setTiming(next.timing);setRegion(next.region);setGenre(next.genre);setTravel(next.travel);setTravelMode(nextTravelMode);setPrice(next.price);setCompanion(next.companion);setQuery(prompt);
+    searchShows(next.query,{timing:next.timing,region:next.region,genre:next.genre,price:next.price,companion:next.companion,travel:next.travel,travelMode:nextTravelMode});
   }
 
   async function searchArtistShows(q:string){
@@ -189,19 +219,19 @@ export default function Hero() {
         <div className="grid gap-6 lg:grid-cols-[1.55fr_.85fr]">
           <div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 부모님과, 1시간 안쪽, 10만원 이하 공연" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button type="button" onClick={startVoiceSearch} aria-label="음성으로 공연 찾기" className={`inline-flex items-center justify-center gap-2 rounded-md border px-4 py-3.5 text-sm font-bold transition ${listening?"border-gold bg-gold/10 text-gold":"border-line bg-white/45 text-paper hover:border-gold"}`}><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>{listening?"듣는 중":"음성 찾기"}</button><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
-            {voiceMsg&&<p className={`mt-2 text-xs font-semibold ${listening?"text-gold":"text-muted"}`}>{voiceMsg}</p>}
+            {voiceMsg&&<p className={`mt-2 text-xs font-semibold ${listening?"text-gold":"text-muted"}`}>{voiceMsg}</p>}{locationMsg&&<p className="mt-2 text-xs font-semibold text-muted">{locationMsg}</p>}
             {query.trim() && <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">SHOWDAY 해석</span><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{parsed.timing}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{parsed.region}</Chip><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{parsed.genre}</Chip><Chip>{parsed.price}</Chip><Chip>{parsed.companion}</Chip><Chip>{parsed.travel}</Chip>{parsed.artistQuery&&<Chip>아티스트 · {parsed.artistQuery}</Chip>}</div>}
-            <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/><Choice label="가격" options={prices} value={price} setValue={setPrice}/><Choice label="누구와" options={companions} value={companion} setValue={setCompanion}/><Choice label="이동시간" options={travels} value={travel} setValue={setTravel}/></div><p className="mt-3 text-[11px] leading-5 text-muted">음성이나 문장으로 말하면 위 조건이 자동으로 바뀝니다. 이동시간은 현재 위치와 공연장 경로를 계산하는 지도 연동 후 정확하게 적용됩니다.</p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/><Choice label="가격" options={prices} value={price} setValue={setPrice}/><Choice label="누구와" options={companions} value={companion} setValue={setCompanion}/><div><Choice label="이동시간" options={travels} value={travel} setValue={setTravel}/>{travel!=="상관없음"&&<div className="mt-2"><Choice label="이동수단" options={travelModes} value={travelMode} setValue={setTravelMode}/></div>}</div></div><p className="mt-3 text-[11px] leading-5 text-muted">음성이나 문장으로 말하면 위 조건이 자동으로 바뀝니다. 이동시간을 선택하면 현재 위치 권한을 받아 공연장까지의 실제 예상 이동시간을 계산해 검색 결과에 반영합니다.</p>
             <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
           </div>
           <aside className="border-l-0 border-line pl-0 lg:border-l lg:pl-6">
             <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 직접 입력하거나 마이크를 눌러 상황을 그대로 말씀해보세요.</p></div></div>
-            <div className="mt-4 divide-y divide-line border-y border-line">{["박서진 공연 서울에서 다음 달에 하는 거 찾아줘","이번 주말 부모님과 볼 공연, 1시간 이내","10만원 이하 서울 뮤지컬","아이와 30분 안쪽 공연"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
+            <div className="mt-4 divide-y divide-line border-y border-line">{["박서진 공연 서울에서 다음 달에 하는 거 찾아줘","이번 주말 부모님과 볼 공연, 1시간 이내","무료 서울 공연","아이와 30분 안쪽 공연"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
             {isAuthConfigured&&<button onClick={signInWithKakao} className="mt-4 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">로그인하고 관심 공연 저장하기</button>}
           </aside>
         </div>
 
-        {searched && <div className="mt-7 border-t border-line pt-6"><div className="mb-4 flex justify-between"><strong className="text-sm text-paper">{artistMode?`'${query}' 현재·예정 공연`:"검색 결과"} {loading?"":`${shown.length}건`}</strong><button onClick={()=>setSearched(false)} className="text-xs text-muted hover:text-paper">접기</button></div>{loading?<p className="text-sm text-muted">공연정보를 불러오는 중입니다.</p>:artistMode?(artistGroupsEmpty?<Empty/>:<div className="flex flex-col gap-6">{liveNow.length>0&&<ResultGroup label="지금 공연 중" shows={liveNow}/>} {upcoming.length>0&&<ResultGroup label="예정 공연" shows={upcoming}/>}</div>):shown.length?<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{shown.map(show=><ResultCard key={show.id} show={show}/>)}</div>:<Empty/>}</div>}
+        {searched && <div className="mt-7 border-t border-line pt-6"><div className="mb-4 flex justify-between"><strong className="text-sm text-paper">{artistMode?`'${query}' 현재·예정 공연`:"검색 결과"} {loading?"":`${shown.length}건`}</strong><button onClick={()=>setSearched(false)} className="text-xs text-muted hover:text-paper">접기</button></div>{loading?<p className="text-sm text-muted">공연정보를 불러오는 중입니다.</p>:artistMode?(artistGroupsEmpty?<Empty/>:<div className="flex flex-col gap-6">{liveNow.length>0&&<ResultGroup label="지금 공연 중" shows={liveNow}/>} {upcoming.length>0&&<ResultGroup label="예정 공연" shows={upcoming}/>}</div>):shown.length?<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{shown.map(show=><ResultCard key={show.id} show={show} travel={travelTimes[show.id]}/>)}</div>:<Empty/>}</div>}
       </div>
     </div>
   </section>
@@ -210,5 +240,5 @@ function Choice<T extends string>({label,options,value,setValue}:{label:string;o
 function Quick({icon,label,onClick}:{icon:ReactNode;label:string;onClick:()=>void}){return <button onClick={onClick} className="inline-flex items-center gap-2 rounded-full border border-line bg-white/35 px-3.5 py-2 text-xs font-semibold text-muted transition hover:border-gold/60 hover:text-paper">{icon}{label}</button>}
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/70 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
 function Empty(){return <div className="border-y border-line py-7 text-center"><p className="text-sm font-semibold text-paper">현재·예정 공연을 찾지 못했습니다.</p><p className="mt-2 text-xs text-muted">날짜나 지역을 넓혀 다시 찾아보세요.</p></div>}
-function ResultCard({show}:{show:Show}){return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">공연정보 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
+function ResultCard({show,travel}:{show:Show;travel?:{transitMinutes:number|null;driveMinutes:number|null;distanceKm:number|null}}){return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p>{travel&&<p className="mt-1 text-[11px] font-semibold text-gold">{travel.transitMinutes!=null?`대중교통 ${travel.transitMinutes}분`:""}{travel.transitMinutes!=null&&travel.driveMinutes!=null?" · ":""}{travel.driveMinutes!=null?`자동차 ${travel.driveMinutes}분`:""}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">공연정보 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
 function ResultGroup({label,shows}:{label:string;shows:Show[]}){return <div><p className="mb-3 text-xs font-bold text-gold">{label} · {shows.length}건</p><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{shows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}
