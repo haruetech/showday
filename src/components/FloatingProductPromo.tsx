@@ -13,8 +13,8 @@ const PROMO = {
   image: "https://ca.lotteimall.com/S/storage001.daousync.com/v1/AUTH_78da087baa364fca88c704bf2ddb3904/image/1747033052723.jpg?imw=780&ol=4&sh=1280&v=250922163954",
 };
 
-const STORAGE_KEY = "showday-floating-promo-hidden-until";
-const HIDE_DAYS = 7;
+const STORAGE_KEY = "showday-floating-promo-hidden-until-v2";
+const HIDE_DAYS = 1;
 
 export default function FloatingProductPromo() {
   const pathname = usePathname();
@@ -27,7 +27,7 @@ export default function FloatingProductPromo() {
     const until = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
     if (until > Date.now()) return;
 
-    const timer = window.setTimeout(() => setVisible(true), 1400);
+    const timer = window.setTimeout(() => setVisible(true), 900);
     const onScroll = () => setCompact(window.scrollY > 360);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
