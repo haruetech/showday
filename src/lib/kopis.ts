@@ -60,14 +60,23 @@ function isEndedStatus(status?: string) {
   return value.includes("완료") || value.includes("종료") || value === "03";
 }
 
+function todayKstYmd() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date()).replace(/-/g, "");
+}
+
 function isPastEndDate(value: unknown) {
   const raw = normalizeDateInput(value);
   if (raw.length !== 8) return false;
-  const y = Number(raw.slice(0, 4));
-  const m = Number(raw.slice(4, 6));
-  const d = Number(raw.slice(6, 8));
-  const end = new Date(y, m - 1, d, 23, 59, 59, 999);
-  return end.getTime() < Date.now();
+  return raw < todayKstYmd();
+}
+
+function isActiveShow(show: Show) {
+  return !isEndedStatus(show.status) && !isPastEndDate(show.endDate);
 }
 
 // KOPIS 포스터는 http로 내려오는 경우가 많아, https 페이지에서 깨지지 않도록 보정
@@ -207,10 +216,12 @@ async function enrichWithDetails(shows: Show[]): Promise<Show[]> {
       bookingUrl: detail.bookingUrl,
       posterUrl: detail.posterUrl || show.posterUrl,
       artist: show.artist || (detail.cast && detail.cast.length < 80 ? detail.cast : undefined),
+      status: detail.status || show.status,
+      endDate: detail.endDate || show.endDate,
     };
   });
 
-  return [...enriched.filter((show): show is Show => show !== null), ...rest];
+  return [...enriched.filter((show): show is Show => show !== null), ...rest].filter(isActiveShow);
 }
 
 /**
@@ -260,10 +271,11 @@ export async function fetchBoxOffice(params: {
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
       status: row.prfstate?.trim() || undefined,
+      endDate: normalizeDateInput(row.prfpdto) || undefined,
     })
   );
 
-  return enrichWithDetails(shows.filter((show, idx) => !isEndedStatus(show.status) && !isPastEndDate((rows[idx] as Record<string, unknown>)?.prfpdto)));
+  return enrichWithDetails(shows.filter(isActiveShow));
 }
 
 /**
@@ -294,8 +306,7 @@ export async function fetchArtistShows(query: string, rows = 30): Promise<Show[]
     });
 
     for (const show of windowShows) {
-      const ended = show.status?.includes("완료") || show.status?.includes("종료");
-      if (!ended && !seen.has(show.id)) seen.set(show.id, show);
+      if (isActiveShow(show) && !seen.has(show.id)) seen.set(show.id, show);
     }
 
     // 이번 창에서 하나도 안 나왔고, 이미 한 번이라도 결과를 모았다면
@@ -369,13 +380,9 @@ export async function fetchPerformanceList(params: {
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
       status: row.prfstate?.trim() || undefined,
+      endDate: normalizeDateInput(row.prfpdto) || undefined,
     })
   );
 
-  const activeShows = shows.filter((show, idx) => {
-    const row = rows[idx] as Record<string, unknown>;
-    return !isEndedStatus(show.status) && !isPastEndDate(row?.prfpdto);
-  });
-
-  return enrichWithDetails(activeShows);
+  return enrichWithDetails(shows.filter(isActiveShow));
 }

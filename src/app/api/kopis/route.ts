@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPerformanceList, fetchPerformanceDetail, fetchArtistShows, fetchBoxOffice } from "@/lib/kopis";
+import type { Show } from "@/types/show";
+
+function todayKstYmd() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date()).replace(/-/g, "");
+}
+function isCurrentOrUpcoming(show: Show) {
+  const status = String(show.status || "");
+  if (status.includes("완료") || status.includes("종료") || status === "03") return false;
+  return !(show.endDate && /^\d{8}$/.test(show.endDate) && show.endDate < todayKstYmd());
+}
 
 // GET /api/kopis?type=today|upcoming|artist|search&region=<KOPIS 지역코드>
 // Vercel Secret: KOPIS_API_KEY
@@ -11,7 +22,7 @@ export async function GET(req: NextRequest) {
     const detail = await fetchPerformanceDetail(id);
     const ended = Boolean(detail && (
       detail.status.includes("완료") || detail.status.includes("종료") || detail.status === "03" ||
-      (detail.endDate && /^\d{8}$/.test(detail.endDate) && detail.endDate < toKopisDate(new Date()))
+      (detail.endDate && /^\d{8}$/.test(detail.endDate) && detail.endDate < todayKstYmd())
     ));
     return NextResponse.json({ source: detail && !ended ? "kopis" : "none", detail: ended ? null : detail, ended });
   }
@@ -26,7 +37,7 @@ export async function GET(req: NextRequest) {
       const start = new Date(end);
       start.setDate(start.getDate() - 6);
       const list = (await fetchBoxOffice({ stdate: toKopisDate(start), eddate: toKopisDate(end) }))
-        .filter(show => !(show.status?.includes("완료") || show.status?.includes("종료")));
+        .filter(isCurrentOrUpcoming);
       return NextResponse.json(
         { source: list.length ? "kopis-boxoffice" : "none", shows: list.slice(0, Math.min(rows, 30)) },
         { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } }
@@ -59,6 +70,10 @@ export async function GET(req: NextRequest) {
   const range = searchParams.get("range") ?? (type === "today" ? "today" : "30d");
 
   const now = new Date();
+  const selectedDate = searchParams.get("date");
+  if (range === "date" && selectedDate && /^\d{4}-\d{2}-\d{2}$/.test(selectedDate) && selectedDate.replace(/-/g, "") < todayKstYmd()) {
+    return NextResponse.json({ source: "none", shows: [] });
+  }
   const start = new Date(now);
   const end = new Date(now);
   if (range === "today") {
@@ -117,9 +132,7 @@ export async function GET(req: NextRequest) {
       rows: limit,
     }) : [];
     const merged = new Map([...titleList, ...venueList].map(show => [show.id, show]));
-    const list = Array.from(merged.values()).filter(show =>
-      !(show.status?.includes("완료") || show.status?.includes("종료"))
-    );
+    const list = Array.from(merged.values()).filter(isCurrentOrUpcoming);
 
     // 검색어(q)가 있는 조회는 "그 검색어에 대한 결과"이므로, 0건이면 무관한
     // 더미 인기공연으로 채우지 않고 정직하게 빈 배열로 응답한다.

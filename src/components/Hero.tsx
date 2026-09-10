@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { allShows } from "@/lib/dummy-data";
 import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/Icons";
 import type { Show } from "@/types/show";
 
@@ -20,7 +19,11 @@ const genres = ["전체", "콘서트", "뮤지컬", "연극", "클래식", "전�
 const prices: Price[] = ["가격 무관", "무료", "1만원 이하", "3만원 이하", "5만원 이하"];
 const regionCodes: Record<Exclude<Region, "내 주변">, string> = { 서울:"11", 경기:"41", 인천:"28", 부산:"26", 전국:"" };
 
-function isEnded(status?: string){ return Boolean(status && (status.includes("완료") || status.includes("종료"))); }
+function todayLocalYmd(){ const d=new Date(); return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`; }
+function isEnded(show:Show){
+  const status=String(show.status||"");
+  return status.includes("완료") || status.includes("종료") || status==="03" || Boolean(show.endDate && /^\d{8}$/.test(show.endDate) && show.endDate<todayLocalYmd());
+}
 function priceLimit(value:Price){
   if(value==="무료") return 0;
   if(value==="1만원 이하") return 10000;
@@ -83,15 +86,7 @@ export default function Hero(){
   const [listening,setListening]=useState(false);
   const [voiceMsg,setVoiceMsg]=useState("");
 
-  const fallback=useMemo(()=>allShows
-    .filter(s=>!isEnded(s.status))
-    .filter(s=>genreMatches(s,genre))
-    .filter(s=>region==="전국"||region==="내 주변"||s.region.includes(region))
-    .filter(s=>matchesPrice(s,price))
-    .filter(s=>matchesCompanion(s,companion))
-    .filter(s=>companion!=="아이와 함께"||childAgeMatches(s,childAge))
-    .filter(s=>!query.trim()||`${s.title} ${s.artist??""} ${s.venue}`.toLowerCase().includes(query.trim().toLowerCase()))
-    .slice(0,12),[query,genre,region,price,companion,childAge]);
+
 
   function chooseCompanion(v:Companion){
     setCompanion(v);
@@ -186,7 +181,7 @@ export default function Hero(){
 
       const data=await fetch(`/api/kopis?${p.toString()}`,{cache:"no-store"}).then(r=>r.json());
       let list:Show[]=(data?.shows??[])
-        .filter((s:Show)=>!isEnded(s.status))
+        .filter((s:Show)=>!isEnded(s))
         .filter((s:Show)=>genreMatches(s,genre))
         .filter((s:Show)=>matchesPrice(s,price))
         .filter((s:Show)=>matchesCompanion(s,companion))
@@ -220,9 +215,9 @@ export default function Hero(){
           setLocationMsg("위치 권한을 허용하면 내 주변 공연을 더 정확하게 찾을 수 있습니다.");
         }
       }
-      setResults((list.length?list:fallback).slice(0,12));
+      setResults(list.slice(0,12));
     }catch{
-      setResults(fallback);
+      setResults([]);
     }finally{ setLoading(false); }
   }
 

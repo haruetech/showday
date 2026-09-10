@@ -30,6 +30,7 @@ export interface Show {
   posterUrl?: string; // KOPIS 실제 포스터 이미지 URL (있으면 그라디언트 대신 이걸 표시)
   bookingUrl?: string; // 예매처 딥링크 (KOPIS 상세 API의 relates.relate) — 실시간 가격/좌석은 여기서 확인
   status?: string; // KOPIS prfstate 원문 — "공연예정" / "공연중" / "공연완료" 등
+  endDate?: string; // YYYYMMDD — 종료 공연 차단용
 }
 
 export interface Artist {
