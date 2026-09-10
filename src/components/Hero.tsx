@@ -73,11 +73,12 @@ export default function Hero(){
   const [genre,setGenre]=useState<(typeof genres)[number]>("전체");
   const [childAge,setChildAge]=useState<ChildAge|null>("4~7세");
   const [price,setPrice]=useState<Price>("가격 무관");
-  const [advancedOpen,setAdvancedOpen]=useState(false);
   const [results,setResults]=useState<Show[]>([]);
   const [loading,setLoading]=useState(false);
   const [searched,setSearched]=useState(false);
   const [locationMsg,setLocationMsg]=useState("");
+  const [listening,setListening]=useState(false);
+  const [voiceMsg,setVoiceMsg]=useState("");
 
   const fallback=useMemo(()=>allShows
     .filter(s=>!isEnded(s.status))
@@ -93,6 +94,78 @@ export default function Hero(){
     setCompanion(v);
     if(v!=="아이와 함께") setChildAge(null);
     else if(!childAge) setChildAge("4~7세");
+  }
+
+  function applyVoiceCommand(text:string){
+    const t=text.replace(/\s+/g," ").trim();
+    setQuery("");
+
+    if(/아이|아들|딸|자녀|어린이|가족/.test(t)) chooseCompanion("아이와 함께");
+    else if(/데이트|여자친구|남자친구|연인/.test(t)) chooseCompanion("데이트");
+    else if(/부모님|엄마|아빠|어머니|아버지/.test(t)) chooseCompanion("부모님과");
+    else if(/친구|부부|배우자|남편|아내/.test(t)) chooseCompanion("친구·부부");
+    else if(/혼자|나홀로/.test(t)) chooseCompanion("혼자");
+
+    if(/내 주변|근처|가까운 곳|주변/.test(t)) setRegion("내 주변");
+    else if(/서울/.test(t)) setRegion("서울");
+    else if(/경기|경기도/.test(t)) setRegion("경기");
+    else if(/인천/.test(t)) setRegion("인천");
+    else if(/부산/.test(t)) setRegion("부산");
+    else if(/전국/.test(t)) setRegion("전국");
+
+    if(/오늘/.test(t)) setTiming("오늘");
+    else if(/이번\s*주말|주말/.test(t)) setTiming("이번 주말");
+    else if(/이번\s*달|이달/.test(t)) setTiming("이번 달");
+
+    if(/뮤지컬/.test(t)) setGenre("뮤지컬");
+    else if(/연극/.test(t)) setGenre("연극");
+    else if(/클래식/.test(t)) setGenre("클래식");
+    else if(/콘서트|공연/.test(t)) setGenre("콘서트");
+    else if(/아동|어린이|가족/.test(t)) setGenre("아동·가족");
+
+    if(/전체\s*관람/.test(t)) setChildAge("전체관람가");
+    else {
+      const age=t.match(/(\d{1,2})\s*살|((?:\d{1,2}))\s*세/);
+      const n=age?Number(age[1]||age[2]):null;
+      if(n!==null){
+        chooseCompanion("아이와 함께");
+        if(n<=3) setChildAge("0~3세");
+        else if(n<=7) setChildAge("4~7세");
+        else if(n<=10) setChildAge("8~10세");
+        else if(n<=13) setChildAge("11~13세");
+      }
+    }
+
+    if(/무료/.test(t)) setPrice("무료");
+    else if(/1\s*만\s*원|만원/.test(t)) setPrice("1만원 이하");
+    else if(/3\s*만\s*원|삼만원/.test(t)) setPrice("3만원 이하");
+    else if(/5\s*만\s*원|오만원/.test(t)) setPrice("5만원 이하");
+
+    setVoiceMsg(`“${t}”에서 검색 조건을 적용했습니다. 조건을 확인한 뒤 ‘이 조건으로 찾기’를 눌러주세요.`);
+  }
+
+  function startVoiceSearch(){
+    const w=window as Window & {
+      SpeechRecognition?: new()=>SpeechRecognitionLike;
+      webkitSpeechRecognition?: new()=>SpeechRecognitionLike;
+    };
+    const Recognition=w.SpeechRecognition||w.webkitSpeechRecognition;
+    if(!Recognition){
+      setVoiceMsg("이 브라우저에서는 음성검색을 지원하지 않습니다. Chrome 또는 Edge에서 이용해주세요.");
+      return;
+    }
+    const recognition=new Recognition();
+    recognition.lang="ko-KR";
+    recognition.interimResults=false;
+    recognition.maxAlternatives=1;
+    recognition.onstart=()=>{setListening(true);setVoiceMsg("말씀해주세요. 예: 이번 주말 도봉구에서 7살 아이와 3만원 이하 공연");};
+    recognition.onresult=(event)=>{
+      const transcript=event.results?.[0]?.[0]?.transcript||"";
+      if(transcript) applyVoiceCommand(transcript);
+    };
+    recognition.onerror=()=>setVoiceMsg("음성을 인식하지 못했습니다. 마이크 권한을 확인하고 다시 시도해주세요.");
+    recognition.onend=()=>setListening(false);
+    recognition.start();
   }
 
   async function searchShows(){
@@ -148,8 +221,8 @@ export default function Hero(){
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · 내게 맞는 공연 발견</p>
           <h1 className="font-display font-black leading-[1.08]">
-            <span className="block text-[clamp(2rem,5.4vw,3.8rem)] text-white">이번 주말, 누구와 어디 갈까요?</span>
-            <span className="mt-2 block text-[clamp(1.55rem,4.4vw,3rem)] leading-[1.14] text-[#f3b37f]">내 주변 공연·행사를 쉽게 찾아보세요.</span>
+            <span className="block whitespace-nowrap text-[clamp(1.55rem,4.6vw,3.8rem)] text-white">이번 주말 누구와 어디갈까요?</span>
+            <span className="mt-2 block whitespace-nowrap text-[clamp(1.15rem,3.7vw,3rem)] leading-[1.14] text-[#f3b37f]">내 주변 공연·행사를 쉽게 찾아보세요.</span>
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-6 text-white/80 sm:text-base">아이와 함께, 데이트, 부모님과 함께. 복잡한 검색 대신 네 가지만 고르면 SHOWDAY가 볼 만한 공연을 찾아드립니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
@@ -161,8 +234,8 @@ export default function Hero(){
       <div className="rounded-2xl border border-line bg-white/55 p-4 shadow-sm sm:p-6">
         <div className="mb-6">
           <p className="text-[11px] font-bold tracking-[.18em] text-gold">EASY SEARCH</p>
-          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">네 가지만 선택하면 됩니다.</h2>
-          <p className="mt-1 text-xs leading-5 text-muted">누구와 · 어디서 · 언제 · 무엇을 볼지만 고르세요.</p>
+          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">다섯 가지만 보면 됩니다.</h2>
+          <p className="mt-1 text-xs leading-5 text-muted">누구와 · 어디서 · 언제 · 무엇을 · 얼마에 볼지 빠르게 고르세요.</p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
@@ -173,20 +246,20 @@ export default function Hero(){
             {timing==="날짜 선택"&&<label className="mt-3 flex max-w-[260px] items-center gap-2 rounded-lg border border-line bg-white px-3 py-2"><CalendarIcon className="h-4 w-4 text-gold"/><input type="date" value={customDate} min={toIsoDate(new Date())} onChange={e=>setCustomDate(e.target.value)} className="w-full bg-transparent text-sm font-semibold text-paper outline-none"/></label>}
           </div>
           <Choice label="4. 무엇을" options={genres} value={genre} setValue={setGenre}/>
+          <Choice label="5. 가격" options={prices} value={price} setValue={setPrice}/>
         </div>
 
         {companion==="아이와 함께"&&<div className="mt-5 rounded-xl border border-[#d9b89f] bg-[#fff8f0] p-4"><Choice label="아이 나이에 맞춰 찾기" options={childAges} value={childAge??"4~7세"} setValue={setChildAge}/><p className="mt-2 text-[11px] leading-5 text-muted">관람 연령 정보가 있는 공연은 아이 나이에 맞춰 우선 검색합니다.</p></div>}
 
         <div className="mt-6 border-t border-line pt-5">
-          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="공연명·아티스트가 있다면 입력하세요 (선택)" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
+          <div className="grid gap-2 lg:grid-cols-[1fr_auto_auto]">
+            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="공연명·아티스트를 입력하거나 음성으로 말해보세요" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
+            <button type="button" onClick={startVoiceSearch} disabled={listening} className={`inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border px-5 text-sm font-black transition ${listening?"border-gold bg-[#fff8f0] text-gold":"border-line bg-white text-paper hover:border-gold"}`}><MicIcon className="h-4 w-4"/>{listening?"듣고 있어요…":"음성으로 찾기"}</button>
             <button onClick={searchShows} className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-paper px-7 text-sm font-black text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>이 조건으로 찾기</button>
           </div>
+          {voiceMsg&&<p className="mt-3 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold leading-5 text-muted">{voiceMsg}</p>}
 
-          <button type="button" onClick={()=>setAdvancedOpen(v=>!v)} className="mt-3 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">{advancedOpen?"가격 조건 닫기":"가격도 정하고 싶다면"}</button>
-          {advancedOpen&&<div className="mt-3"><Choice label="가격" options={prices} value={price} setValue={setPrice}/></div>}
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">선택 조건</span><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{companion}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{region}</Chip><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{periodLabel}</Chip>{genre!=="전체"&&<Chip>{genre}</Chip>}{companion==="아이와 함께"&&childAge&&<Chip>{childAge}</Chip>}</div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">선택 조건</span><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{companion}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{region}</Chip><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{periodLabel}</Chip>{genre!=="전체"&&<Chip>{genre}</Chip>}{companion==="아이와 함께"&&childAge&&<Chip>{childAge}</Chip>}{price!=="가격 무관"&&<Chip>{price}</Chip>}</div>
           <p className="mt-3 text-[11px] leading-5 text-muted">{summary} 기준으로 검색합니다. 내 주변은 위치 권한이 허용된 경우 가까운 공연을 우선합니다.</p>
         </div>
 
@@ -206,6 +279,19 @@ export default function Hero(){
     </div>
   </section>;
 }
+
+type SpeechRecognitionLike = {
+  lang:string;
+  interimResults:boolean;
+  maxAlternatives:number;
+  onstart:(()=>void)|null;
+  onresult:((event:{results:ArrayLike<{[index:number]:{transcript:string}}>} )=>void)|null;
+  onerror:(()=>void)|null;
+  onend:(()=>void)|null;
+  start:()=>void;
+};
+
+function MicIcon({className=""}:{className?:string}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>}
 
 function Choice<T extends string>({label,options,value,setValue}:{label:string;options:readonly T[];value:T;setValue:(v:T)=>void}){return <div><p className="mb-2 text-xs font-black text-paper">{label}</p><div className="flex flex-wrap gap-2">{options.map(o=><button type="button" key={o} onClick={()=>setValue(o)} className={`rounded-full border px-3.5 py-2 text-xs font-bold transition ${o===value?"border-paper bg-paper text-white":"border-line bg-white/65 text-muted hover:border-gold/50 hover:text-paper"}`}>{o}</button>)}</div></div>}
 function Quick({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="shrink-0 rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted transition hover:border-gold/60 hover:text-paper">{label}</button>}
