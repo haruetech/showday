@@ -5,10 +5,10 @@ export default function ArenaNowBanner() {
         <div>
           <p className="mb-2 text-xs text-muted">ARENA NOW · 공연 당일 현장 비서</p>
           <h2 className="font-display font-bold text-2xl text-paper sm:text-3xl">
-            공연 가는 날, 필요한 것부터 먼저
+            공연 당일의 이동부터 입장·귀가까지, 한눈에
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-            주차·교통·먹거리·화장실·입장정보·현장 이슈를 한 화면에서 확인하세요.
+            주차·교통·먹거리·화장실·입장정보·현장 이슈와 귀가 정보를 한 화면에서 확인하세요.
             서울아레나 공연 당일의 불편을 줄이는 SHOWDAY 현장 서비스입니다.
           </p>
         </div>

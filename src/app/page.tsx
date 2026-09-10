@@ -75,9 +75,9 @@ export default function Home(){
     <SectionRow eyebrow="TODAY" title="오늘 바로 볼 수 있는 공연" id="today-shows">{liveToday.length?liveToday.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">오늘 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
     <SectionRow eyebrow="UPCOMING" title="다음 공연을 미리 확인하세요" id="upcoming-shows">{liveUpcoming.length?liveUpcoming.map(s=><ShowCard key={s.id} show={s}/>):<p className="text-sm text-muted">예정 공연 정보를 확인하고 있습니다.</p>}</SectionRow>
 
-    {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="아티스트의 다음 공연" id="artists" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
+    {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="보고 싶은 아티스트의 공연" id="artists" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
 
-    {venues.length>0&&<SectionRow eyebrow="VENUES" title="공연장별 현재·예정 공연" id="venues">{venues.map(v=><VenueCard key={v.id} venue={v} shows={visibleShows.filter(s=>s.venue===v.name)}/>)}</SectionRow>}
+    {venues.length>0&&<SectionRow eyebrow="VENUES" title="주요 공연장 공연 일정" id="venues" action={<span className="text-[11px] text-muted">공연장별 일정이 필요할 때 확인하세요</span>}>{venues.map(v=><VenueCard key={v.id} venue={v} shows={visibleShows.filter(s=>s.venue===v.name)}/>)}</SectionRow>}
 
     <ParentsFiftyPlusSection/>{mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}<ArenaNowBanner/>
   </main><SectionQuickNav/><Footer/></>

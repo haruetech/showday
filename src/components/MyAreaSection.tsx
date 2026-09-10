@@ -113,7 +113,7 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
   return <section id="my-area" className="my-area-section border-t border-line px-4 py-12 sm:px-6 sm:py-16">
     <div className="mx-auto max-w-[1440px]">
       <div className="my-area-head">
-        <div><p className="my-area-eyebrow">MY AREA</p><h2>{fullPage?"서울 공연·행사 전체보기":"내 주변에서 만나는 공연과 문화"}</h2><p>{fullPage?"서울 전체 공연·행사를 기본으로 보여드리고, 원할 때 현재 위치·관심 지역·거리·날짜·무료 여부로 좁혀볼 수 있습니다.":"현재 위치나 관심 지역을 기준으로 오늘부터 예정된 공연·행사를 골라 보여드립니다."}</p></div>
+        <div><p className="my-area-eyebrow">MY AREA</p><h2>{fullPage?"서울 공연·행사 전체보기":"내 위치에서 가까운 공연·문화행사"}</h2><p>{fullPage?"서울 전체 공연·행사를 기본으로 보여드리고, 원할 때 현재 위치·관심 지역·거리·날짜·무료 여부로 좁혀볼 수 있습니다.":"‘현재 위치로 찾기’를 누르면 위치 권한 확인 후 3km·5km·10km 거리로 좁혀볼 수 있습니다. 위치를 사용하지 않으면 관심 지역을 직접 선택하세요."}</p></div>
         <div className="my-area-head-actions">
           {!fullPage&&<div className="my-area-carousel-actions"><button type="button" onClick={()=>scrollMore(-1)} aria-label="이전 공연" className="my-area-arrow">‹</button><button type="button" onClick={()=>scrollMore(1)} className="my-area-more-link">공연 더보기 <span aria-hidden="true">›</span></button></div>}
           <button type="button" onClick={useCurrentLocation} className="my-area-location-btn"><PinIcon className="h-4 w-4"/>{geoState==="loading"?"위치 확인 중":location?`현재 위치 · ${district}`:"현재 위치로 찾기"}</button>
