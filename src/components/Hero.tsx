@@ -187,29 +187,37 @@ export default function Hero(){
         .filter((s:Show)=>matchesCompanion(s,companion))
         .filter((s:Show)=>companion!=="아이와 함께"||childAgeMatches(s,childAge));
 
-      if(region==="내 주변" && list.length){
+      if(region==="내 주변"){
+        // 이전 버그: list.length가 0이면(=KOPIS_API_KEY 미설정 등으로 검색 결과가 아직 없으면)
+        // 아래 블록 자체가 실행되지 않아 getCurrentPosition이 호출되지 않았고,
+        // 그 결과 브라우저 위치 권한 창이 아예 뜨지 않았다. "내 주변"을 선택해 검색한
+        // 이상 위치는 항상 확인해야 하므로, 결과 유무와 무관하게 위치부터 요청한다.
         try{
-          setLocationMsg("현재 위치 기준 가까운 공연을 확인하고 있습니다.");
+          setLocationMsg("현재 위치를 확인하고 있습니다. 위치 권한 요청 창이 뜨면 '허용'을 눌러주세요.");
           const pos=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:7000,maximumAge:300000}));
-          const candidates=list.slice(0,24);
-          const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:{lat:pos.coords.latitude,lng:pos.coords.longitude},venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
-          if(tt?.configured===false){
-            setLocationMsg("내 주변 검색을 사용하려면 Vercel에 KAKAO_REST_API_KEY를 설정해주세요.");
-            list=[];
+          if(list.length){
+            const candidates=list.slice(0,24);
+            const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:{lat:pos.coords.latitude,lng:pos.coords.longitude},venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
+            if(tt?.configured===false){
+              setLocationMsg("내 주변 검색을 사용하려면 Vercel에 KAKAO_REST_API_KEY를 설정해주세요.");
+              list=[];
+            }else{
+              const times=tt?.times||{};
+              const withDistance=candidates
+                .map(s=>({show:s,distanceKm:times[s.id]?.distanceKm as number|null|undefined}))
+                .filter(x=>typeof x.distanceKm==="number")
+                .sort((a,b)=>(a.distanceKm??999)-(b.distanceKm??999));
+              const nearby=withDistance.filter(x=>(x.distanceKm??999)<=30);
+              list=(nearby.length?nearby:withDistance.slice(0,12)).map(x=>({
+                ...x.show,
+                distanceFromDobongKm:x.distanceKm??x.show.distanceFromDobongKm,
+              }));
+              setLocationMsg(nearby.length
+                ? `현재 위치 기준 30km 이내 공연 ${nearby.length}건을 가까운 순으로 보여드립니다.`
+                : "30km 이내 공연이 없어 현재 위치에서 가까운 공연부터 보여드립니다.");
+            }
           }else{
-            const times=tt?.times||{};
-            const withDistance=candidates
-              .map(s=>({show:s,distanceKm:times[s.id]?.distanceKm as number|null|undefined}))
-              .filter(x=>typeof x.distanceKm==="number")
-              .sort((a,b)=>(a.distanceKm??999)-(b.distanceKm??999));
-            const nearby=withDistance.filter(x=>(x.distanceKm??999)<=30);
-            list=(nearby.length?nearby:withDistance.slice(0,12)).map(x=>({
-              ...x.show,
-              distanceFromDobongKm:x.distanceKm??x.show.distanceFromDobongKm,
-            }));
-            setLocationMsg(nearby.length
-              ? `현재 위치 기준 30km 이내 공연 ${nearby.length}건을 가까운 순으로 보여드립니다.`
-              : "30km 이내 공연이 없어 현재 위치에서 가까운 공연부터 보여드립니다.");
+            setLocationMsg("현재 위치는 확인했지만, 조건에 맞는 공연을 찾지 못했습니다. 조건을 넓혀 다시 찾아보세요.");
           }
         }catch{
           setLocationMsg("위치 권한을 허용하면 내 주변 공연을 더 정확하게 찾을 수 있습니다.");
