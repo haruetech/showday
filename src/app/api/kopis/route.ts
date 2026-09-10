@@ -73,6 +73,11 @@ export async function GET(req: NextRequest) {
     start.setDate(now.getDate() + daysToSaturday);
     end.setTime(start.getTime());
     end.setDate(start.getDate() + 1);
+  } else if (range === "nextmonth") {
+    start.setFullYear(now.getFullYear(), now.getMonth() + 1, 1);
+    start.setHours(0,0,0,0);
+    end.setFullYear(now.getFullYear(), now.getMonth() + 2, 0);
+    end.setHours(23,59,59,999);
   } else {
     end.setDate(end.getDate() + 30); // KOPIS 공연목록 조회 최대 31일 범위
   }
