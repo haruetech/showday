@@ -195,6 +195,9 @@ async function enrichWithDetails(shows: Show[]): Promise<Show[]> {
   const enriched = await limitedMap(toEnrich, DETAIL_CONCURRENCY, async (show) => {
     const detail = await fetchPerformanceDetail(show.id);
     if (!detail) return show;
+    // 목록 상태가 늦게 갱신되는 경우에도 상세 종료일을 한 번 더 확인한다.
+    // 종료된 공연은 검색/추천/메인 어디에도 다시 섞이지 않도록 null로 제거한다.
+    if (isEndedStatus(detail.status) || isPastEndDate(detail.endDate)) return null;
     return {
       ...show,
       priceLabel: detail.priceLabel,
@@ -207,7 +210,7 @@ async function enrichWithDetails(shows: Show[]): Promise<Show[]> {
     };
   });
 
-  return [...enriched, ...rest];
+  return [...enriched.filter((show): show is Show => show !== null), ...rest];
 }
 
 /**

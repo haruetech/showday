@@ -13,7 +13,6 @@ import ShowdayTrends from "@/components/ShowdayTrends";
 import ShowdayNow from "@/components/ShowdayNow";
 import MyAreaSection from "@/components/MyAreaSection";
 import SectionQuickNav from "@/components/SectionQuickNav";
-import { todayShows, popularShows, allShows } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
 import { getFollowedArtistIds, toggleArtistFollow } from "@/lib/favorites";
 import { recommendShows, reasonLabel, ScoredShow } from "@/lib/recommend";
@@ -38,18 +37,18 @@ export default function Home(){
   const [popularSource,setPopularSource]=useState<"loading"|"kopis"|"none">("loading");
   const [followedArtistIds,setFollowedArtistIds]=useState<Set<string>>(new Set());
 
+  const visibleShows=useMemo(()=>Array.from(new Map([...liveToday,...liveUpcoming,...livePopular].map(s=>[s.id,s])).values()),[liveToday,liveUpcoming,livePopular]);
+  const artists=useMemo(()=>dynamicArtists(visibleShows),[visibleShows]);
+  const popularDisplay=livePopular;
+
   useEffect(()=>{let cancelled=false;Promise.all([
     fetch("/api/kopis?type=today",{cache:"no-store"}).then(r=>r.json()),
     fetch("/api/kopis?type=upcoming",{cache:"no-store"}).then(r=>r.json()),
     fetch("/api/kopis?type=popular&rows=16",{cache:"no-store"}).then(r=>r.json()),
   ]).then(([todayData,upcomingData,popularData])=>{if(cancelled)return;if(Array.isArray(todayData?.shows))setLiveToday(todayData.shows);if(Array.isArray(upcomingData?.shows))setLiveUpcoming(upcomingData.shows);if(Array.isArray(popularData?.shows))setLivePopular(popularData.shows);setPopularSource(popularData?.source==="kopis-boxoffice"?"kopis":"none")}).catch(()=>{if(!cancelled)setPopularSource("none")});return()=>{cancelled=true}},[]);
 
-  useEffect(()=>{if(mode!=="member")return;let cancelled=false;getProfile().then(p=>{if(!cancelled&&p)setRecommended(recommendShows(allShows,p,6))});getFollowedArtistIds().then(ids=>{if(!cancelled)setFollowedArtistIds(ids)});return()=>{cancelled=true}},[mode]);
+  useEffect(()=>{if(mode!=="member")return;let cancelled=false;getProfile().then(p=>{if(!cancelled&&p)setRecommended(recommendShows(visibleShows,p,6))});getFollowedArtistIds().then(ids=>{if(!cancelled)setFollowedArtistIds(ids)});return()=>{cancelled=true}},[mode,visibleShows]);
   async function handleToggleFollow(artistId:string){setFollowedArtistIds(prev=>{const next=new Set(prev);next.has(artistId)?next.delete(artistId):next.add(artistId);return next});await toggleArtistFollow(artistId)}
-
-  const visibleShows=useMemo(()=>Array.from(new Map([...liveToday,...liveUpcoming,...livePopular].map(s=>[s.id,s])).values()),[liveToday,liveUpcoming,livePopular]);
-  const artists=useMemo(()=>dynamicArtists(visibleShows),[visibleShows]);
-  const popularDisplay=livePopular;
 
   return <><Header mode={mode} onModeChange={setMode}/><main id="shows" className="flex-1"><Hero/>
     {mode==="member"&&<SectionRow id="for-you" eyebrow="FOR YOU" title="회원님을 위한 추천" action={<a href="/onboarding" className="text-xs text-muted underline underline-offset-4 hover:text-paper">추천 설정 변경</a>}>{recommended.length?recommended.map(({show,matchedReasons})=><ShowCard key={show.id} show={show} reason={reasonLabel(matchedReasons)}/>):<p className="text-sm text-muted">조건에 맞는 공연을 찾는 중입니다.</p>}</SectionRow>}
