@@ -44,6 +44,8 @@ export default function Hero() {
   const [loading,setLoading]=useState(false);
   const [searched,setSearched]=useState(false);
   const [artistMode,setArtistMode]=useState(false);
+  const [listening,setListening]=useState(false);
+  const [voiceMsg,setVoiceMsg]=useState("");
 
   const fallback=useMemo(()=>allShows.filter(s=>!isEnded(s.status)).filter(s=>genre==="전체"||s.genre.includes(genre)).filter(s=>region==="전국"||s.region.includes(region)).filter(s=>!query.trim()||`${s.title} ${s.artist??""} ${s.venue}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0,12),[query,genre,region]);
   const parsed=useMemo(()=>interpretPrompt(query,{timing,region,genre}),[query,timing,region,genre]);
@@ -71,6 +73,28 @@ export default function Hero() {
     setArtistMode(true);setLoading(true);setSearched(true);
     try{const d=await fetch(`/api/kopis?${new URLSearchParams({type:"artist",q,rows:"40"})}`,{cache:"no-store"}).then(r=>r.json());setResults(((d?.shows??[]) as Show[]).filter(s=>!isEnded(s.status)).slice(0,24));}
     catch{setResults([])}finally{setLoading(false)}
+  }
+
+  function startVoiceSearch(){
+    type SpeechResultEvent={results:ArrayLike<{0:{transcript:string};isFinal:boolean}>};
+    type SpeechErrorEvent={error?:string};
+    type Recognition={lang:string;interimResults:boolean;continuous:boolean;maxAlternatives:number;start:()=>void;stop:()=>void;onstart:(()=>void)|null;onend:(()=>void)|null;onerror:((e:SpeechErrorEvent)=>void)|null;onresult:((e:SpeechResultEvent)=>void)|null};
+    type RecognitionCtor=new()=>Recognition;
+    const w=window as typeof window & {SpeechRecognition?:RecognitionCtor;webkitSpeechRecognition?:RecognitionCtor};
+    const Ctor=w.SpeechRecognition||w.webkitSpeechRecognition;
+    if(!Ctor){setVoiceMsg("이 브라우저는 음성검색을 지원하지 않습니다. Chrome 또는 Edge에서 이용해보세요.");setTimeout(()=>setVoiceMsg(""),4500);return}
+    const recognition=new Ctor();
+    recognition.lang="ko-KR"; recognition.interimResults=true; recognition.continuous=false; recognition.maxAlternatives=1;
+    recognition.onstart=()=>{setListening(true);setVoiceMsg("듣고 있어요. 원하는 공연을 편하게 말씀해 주세요.")};
+    recognition.onresult=(event)=>{
+      let transcript=""; let finalText="";
+      for(let i=0;i<event.results.length;i++){const r=event.results[i];transcript+=r[0]?.transcript||"";if(r.isFinal)finalText+=r[0]?.transcript||""}
+      if(transcript.trim())setQuery(transcript.trim());
+      if(finalText.trim()){setVoiceMsg(`“${finalText.trim()}”로 찾아볼게요.`);smartSearch(finalText.trim())}
+    };
+    recognition.onerror=(event)=>{setListening(false);setVoiceMsg(event.error==="not-allowed"?"마이크 권한이 필요합니다. 브라우저에서 마이크 사용을 허용해 주세요.":"음성을 인식하지 못했습니다. 다시 말씀해 주세요.");setTimeout(()=>setVoiceMsg(""),4000)};
+    recognition.onend=()=>setListening(false);
+    try{recognition.start()}catch{setListening(false);setVoiceMsg("음성검색을 시작하지 못했습니다. 잠시 후 다시 눌러주세요.")}
   }
 
   useEffect(()=>{const fn=(e:Event)=>{const detail=(e as CustomEvent<{query?:string;mode?:string}>).detail;const q=detail?.query?.trim();if(!q)return;setQuery(q);if(detail?.mode==="artist")setTimeout(()=>searchArtistShows(q),0);else setTimeout(()=>searchShows(q),0)};window.addEventListener("showday:search",fn);return()=>window.removeEventListener("showday:search",fn)},[]);
@@ -102,13 +126,14 @@ export default function Hero() {
         </div>
         <div className="grid gap-6 lg:grid-cols-[1.55fr_.85fr]">
           <div>
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 부모님과, 1시간 안쪽, 10만원 이하 공연" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 부모님과, 1시간 안쪽, 10만원 이하 공연" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button type="button" onClick={startVoiceSearch} aria-label="음성으로 공연 찾기" className={`inline-flex items-center justify-center gap-2 rounded-md border px-4 py-3.5 text-sm font-bold transition ${listening?"border-gold bg-gold/10 text-gold":"border-line bg-white/45 text-paper hover:border-gold"}`}><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>{listening?"듣는 중":"음성 찾기"}</button><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
+            {voiceMsg&&<p className={`mt-2 text-xs font-semibold ${listening?"text-gold":"text-muted"}`}>{voiceMsg}</p>}
             {query.trim() && <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">SHOWDAY 해석</span><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{parsed.timing}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{parsed.region}</Chip><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{parsed.genre}</Chip>{parsed.query&&<Chip>{parsed.query}</Chip>}</div>}
             <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/><Choice label="이동시간" options={travels} value={travel} setValue={setTravel}/></div><p className="mt-3 text-[11px] leading-5 text-muted">이동시간은 현재 위치와 공연장 경로를 계산하는 지도 연동 후 정확하게 적용됩니다. 지금은 검색 조건을 미리 설정할 수 있습니다.</p>
             <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
           </div>
           <aside className="border-l-0 border-line pl-0 lg:border-l lg:pl-6">
-            <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 상황을 그대로 입력해보세요.</p></div></div>
+            <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 직접 입력하거나 마이크를 눌러 상황을 그대로 말씀해보세요.</p></div></div>
             <div className="mt-4 divide-y divide-line border-y border-line">{["이번 주말 부모님과 볼 공연, 1시간 이내","10만원 이하 서울 뮤지컬","아이유 다음 공연","이번 주말 가까운 콘서트"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
             {isAuthConfigured&&<button onClick={signInWithKakao} className="mt-4 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">로그인하고 관심 공연 저장하기</button>}
           </aside>
