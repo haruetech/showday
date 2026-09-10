@@ -194,11 +194,22 @@ export default function Hero(){
           const candidates=list.slice(0,24);
           const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:{lat:pos.coords.latitude,lng:pos.coords.longitude},venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
           if(tt?.configured===false){
-            setLocationMsg("내 주변 거리 계산은 지도 연동 준비 후 더 정확해집니다. 현재는 검색 조건에 맞는 공연을 보여드립니다.");
+            setLocationMsg("내 주변 검색을 사용하려면 Vercel에 KAKAO_REST_API_KEY를 설정해주세요.");
+            list=[];
           }else{
             const times=tt?.times||{};
-            list=candidates.filter(s=>{const mins=times[s.id]?.transitMinutes; return typeof mins==="number" && mins<=60;});
-            setLocationMsg("현재 위치에서 대중교통 약 1시간 이내 공연을 우선 보여드립니다.");
+            const withDistance=candidates
+              .map(s=>({show:s,distanceKm:times[s.id]?.distanceKm as number|null|undefined}))
+              .filter(x=>typeof x.distanceKm==="number")
+              .sort((a,b)=>(a.distanceKm??999)-(b.distanceKm??999));
+            const nearby=withDistance.filter(x=>(x.distanceKm??999)<=30);
+            list=(nearby.length?nearby:withDistance.slice(0,12)).map(x=>({
+              ...x.show,
+              distanceFromDobongKm:x.distanceKm??x.show.distanceFromDobongKm,
+            }));
+            setLocationMsg(nearby.length
+              ? `현재 위치 기준 30km 이내 공연 ${nearby.length}건을 가까운 순으로 보여드립니다.`
+              : "30km 이내 공연이 없어 현재 위치에서 가까운 공연부터 보여드립니다.");
           }
         }catch{
           setLocationMsg("위치 권한을 허용하면 내 주변 공연을 더 정확하게 찾을 수 있습니다.");
@@ -297,4 +308,4 @@ function Choice<T extends string>({label,options,value,setValue}:{label:string;o
 function Quick({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="shrink-0 rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted transition hover:border-gold/60 hover:text-paper">{label}</button>}
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/80 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
 function Empty(){return <div className="border-y border-line py-8 text-center"><p className="text-sm font-semibold text-paper">조건에 맞는 현재·예정 공연을 찾지 못했습니다.</p><p className="mt-2 text-xs text-muted">지역이나 날짜를 조금 넓혀 다시 찾아보세요.</p></div>}
-function ResultCard({show}:{show:Show}){return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p>{show.ageLabel&&<p className="mt-1 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
+function ResultCard({show}:{show:Show}){const hasPrice=show.priceLabel&&show.priceLabel!=="가격 정보 없음";const hasDistance=Number.isFinite(show.distanceFromDobongKm)&&show.distanceFromDobongKm<999;return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
