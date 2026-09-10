@@ -232,10 +232,10 @@ export default function Hero(){
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · 내게 맞는 공연 찾기</p>
           <h1 className="font-display font-black leading-[1.08]">
-            <span className="block whitespace-nowrap text-[clamp(1.55rem,4.6vw,3.8rem)] text-white">이번 주말 누구와 어디갈까요?</span>
-            <span className="mt-2 block whitespace-nowrap text-[clamp(1.15rem,3.7vw,3rem)] leading-[1.14] text-[#f3b37f]">내 주변 공연·행사를 쉽게 찾아보세요.</span>
+            <span className="block whitespace-nowrap text-[clamp(1.28rem,4.6vw,3.8rem)] text-white">이번 주말 누구와 어디갈까요?</span>
+            <span className="mt-2 block whitespace-nowrap text-[clamp(0.98rem,3.7vw,3rem)] leading-[1.14] text-[#f3b37f]">내 주변 공연·행사를 쉽게 찾아보세요.</span>
           </h1>
-          <p className="mt-5 max-w-none whitespace-nowrap text-[clamp(11px,1.45vw,16px)] leading-6 text-white/80">아이와 함께, 데이트, 부모님과 함께. 복잡한 검색 대신 다섯 가지만 고르면 <strong className="font-black text-white">SHOWDAY</strong>가 볼 만한 공연을 찾아드립니다.</p>
+          <p className="mt-5 max-w-lg text-[clamp(12px,1.45vw,16px)] leading-6 text-white/80">아이와 함께, 데이트, 부모님과 함께. 복잡한 검색 대신 다섯 가지만 고르면 <strong className="font-black text-white">SHOWDAY</strong>가 볼 만한 공연을 찾아드립니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
         </div>
       </div>

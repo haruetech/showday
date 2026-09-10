@@ -27,13 +27,18 @@ export default function FloatingProductPromo() {
     const until = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
     if (until > Date.now()) return;
 
-    const timer = window.setTimeout(() => setVisible(true), 900);
-    const onScroll = () => setCompact(window.scrollY > 360);
+    // 히어로 검색 CTA("이 조건으로 찾기") 버튼 위에 곧바로 뜨면 버튼을 가려버리므로,
+    // 타이머로 즉시 노출하는 대신 사용자가 히어로 검색 영역을 지나 스크롤한 뒤에만 보여준다.
+    const REVEAL_AFTER_SCROLL_PX = 420;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setCompact(y > 360);
+      if (y > REVEAL_AFTER_SCROLL_PX) setVisible(true);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
     return () => {
-      window.clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
     };
   }, [pathname]);
