@@ -88,15 +88,16 @@ export default function Header({
               로그아웃
             </button>
           </div>
-        ) : isAuthConfigured ? (
+        ) : (
           <button
             onClick={signInWithKakao}
-            className="flex min-h-10 items-center gap-1.5 rounded-full bg-[#FEE500] px-3.5 py-2 text-[11px] font-bold text-[#191600] transition-opacity hover:opacity-90 sm:px-4 sm:text-xs"
+            aria-label="카카오로 로그인"
+            className="flex min-h-10 items-center gap-2 rounded-full bg-[#FEE500] px-3.5 py-2 text-[11px] font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:px-4 sm:text-xs"
           >
-            <span className="sm:hidden">로그인</span><span className="hidden sm:inline">카카오로 로그인</span>
+            <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-[#191600] text-[10px] font-black text-[#FEE500]">K</span>
+            <span className="sm:hidden">카카오 로그인</span>
+            <span className="hidden sm:inline">카카오로 로그인</span>
           </button>
-        ) : (
-          <span className="rounded-full border border-line px-3 py-2 text-[11px] font-semibold text-muted">카카오 로그인 준비중</span>
         )}
       </div>
     </header>
