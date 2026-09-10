@@ -3,23 +3,16 @@ export default function ArenaNowBanner() {
     <section id="arena-now" className="mx-auto w-full max-w-6xl px-6 py-10">
       <div className="flex flex-col justify-between gap-6 border border-line bg-surface-raised p-8 sm:flex-row sm:items-center">
         <div>
-          <p className="mb-2 text-xs text-muted">ARENA NOW · 공연 당일 현장 비서</p>
-          <h2 className="font-display font-bold text-2xl text-paper sm:text-3xl">
-            공연 당일의 이동부터 입장·귀가까지, 한눈에
+          <p className="mb-2 text-xs font-semibold tracking-[.12em] text-gold">ARENA NOW · COMING SOON</p>
+          <h2 className="font-display text-2xl font-bold text-paper sm:text-3xl">
+            공연장이 완성되는 동안, 새로운 공연 경험도 준비하고 있습니다.
           </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-            주차·교통·먹거리·화장실·입장정보·현장 이슈와 귀가 정보를 한 화면에서 확인하세요.
-            서울아레나 공연 당일의 불편을 줄이는 SHOWDAY 현장 서비스입니다.
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+            서울아레나 개장과 함께 공연 전 이동·주차부터 현장 편의, 입장, 공연 후 귀가까지 연결하는 ARENA NOW를 준비하고 있습니다.
+            공연 가는 하루를 더 편리하게 만드는 SHOWDAY의 현장 서비스를 순차적으로 선보일 예정입니다.
           </p>
         </div>
-        <a
-          href="https://arena.showday.kr"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 rounded-sm border border-line px-6 py-3 text-center text-sm text-paper transition-colors hover:border-gold"
-        >
-          ARENA NOW 열기 →
-        </a>
+        <span className="shrink-0 rounded-full border border-gold/40 px-5 py-2.5 text-center text-xs font-bold text-gold">서비스 준비 중</span>
       </div>
     </section>
   );

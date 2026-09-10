@@ -9,10 +9,12 @@ import type { Show } from "@/types/show";
 
 type Timing = "오늘" | "이번 주" | "이번 주말" | "30일 이내";
 type Region = "전국" | "서울" | "경기" | "인천" | "부산";
+type Travel = "상관없음" | "30분 이내" | "1시간 이내" | "1시간 30분 이내";
 const timings: Timing[] = ["오늘", "이번 주", "이번 주말", "30일 이내"];
 const regions: Region[] = ["전국", "서울", "경기", "인천", "부산"];
 const regionCodes: Record<Region,string> = {전국:"",서울:"11",경기:"41",인천:"28",부산:"26"};
 const genres = ["전체", "대중음악", "뮤지컬", "연극", "클래식", "국악", "무용", "아동"];
+const travels: Travel[] = ["상관없음", "30분 이내", "1시간 이내", "1시간 30분 이내"];
 
 function isEnded(status?: string){ return Boolean(status && (status.includes("완료") || status.includes("종료"))); }
 
@@ -37,6 +39,7 @@ export default function Hero() {
   const [timing,setTiming]=useState<Timing>("이번 주말");
   const [region,setRegion]=useState<Region>("전국");
   const [genre,setGenre]=useState("전체");
+  const [travel,setTravel]=useState<Travel>("상관없음");
   const [results,setResults]=useState<Show[]>([]);
   const [loading,setLoading]=useState(false);
   const [searched,setSearched]=useState(false);
@@ -84,8 +87,8 @@ export default function Hero() {
       <div className="relative mx-auto flex min-h-[330px] max-w-[1280px] items-center px-4 py-10 sm:min-h-[410px] sm:px-6 sm:py-14">
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · PERFORMANCE DISCOVERY</p>
-          <h1 className="font-display text-[2.15rem] font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">어떤 공연을 만나볼까요?<br/><span className="text-[#f3b37f]">취향과 일정에 맞는 공연을 한눈에.</span></h1>
-          <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">지금 인기 있는 공연부터 이번 주말·장르·지역·아티스트별 예정 공연까지 SHOWDAY에서 찾아보세요.</p>
+          <h1 className="font-display text-[2.15rem] font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">지금, 나에게 맞는 공연을 찾아보세요<br/><span className="text-[#f3b37f]">취향부터 일정까지, 원하는 조건으로.</span></h1>
+          <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">보고 싶은 장르와 날짜, 지역을 고르거나 원하는 상황을 그대로 입력해보세요. SHOWDAY가 현재·예정 공연을 중심으로 찾아드립니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">내 공연 찾기 <ArrowIcon className="h-4 w-4"/></a>
         </div>
       </div>
@@ -94,19 +97,19 @@ export default function Hero() {
     <div id="quick-search" className="mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-9">
       <div className="border-y border-line bg-surface/65 py-6 sm:py-7">
         <div className="mb-5 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-          <div><p className="text-[11px] font-semibold tracking-[.18em] text-gold">SMART SEARCH</p><h2 className="mt-2 text-xl font-black leading-7 text-paper sm:text-2xl">말하듯 찾고, 조건은 쉽게 조정하세요.</h2></div>
-          <p className="max-w-md text-xs leading-5 text-muted">공연명·아티스트·공연장뿐 아니라 날짜, 지역, 장르를 함께 이해해 현재·예정 공연만 보여드립니다.</p>
+          <div><p className="text-[11px] font-semibold tracking-[.18em] text-gold">SMART SEARCH</p><h2 className="mt-2 text-xl font-black leading-7 text-paper sm:text-2xl">원하는 공연을 말해보세요. AI가 조건에 맞춰 찾아드립니다.</h2></div>
+          <p className="max-w-md text-xs leading-5 text-muted">날짜·지역·장르·가격·동행자·이동시간까지 공연을 고를 때 중요한 조건을 한곳에서 조정할 수 있습니다.</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-[1.55fr_.85fr]">
           <div>
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 서울에서 볼 뮤지컬" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&smartSearch(query)} placeholder="예: 이번 주말 부모님과, 1시간 안쪽, 10만원 이하 공연" className="w-full rounded-md border border-line bg-white/55 py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold focus:bg-white"/></label><button onClick={()=>smartSearch(query)} className="inline-flex items-center justify-center gap-2 rounded-md bg-paper px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>공연 찾기</button></div>
             {query.trim() && <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">SHOWDAY 해석</span><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{parsed.timing}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{parsed.region}</Chip><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{parsed.genre}</Chip>{parsed.query&&<Chip>{parsed.query}</Chip>}</div>}
-            <div className="mt-5 grid gap-4 md:grid-cols-3 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/></div>
+            <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/><Choice label="이동시간" options={travels} value={travel} setValue={setTravel}/></div><p className="mt-3 text-[11px] leading-5 text-muted">이동시간은 현재 위치와 공연장 경로를 계산하는 지도 연동 후 정확하게 적용됩니다. 지금은 검색 조건을 미리 설정할 수 있습니다.</p>
             <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
           </div>
           <aside className="border-l-0 border-line pl-0 lg:border-l lg:pl-6">
             <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 상황을 그대로 입력해보세요.</p></div></div>
-            <div className="mt-4 divide-y divide-line border-y border-line">{["이번 주말 서울에서 볼 콘서트","50대가 편하게 볼 클래식","아이유 다음 공연","오늘 KSPO DOME 공연"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
+            <div className="mt-4 divide-y divide-line border-y border-line">{["이번 주말 부모님과 볼 공연, 1시간 이내","10만원 이하 서울 뮤지컬","아이유 다음 공연","이번 주말 가까운 콘서트"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
             {isAuthConfigured&&<button onClick={signInWithKakao} className="mt-4 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">로그인하고 관심 공연 저장하기</button>}
           </aside>
         </div>

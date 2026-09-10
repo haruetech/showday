@@ -4,7 +4,7 @@ import FloatingProductPromo from "@/components/FloatingProductPromo";
 import ResponsiveDock from "@/components/ResponsiveDock";
 
 export const metadata: Metadata = {
-  title: "SHOWDAY — 오늘, 어떤 공연을 만나고 싶으세요?",
+  title: "SHOWDAY — 나에게 맞는 공연을 더 쉽게",
   description:
     "나에게 맞는 공연을 찾고, 공연 가는 하루까지 준비하는 AI 공연 플랫폼",
 };
