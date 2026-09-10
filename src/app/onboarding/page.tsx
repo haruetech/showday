@@ -65,22 +65,34 @@ function OnboardingForm() {
     setGenres((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
   };
 
-  const childAgeComplete = companion !== "자녀와 함께" || Boolean(childAge);
-  const isComplete = ageBand && district && companion && childAgeComplete && preferredDay && maxDistanceKm !== null;
-
   const [saving, setSaving] = useState(false);
 
+  // 질문을 다 안 채워도 진행할 수 있도록, 안 고른 항목은 무난한 기본값으로 채운다.
+  // (연령대·요일·거리 등은 추천 점수에만 쓰이는 보조 정보라 정확하지 않아도 크게 문제되지 않는다.)
   const handleSubmit = async () => {
-    if (!isComplete) return;
     setSaving(true);
     await saveProfile({
-      ageBand: ageBand!,
-      district: district!,
-      companion: companion!,
-      childAge: companion === "자녀와 함께" ? childAge! : "해당 없음",
-      preferredDay: preferredDay!,
-      maxDistanceKm: maxDistanceKm!,
+      ageBand: ageBand ?? "20대",
+      district: district ?? "기타 지역",
+      companion: companion ?? "혼자",
+      childAge: companion === "자녀와 함께" ? childAge ?? "해당 없음" : "해당 없음",
+      preferredDay: preferredDay ?? "평일",
+      maxDistanceKm: maxDistanceKm ?? 999,
       genres,
+    });
+    router.push(searchParams.get("next") ?? "/");
+  };
+
+  const handleSkip = async () => {
+    setSaving(true);
+    await saveProfile({
+      ageBand: "20대",
+      district: "기타 지역",
+      companion: "혼자",
+      childAge: "해당 없음",
+      preferredDay: "평일",
+      maxDistanceKm: 999,
+      genres: [],
     });
     router.push(searchParams.get("next") ?? "/");
   };
@@ -88,12 +100,25 @@ function OnboardingForm() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-10 px-6 py-16">
       <div>
-        <p className="mb-2 text-xs font-bold text-gold">SHOWDAY 맞춤 시작</p>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <p className="text-xs font-bold text-gold">SHOWDAY 맞춤 시작</p>
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={saving}
+            className="shrink-0 text-xs text-muted underline underline-offset-4 hover:text-paper disabled:opacity-50"
+          >
+            나중에 할게요, 지금은 건너뛰기
+          </button>
+        </div>
         <h1 className="font-display font-black text-3xl text-paper">
           카카오로 간편하게 시작하고,
           <br />내가 갈 공연만 받아보세요.
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted">
+          아래는 답할수록 추천이 더 정확해지는 참고용 질문이에요 — 몇 개만 고르거나 건너뛰어도 괜찮습니다.
+        </p>
+        <p className="mt-1 text-sm leading-6 text-muted">
           관심 지역과 동행자만 알려주시면 내 주변 공연·행사, 아이 연령에 맞는 가족공연, 관심 장르를 우선 추천합니다.
         </p>
       </div>
@@ -169,7 +194,7 @@ function OnboardingForm() {
 
       <button
         onClick={handleSubmit}
-        disabled={!isComplete || saving}
+        disabled={saving}
         className="rounded-sm bg-gold py-3.5 text-sm font-bold text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
       >
         {saving ? "저장하는 중..." : "맞춤 추천 시작하기"}
