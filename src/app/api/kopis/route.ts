@@ -63,6 +63,20 @@ export async function GET(req: NextRequest) {
   const end = new Date(now);
   if (range === "today") {
     // 오늘 하루
+  } else if (range === "date") {
+    const selected = searchParams.get("date");
+    if (selected && /^\d{4}-\d{2}-\d{2}$/.test(selected)) {
+      const [y,m,d] = selected.split("-").map(Number);
+      start.setFullYear(y, m - 1, d);
+      start.setHours(0,0,0,0);
+      end.setTime(start.getTime());
+      end.setHours(23,59,59,999);
+    }
+  } else if (range === "month") {
+    start.setDate(1);
+    start.setHours(0,0,0,0);
+    end.setMonth(now.getMonth() + 1, 0);
+    end.setHours(23,59,59,999);
   } else if (range === "week") {
     const day = now.getDay(); // 0=일
     const daysToSunday = day === 0 ? 0 : 7 - day;
