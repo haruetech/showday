@@ -55,6 +55,7 @@ function OnboardingForm() {
   const [ageBand, setAgeBand] = useState<RecommendationProfile["ageBand"] | null>(null);
   const [district, setDistrict] = useState<string | null>(null);
   const [companion, setCompanion] = useState<RecommendationProfile["companion"] | null>(null);
+  const [childAge, setChildAge] = useState<RecommendationProfile["childAge"] | null>(null);
   const [preferredDay, setPreferredDay] = useState<RecommendationProfile["preferredDay"] | null>(null);
   const [maxDistanceKm, setMaxDistanceKm] = useState<number | null>(null);
   const [genres, setGenres] = useState<string[]>([]);
@@ -63,7 +64,8 @@ function OnboardingForm() {
     setGenres((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
   };
 
-  const isComplete = ageBand && district && companion && preferredDay && maxDistanceKm !== null;
+  const childAgeComplete = companion !== "자녀와 함께" || Boolean(childAge);
+  const isComplete = ageBand && district && companion && childAgeComplete && preferredDay && maxDistanceKm !== null;
 
   const [saving, setSaving] = useState(false);
 
@@ -74,6 +76,7 @@ function OnboardingForm() {
       ageBand: ageBand!,
       district: district!,
       companion: companion!,
+      childAge: companion === "자녀와 함께" ? childAge! : "해당 없음",
       preferredDay: preferredDay!,
       maxDistanceKm: maxDistanceKm!,
       genres,
@@ -84,24 +87,18 @@ function OnboardingForm() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-10 px-6 py-16">
       <div>
-        <p className="mb-2 text-xs text-gold">추천 설정</p>
+        <p className="mb-2 text-xs font-bold text-gold">SHOWDAY 맞춤 시작</p>
         <h1 className="font-display font-black text-3xl text-paper">
-          나에게 맞는 공연,
-          <br />
-          어떻게 찾아드릴까요?
+          카카오로 간편하게 시작하고,
+          <br />내가 갈 공연만 받아보세요.
         </h1>
-        <p className="mt-3 text-sm text-muted">
-          몇 가지만 골라주시면, 조건에 맞는 이유와 함께 공연을 추천해 드려요.
+        <p className="mt-3 text-sm leading-6 text-muted">
+          관심 지역과 동행자만 알려주시면 내 주변 공연·행사, 아이 연령에 맞는 가족공연, 관심 장르를 우선 추천합니다.
         </p>
       </div>
 
       <div className="flex flex-col gap-8">
-        <ChipGroup
-          label="연령대"
-          options={onboardingOptions.ageBands}
-          value={ageBand}
-          onChange={setAgeBand}
-        />
+
         <ChipGroup
           label="주로 활동하는 지역"
           options={onboardingOptions.districts}
@@ -113,6 +110,13 @@ function OnboardingForm() {
           options={onboardingOptions.companions}
           value={companion}
           onChange={setCompanion}
+        />
+        {companion === "자녀와 함께" && <ChipGroup label="아이 연령" options={onboardingOptions.childAges} value={childAge} onChange={setChildAge} />}
+        <ChipGroup
+          label="연령대"
+          options={onboardingOptions.ageBands}
+          value={ageBand}
+          onChange={setAgeBand}
         />
         <ChipGroup
           label="선호하는 요일"
@@ -167,7 +171,7 @@ function OnboardingForm() {
         disabled={!isComplete || saving}
         className="rounded-sm bg-gold py-3.5 text-sm font-bold text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
       >
-        {saving ? "저장하는 중..." : "이 조건으로 추천받기"}
+        {saving ? "저장하는 중..." : "맞춤 추천 시작하기"}
       </button>
     </main>
   );

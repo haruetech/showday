@@ -9,9 +9,7 @@ export const isAuthConfigured = Boolean(
 export async function signInWithKakao() {
   const supabase = createClient();
   if (!supabase) {
-    alert(
-      "Supabase 연동이 아직 설정되지 않았습니다. .env.local에 Supabase URL/키를 입력하고, Supabase 대시보드에서 Kakao 로그인을 활성화해주세요."
-    );
+    alert("현재 카카오 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
     return;
   }
 

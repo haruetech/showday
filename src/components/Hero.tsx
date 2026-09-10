@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { signInWithKakao, isAuthConfigured } from "@/lib/auth";
 import { allShows } from "@/lib/dummy-data";
-import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon, TrendIcon, WellnessIcon } from "@/components/Icons";
+import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon, TrendIcon } from "@/components/Icons";
 import type { Show } from "@/types/show";
 
 type Timing = "오늘" | "이번 주" | "이번 주말" | "다음 달" | "30일 이내";
@@ -204,12 +204,12 @@ export default function Hero() {
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · PERFORMANCE DISCOVERY</p>
           <h1 className="font-display font-black leading-[1.08]">
-            <span className="block whitespace-nowrap text-[clamp(1.9rem,5.4vw,3.75rem)] text-white">보고 싶은 공연, 바로 찾기</span>
+            <span className="block text-[clamp(1.9rem,5.4vw,3.75rem)] text-white">이번 주말, 누구와 어디 갈까요?</span>
             <span className="mt-2 block text-[clamp(1.65rem,4.6vw,3.25rem)] leading-[1.12] text-[#f3b37f]">
-              말하거나 선택하면<br />쇼데이가 찾아드려요.
+              내 주변 공연·행사를<br />쉽게 찾아보세요.
             </span>
           </h1>
-          <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">보고 싶은 장르와 날짜, 지역을 고르거나 원하는 상황을 그대로 입력해보세요. SHOWDAY가 현재·예정 공연을 중심으로 찾아드립니다.</p>
+          <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">아이와 함께, 데이트, 부모님과 함께 등 상황을 고르고 지역·날짜·장르를 선택하면 SHOWDAY가 지금 갈 수 있는 공연과 행사를 찾아드립니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">내 공연 찾기 <ArrowIcon className="h-4 w-4"/></a>
         </div>
       </div>
@@ -227,12 +227,12 @@ export default function Hero() {
             {voiceMsg&&<p className={`mt-2 text-xs font-semibold ${listening?"text-gold":"text-muted"}`}>{voiceMsg}</p>}{locationMsg&&<p className="mt-2 text-xs font-semibold text-muted">{locationMsg}</p>}
             {query.trim() && <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">SHOWDAY 해석</span><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{parsed.timing}</Chip><Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{parsed.region}</Chip><Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{parsed.genre}</Chip><Chip>{parsed.price}</Chip><Chip>{parsed.companion}</Chip><Chip>{parsed.travel}</Chip>{parsed.artistQuery&&<Chip>아티스트 · {parsed.artistQuery}</Chip>}</div>}
             <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5"><Choice label="언제" options={timings} value={timing} setValue={setTiming}/><Choice label="어디서" options={regions} value={region} setValue={setRegion}/><Choice label="무엇을" options={genres} value={genre} setValue={setGenre}/><Choice label="가격" options={prices} value={price} setValue={setPrice}/><Choice label="누구와" options={companions} value={companion} setValue={setCompanion}/><div><Choice label="이동시간" options={travels} value={travel} setValue={setTravel}/>{travel!=="상관없음"&&<div className="mt-2"><Choice label="이동수단" options={travelModes} value={travelMode} setValue={setTravelMode}/></div>}</div></div><p className="mt-3 text-[11px] leading-5 text-muted">음성이나 문장으로 말하면 위 조건이 자동으로 바뀝니다. 이동시간을 선택하면 현재 위치 권한을 받아 공연장까지의 실제 예상 이동시간을 계산해 검색 결과에 반영합니다.</p>
-            <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="서울 공연" onClick={()=>{setRegion("서울");searchShows("",{region:"서울"})}}/><Quick icon={<WellnessIcon className="h-4 w-4"/>} label="50+ 라이프" onClick={()=>document.getElementById("fiftyplus")?.scrollIntoView({behavior:"smooth"})}/></div>
+            <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible"><Quick icon={<SparkIcon className="h-4 w-4"/>} label="아이와 함께" onClick={()=>smartSearch("이번 주말 아이와 볼 공연")}/><Quick icon={<SparkIcon className="h-4 w-4"/>} label="데이트" onClick={()=>smartSearch("이번 주말 연인과 데이트 공연")}/><Quick icon={<PinIcon className="h-4 w-4"/>} label="내 주변" onClick={()=>document.getElementById("my-area")?.scrollIntoView({behavior:"smooth"})}/><Quick icon={<CalendarIcon className="h-4 w-4"/>} label="이번 주말" onClick={()=>{setTiming("이번 주말");searchShows("",{timing:"이번 주말"})}}/><Quick icon={<TrendIcon className="h-4 w-4"/>} label="지금 인기" onClick={()=>document.getElementById("popular-now")?.scrollIntoView({behavior:"smooth"})}/></div>
           </div>
           <aside className="border-l-0 border-line pl-0 lg:border-l lg:pl-6">
             <div className="flex items-start gap-3"><span className="mt-0.5 grid h-9 w-9 place-items-center rounded-full border border-gold/40 text-gold"><SparkIcon className="h-4 w-4"/></span><div><p className="text-sm font-black text-paper">SHOWDAY Guide</p><p className="mt-1 text-xs leading-5 text-muted">정확한 검색어를 몰라도 괜찮습니다. 직접 입력하거나 마이크를 눌러 상황을 그대로 말씀해보세요.</p></div></div>
-            <div className="mt-4 divide-y divide-line border-y border-line">{["박서진 공연 서울에서 다음 달에 하는 거 찾아줘","이번 주말 부모님과 볼 공연, 1시간 이내","무료 서울 공연","아이와 30분 안쪽 공연"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
-            {isAuthConfigured&&<button onClick={signInWithKakao} className="mt-4 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">로그인하고 관심 공연 저장하기</button>}
+            <div className="mt-4 divide-y divide-line border-y border-line">{["이번 주말 7살 아이와 볼 공연","오늘 내 주변 무료 행사","연인과 3만원대 데이트 공연","60대 부모님과 함께 볼 공연"].map(ex=><button key={ex} onClick={()=>smartSearch(ex)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-xs font-medium text-paper hover:text-gold"><span>{ex}</span><ArrowIcon className="h-4 w-4 shrink-0"/></button>)}</div>
+            {isAuthConfigured&&<button onClick={signInWithKakao} className="mt-4 text-xs font-semibold text-muted underline underline-offset-4 hover:text-paper">카카오로 시작하고 맞춤 추천받기</button>}
           </aside>
         </div>
 

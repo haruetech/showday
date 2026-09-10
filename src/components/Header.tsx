@@ -61,11 +61,10 @@ export default function Header({
         </a>
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
-          <a href="/#shows" className="hover:text-paper">공연</a>
-          <a href="/#my-area" className="hover:text-paper">MY AREA</a>
-          <a href="/#venues" className="hover:text-paper">공연장</a>
-          <a href="/#fiftyplus" className="hover:text-paper">시니어 공연</a>
-          <a href="/#around" className="hover:text-paper">AROUND</a>
+          <a href="/#show-search" className="hover:text-paper">공연 찾기</a>
+          <a href="/#my-area" className="hover:text-paper">내 주변</a>
+          <a href="/#popular-now" className="hover:text-paper">인기 공연</a>
+          <a href="/#artists" className="hover:text-paper">아티스트</a>
           <a
             href="https://arena.showday.kr"
             target="_blank"
@@ -97,25 +96,7 @@ export default function Header({
             <span className="sm:hidden">로그인</span><span className="hidden sm:inline">카카오로 로그인</span>
           </button>
         ) : (
-          // Supabase/Kakao 연동 전 프리뷰용 데모 토글
-          <div className="flex items-center gap-1 rounded-full border border-line p-1 text-xs">
-            <button
-              onClick={() => onModeChange("guest")}
-              className={`rounded-full px-3 py-1.5 transition-colors ${
-                mode === "guest" ? "bg-gold text-ink" : "text-muted hover:text-paper"
-              }`}
-            >
-              비로그인
-            </button>
-            <button
-              onClick={() => onModeChange("member")}
-              className={`rounded-full px-3 py-1.5 transition-colors ${
-                mode === "member" ? "bg-gold text-ink" : "text-muted hover:text-paper"
-              }`}
-            >
-              로그인 (데모)
-            </button>
-          </div>
+          <span className="rounded-full border border-line px-3 py-2 text-[11px] font-semibold text-muted">카카오 로그인 준비중</span>
         )}
       </div>
     </header>

@@ -15,6 +15,7 @@ interface ProfileRow {
   age_band: RecommendationProfile["ageBand"];
   district: string;
   companion: RecommendationProfile["companion"];
+  child_age?: RecommendationProfile["childAge"] | null;
   preferred_day: RecommendationProfile["preferredDay"];
   max_distance_km: number;
   genres: string[];
@@ -25,6 +26,7 @@ function rowToProfile(row: ProfileRow): RecommendationProfile {
     ageBand: row.age_band,
     district: row.district,
     companion: row.companion,
+    childAge: row.child_age ?? "해당 없음",
     preferredDay: row.preferred_day,
     maxDistanceKm: row.max_distance_km,
     genres: row.genres ?? [],
@@ -36,6 +38,7 @@ function profileToRow(profile: RecommendationProfile) {
     age_band: profile.ageBand,
     district: profile.district,
     companion: profile.companion,
+    child_age: profile.childAge ?? "해당 없음",
     preferred_day: profile.preferredDay,
     max_distance_km: profile.maxDistanceKm,
     genres: profile.genres,
@@ -69,7 +72,7 @@ export async function getProfile(): Promise<RecommendationProfile | null> {
     if (user) {
       const { data, error } = await supabase
         .from("profiles")
-        .select("age_band, district, companion, preferred_day, max_distance_km, genres")
+        .select("age_band, district, companion, child_age, preferred_day, max_distance_km, genres")
         .eq("id", user.id)
         .maybeSingle();
 

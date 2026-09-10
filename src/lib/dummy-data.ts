@@ -209,12 +209,13 @@ export const fiftyPlusPicks = [
 export const onboardingOptions = {
   ageBands: ["20대", "30대", "40대", "50대", "60대 이상"] as const,
   districts: ["도봉구", "종로구", "구로구", "송파구", "서초구", "기타 지역"],
-  companions: ["혼자", "배우자와 함께", "부모님과 함께", "자녀와 함께", "친구와 함께"] as const,
+  companions: ["자녀와 함께", "연인과 함께", "배우자와 함께", "부모님과 함께", "친구와 함께", "혼자"] as const,
+  childAges: ["0~3세", "4~7세", "8~10세", "11~13세", "해당 없음"] as const,
   days: ["평일", "토요일", "일요일"] as const,
   distances: [
     { label: "30분 이내", km: 8 },
     { label: "1시간 이내", km: 20 },
     { label: "거리 상관없음", km: 999 },
   ],
-  genres: ["콘서트", "뮤지컬", "클래식", "강연", "페스티벌"],
+  genres: ["콘서트", "뮤지컬", "연극", "전시", "축제", "체험·가족행사", "클래식"],
 };

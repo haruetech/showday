@@ -78,3 +78,12 @@ K-라이스 디저트 직접판매는 가장 마지막)
 - KOPIS attribution is shown only in the footer; user-facing sections use normal SHOWDAY labels.
 - KOPIS poster cards use a portrait-safe `object-contain` layout to avoid cropping.
 - 50+ section includes Kakao-based viewing concierge, trusted companion concept, B2B group viewing, and after-show rest recommendations.
+
+## 2026-09-10 고객 검색·가입 중심 개편
+- 메인 메시지: 내 주변 / 아이와 함께 / 데이트 / 이번 주말 중심
+- 공연장·50+ LIFE 메인 섹션 제거, 검색 내 부모님 동행 조건은 유지
+- 카카오 로그인은 Supabase OAuth 기존 구조 유지 (`/auth/callback` → `/onboarding`)
+- 비로그인 데모 토글 제거. 환경변수 연결 시 실제 카카오 로그인 버튼 노출
+- 온보딩에 동행자 우선 선택, 자녀 동행 시 아이 연령(0~3/4~7/8~10/11~13) 추가
+- `supabase/migrations/0002_profile_child_age.sql` 적용 필요
+- `.env.local`은 GitHub에 올리지 않음. Vercel Environment Variables에 실제 값을 설정

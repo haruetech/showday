@@ -54,7 +54,8 @@ export interface Venue {
 export interface RecommendationProfile {
   ageBand: "20대" | "30대" | "40대" | "50대" | "60대 이상";
   district: string; // "도봉구" 등
-  companion: "혼자" | "배우자와 함께" | "부모님과 함께" | "자녀와 함께" | "친구와 함께";
+  companion: "혼자" | "연인과 함께" | "배우자와 함께" | "부모님과 함께" | "자녀와 함께" | "친구와 함께";
+  childAge?: "0~3세" | "4~7세" | "8~10세" | "11~13세" | "해당 없음";
   preferredDay: "평일" | "토요일" | "일요일";
   maxDistanceKm: number;
   genres: string[]; // ["콘서트", "강연", ...]

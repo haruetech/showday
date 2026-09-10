@@ -5,10 +5,8 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import SectionRow from "@/components/SectionRow";
 import ShowCard from "@/components/ShowCard";
-import VenueCard from "@/components/VenueCard";
 import ArtistCard from "@/components/ArtistCard";
 import ArenaNowBanner from "@/components/ArenaNowBanner";
-import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
 import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
@@ -19,24 +17,17 @@ import { todayShows, popularShows, allShows } from "@/lib/dummy-data";
 import { getProfile } from "@/lib/profile";
 import { getFollowedArtistIds, toggleArtistFollow } from "@/lib/favorites";
 import { recommendShows, reasonLabel, ScoredShow } from "@/lib/recommend";
-import { Artist, Show, Venue } from "@/types/show";
+import { Artist, Show } from "@/types/show";
 
 type ViewMode = "guest" | "member";
 
-const venueImageMap: Record<string,string> = {
-  "서울아레나":"/venues/seoul-arena.svg","KSPO DOME":"/venues/kspo.svg","고척스카이돔":"/venues/고척.svg","인스파이어 아레나":"/venues/inspire.svg","세종문화회관":"/venues/세종.svg","예술의전당":"/venues/arts-center.svg",
-};
-function venueImage(name:string){const key=Object.keys(venueImageMap).find(k=>name.includes(k)||k.includes(name));return key?venueImageMap[key]:"/venue-default.svg"}
 function cleanArtistName(v?:string){if(!v)return "";return v.split(/,|·|\/|\n/)[0]?.trim().slice(0,24)||""}
 function dynamicArtists(shows:Show[]):Artist[]{
   const map=new Map<string,{genre:string;count:number;show:Show}>();
   for(const s of shows){const name=cleanArtistName(s.artist);if(!name||name.length<2)continue;const prev=map.get(name);map.set(name,{genre:s.genre,count:(prev?.count||0)+1,show:prev?.show||s})}
   return Array.from(map.entries()).sort((a,b)=>b[1].count-a[1].count).slice(0,10).map(([name,v],i)=>({id:`live-artist-${i}-${name}`,name,genre:v.genre,upcoming:v.count,posterFrom:"#b86a3f",posterTo:"#71331d"}));
 }
-function dynamicVenues(shows:Show[]):Venue[]{
-  const map=new Map<string,Show[]>();for(const s of shows){if(!s.venue)continue;map.set(s.venue,[...(map.get(s.venue)||[]),s])}
-  return Array.from(map.entries()).sort((a,b)=>b[1].length-a[1].length).slice(0,10).map(([name,list],i)=>({id:`live-venue-${i}`,name,region:list[0]?.region||"",showCount:list.length,tag:`현재·예정 ${list.length}건`,imageUrl:venueImage(name)}));
-}
+
 
 export default function Home(){
   const [mode,setMode]=useState<ViewMode>("guest");
@@ -58,7 +49,6 @@ export default function Home(){
 
   const visibleShows=useMemo(()=>Array.from(new Map([...liveToday,...liveUpcoming,...livePopular].map(s=>[s.id,s])).values()),[liveToday,liveUpcoming,livePopular]);
   const artists=useMemo(()=>dynamicArtists(visibleShows),[visibleShows]);
-  const venues=useMemo(()=>dynamicVenues(visibleShows),[visibleShows]);
   const popularDisplay=livePopular;
 
   return <><Header mode={mode} onModeChange={setMode}/><main id="shows" className="flex-1"><Hero/>
@@ -77,8 +67,6 @@ export default function Home(){
 
     {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="보고 싶은 아티스트의 공연" id="artists" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
 
-    {venues.length>0&&<SectionRow eyebrow="VENUES" title="주요 공연장 공연 일정" id="venues" action={<span className="text-[11px] text-muted">공연장별 일정이 필요할 때 확인하세요</span>}>{venues.map(v=><VenueCard key={v.id} venue={v} shows={visibleShows.filter(s=>s.venue===v.name)}/>)}</SectionRow>}
-
-    <ParentsFiftyPlusSection/>{mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}<ArenaNowBanner/>
+    {mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}<ArenaNowBanner/>
   </main><SectionQuickNav/><Footer/></>
 }
