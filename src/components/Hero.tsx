@@ -203,7 +203,7 @@ export default function Hero() {
       <div className="relative mx-auto flex min-h-[330px] max-w-[1280px] items-center px-4 py-10 sm:min-h-[410px] sm:px-6 sm:py-14">
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · PERFORMANCE DISCOVERY</p>
-          <h1 className="font-display text-[2.15rem] font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">지금, 나에게 맞는 공연을 찾아보세요<br/><span className="text-[#f3b37f]">취향부터 일정까지, 원하는 조건으로.</span></h1>
+          <h1 className="font-display text-[2.15rem] font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">보고 싶은 공연, 바로 찾기<br/><span className="text-[#f3b37f]">말하거나 선택하면 SHOWDAY가 찾아드려요.</span></h1>
           <p className="mt-5 max-w-xl text-sm leading-6 text-white/78 sm:text-base">보고 싶은 장르와 날짜, 지역을 고르거나 원하는 상황을 그대로 입력해보세요. SHOWDAY가 현재·예정 공연을 중심으로 찾아드립니다.</p>
           <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">내 공연 찾기 <ArrowIcon className="h-4 w-4"/></a>
         </div>
