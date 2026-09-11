@@ -11,6 +11,7 @@ import AlertsPanel from "@/components/AlertsPanel";
 import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
 import ShowdayNow from "@/components/ShowdayNow";
+import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
 import MyAreaSection from "@/components/MyAreaSection";
 import SectionQuickNav from "@/components/SectionQuickNav";
 import { getProfile } from "@/lib/profile";
@@ -68,5 +69,6 @@ export default function Home(){
     {artists.length>0&&<SectionRow eyebrow="ARTISTS" title="보고 싶은 아티스트의 공연" id="artists" action={mode==="guest"?<span className="text-[11px] text-muted">로그인하면 관심 아티스트 저장</span>:undefined}>{artists.map(a=><ArtistCard key={a.id} artist={a} shows={visibleShows.filter(s=>cleanArtistName(s.artist)===a.name)} mode={mode} isFollowing={followedArtistIds.has(a.id)} onToggleFollow={handleToggleFollow}/>)}</SectionRow>}
 
     {mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}<ArenaNowBanner/>
+    <ParentsFiftyPlusSection/>
   </main><SectionQuickNav/><Footer/></>
 }
