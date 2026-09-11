@@ -3,10 +3,10 @@
 import { CalendarIcon, PinIcon, SearchIcon, SparkIcon, TicketIcon } from "@/components/Icons";
 
 const items = [
-  { href: "#show-search", label: "찾기", icon: SearchIcon },
-  { href: "#popular-now", label: "인기", icon: SparkIcon },
-  { href: "#my-area", label: "내 주변", icon: PinIcon },
-  { href: "#genre-discovery", label: "장르", icon: CalendarIcon },
+  { href: "/#show-search", label: "찾기", icon: SearchIcon },
+  { href: "/#popular-now", label: "인기", icon: SparkIcon },
+  { href: "/#my-area", label: "내 주변", icon: PinIcon },
+  { href: "/#genre-discovery", label: "장르", icon: CalendarIcon },
 ];
 
 export default function ResponsiveDock(){
