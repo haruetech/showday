@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import KakaoChannelButton from "@/components/KakaoChannelButton";
+import KakaoChannelQr from "@/components/KakaoChannelQr";
 
 type BusinessInfo = {
   business_name?: string; ceo_name?: string; business_reg_no?: string;
@@ -27,7 +28,10 @@ export default function Footer() {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <a href="/terms" className="hover:text-paper">이용약관</a>
             <a href="/privacy" className="font-semibold text-paper hover:text-gold">개인정보처리방침</a>
-            <KakaoChannelButton />
+            <div className="flex items-center gap-2">
+              <KakaoChannelButton />
+              <KakaoChannelQr />
+            </div>
           </div>
         </div>
 

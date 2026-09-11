@@ -17,7 +17,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   for (const key of ["title", "body", "image_url", "link_url", "link_label", "is_active", "start_date", "end_date"]) {
-    if (key in body) patch[key] = body[key];
+    if (key in body) {
+      // date 컬럼은 빈 문자열을 허용하지 않으므로(Postgres 에러), 비어있으면 null로 저장한다.
+      if ((key === "start_date" || key === "end_date") && !body[key]) {
+        patch[key] = null;
+      } else {
+        patch[key] = body[key];
+      }
+    }
   }
 
   const { data, error } = await admin.from("site_notices").update(patch).eq("id", id).select().single();
