@@ -88,11 +88,6 @@ export default function AdminShows() {
     load();
   };
 
-  const toggleFeatured = async (id: string, current: boolean) => {
-    await fetch(`/api/admin/shows/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is_featured: !current }) });
-    load();
-  };
-
   const updateStatus = async (id: string, status: string) => {
     await fetch(`/api/admin/shows/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     load();
@@ -139,9 +134,6 @@ export default function AdminShows() {
                   <p className="text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => toggleFeatured(s.id, Boolean(s.is_featured))} className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold ${s.is_featured ? "border-[#b3742f] bg-[#fff3e0] text-[#b3742f]" : "border-[#e7dcc9] text-[#5c4a38]"}`}>
-                    {s.is_featured ? "광고 해제" : "광고로 지정"}
-                  </button>
                   <select value={s.status} onChange={(e) => updateStatus(s.id, e.target.value)} className="rounded-lg border border-[#e7dcc9] px-2 py-1.5 text-xs font-bold">
                     {["검토중","게시중","종료"].map((st)=><option key={st}>{st}</option>)}
                   </select>
@@ -234,10 +226,6 @@ export default function AdminShows() {
                   <Field label="기획사명 *"><input value={form.agency_name} onChange={(e) => setForm({ ...form, agency_name: e.target.value })} className="admin-input" /></Field>
                   <Field label="기획사 연락처"><input value={form.agency_contact} onChange={(e) => setForm({ ...form, agency_contact: e.target.value })} placeholder="이메일 또는 전화번호" className="admin-input" /></Field>
                 </div>
-                <label className="mt-4 flex items-center gap-2 text-xs font-bold text-[#5c4a38]">
-                  <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} className="h-4 w-4" />
-                  메인 사이트 광고 팝업으로 노출 (게시중 상태일 때만 실제로 뜹니다)
-                </label>
               </div>
 
               {error && <p className="mt-4 text-xs font-semibold text-red-600">{error}</p>}
