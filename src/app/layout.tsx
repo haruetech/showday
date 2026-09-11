@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import FloatingProductPromo from "@/components/FloatingProductPromo";
 import ResponsiveDock from "@/components/ResponsiveDock";
+import KakaoSdk from "@/components/KakaoSdk";
 
 export const metadata: Metadata = {
   title: "SHOWDAY — 나에게 맞는 공연을 더 쉽게",
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-ink text-paper">
+        <KakaoSdk />
         {children}
         <FloatingProductPromo />
         <ResponsiveDock />

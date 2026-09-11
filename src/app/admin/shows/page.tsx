@@ -47,6 +47,7 @@ export default function AdminShows() {
   const [error, setError] = useState("");
   const [configError, setConfigError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
   const load = () => {
@@ -71,7 +72,39 @@ export default function AdminShows() {
     setForm((f) => ({ ...f, bookingSite: label, booking_url: site?.url || "" }));
   };
 
-  const closeModal = () => { setModalOpen(false); setForm(emptyForm); setPriceRows(emptyPriceRows); setError(""); };
+  const closeModal = () => { setModalOpen(false); setEditingId(null); setForm(emptyForm); setPriceRows(emptyPriceRows); setError(""); };
+
+  // "2026.10.01~2026.10.31" -> {startDate:"2026-10-01", endDate:"2026-10-31"} (input type=date가 요구하는 형식으로 변환)
+  const parsePeriod = (period: string) => {
+    const [start, end] = (period || "").split("~").map((s) => s.trim().replaceAll(".", "-"));
+    return { startDate: start || "", endDate: end || start || "" };
+  };
+
+  // "R석 88,000원 / S석 66,000원" -> [{tier:"R석",price:"88,000원"}, {tier:"S석",price:"66,000원"}]
+  const parsePriceLabel = (label: string): PriceRow[] => {
+    const parts = (label || "").split("/").map((s) => s.trim()).filter(Boolean);
+    if (parts.length === 0) return emptyPriceRows;
+    return parts.map((part) => {
+      const [tier, ...rest] = part.split(" ");
+      return { tier: tier || "", price: rest.join(" ") || "" };
+    });
+  };
+
+  const startEdit = (s: ManualShow) => {
+    const { startDate, endDate } = parsePeriod(s.period);
+    const site = BOOKING_SITES.find((b) => s.booking_url?.startsWith(b.url) && b.url) || BOOKING_SITES[BOOKING_SITES.length - 1];
+    setForm({
+      title: s.title, genre: s.genre, venue: s.venue, region: s.region || "",
+      startDate, endDate, show_time: s.show_time || "",
+      booking_url: s.booking_url || "", bookingSite: site.label,
+      poster_url: s.poster_url || "", age_label: s.age_label || AGE_OPTIONS[0], running_time: s.running_time || "",
+      synopsis: s.synopsis || "", cast_info: s.cast_info || "", crew: s.crew || "", producer: s.producer || "",
+      agency_name: s.agency_name, agency_contact: s.agency_contact || "", status: s.status, is_featured: Boolean(s.is_featured),
+    });
+    setPriceRows(parsePriceLabel(s.price_label));
+    setEditingId(s.id);
+    setModalOpen(true);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,12 +112,15 @@ export default function AdminShows() {
     const price_label = priceRows.filter((r) => r.tier && r.price).map((r) => `${r.tier} ${r.price}`).join(" / ");
     const period = formatPeriod(form.startDate, form.endDate);
     const payload = { ...form, price_label, period };
-    const res = await fetch("/api/admin/shows", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const res = editingId
+      ? await fetch(`/api/admin/shows/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/shows", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const data = await res.json();
     setSubmitting(false);
-    if (!res.ok) { setError(data.error || "등록에 실패했습니다."); return; }
+    if (!res.ok) { setError(data.error || (editingId ? "수정에 실패했습니다." : "등록에 실패했습니다.")); return; }
+    const wasEditing = Boolean(editingId);
     closeModal();
-    setToast(`"${data.show?.title || form.title}" 공연이 등록되었습니다.`);
+    setToast(wasEditing ? `"${form.title}" 공연이 수정되었습니다.` : `"${data.show?.title || form.title}" 공연이 등록되었습니다.`);
     load();
   };
 
@@ -134,6 +170,7 @@ export default function AdminShows() {
                   <p className="text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-2.5 py-1.5 text-xs font-bold text-[#5c4a38] hover:border-[#b3742f] hover:text-[#b3742f]">수정</button>
                   <select value={s.status} onChange={(e) => updateStatus(s.id, e.target.value)} className="rounded-lg border border-[#e7dcc9] px-2 py-1.5 text-xs font-bold">
                     {["검토중","게시중","종료"].map((st)=><option key={st}>{st}</option>)}
                   </select>
@@ -149,7 +186,7 @@ export default function AdminShows() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeModal}>
           <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-7 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-[#241a10]">새 공연 등록</h2>
+              <h2 className="text-lg font-black text-[#241a10]">{editingId ? "공연 수정" : "새 공연 등록"}</h2>
               <button onClick={closeModal} className="grid h-8 w-8 place-items-center rounded-full text-[#8a7360] hover:bg-[#f7f0e4]">✕</button>
             </div>
 
@@ -232,7 +269,7 @@ export default function AdminShows() {
               <div className="mt-6 flex gap-2">
                 <button type="button" onClick={closeModal} className="flex-1 rounded-xl border border-[#e7dcc9] py-3 text-sm font-bold text-[#5c4a38]">취소</button>
                 <button type="submit" disabled={submitting} className="flex-1 rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] py-3 text-sm font-black text-[#1c130b] disabled:opacity-40">
-                  {submitting ? "등록 중..." : "공연 등록"}
+                  {submitting ? (editingId ? "저장 중..." : "등록 중...") : (editingId ? "수정 사항 저장" : "공연 등록")}
                 </button>
               </div>
             </form>
