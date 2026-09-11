@@ -80,7 +80,7 @@ export default function Header({
           </div>
         ) : (
           <button
-            onClick={signInWithKakao}
+            onClick={() => signInWithKakao()}
             aria-label="카카오로 로그인"
             className="flex min-h-10 items-center gap-2 rounded-full bg-[#FEE500] px-3.5 py-2 text-[11px] font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:px-4 sm:text-xs"
           >
