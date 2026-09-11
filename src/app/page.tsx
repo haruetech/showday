@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import ShowdayTrends from "@/components/ShowdayTrends";
 import ShowdayNow from "@/components/ShowdayNow";
 import ParentsFiftyPlusSection from "@/components/ParentsFiftyPlusSection";
+import ShowAdPopup from "@/components/ShowAdPopup";
 import MyAreaSection from "@/components/MyAreaSection";
 import SectionQuickNav from "@/components/SectionQuickNav";
 import { getProfile } from "@/lib/profile";
@@ -53,7 +54,7 @@ export default function Home(){
   useEffect(()=>{if(mode!=="member")return;let cancelled=false;getProfile().then(p=>{if(!cancelled&&p)setRecommended(recommendShows(visibleShows,p,6))});getFollowedArtistIds().then(ids=>{if(!cancelled)setFollowedArtistIds(ids)});return()=>{cancelled=true}},[mode,visibleShows]);
   async function handleToggleFollow(artistId:string){setFollowedArtistIds(prev=>{const next=new Set(prev);next.has(artistId)?next.delete(artistId):next.add(artistId);return next});await toggleArtistFollow(artistId)}
 
-  return <><Header mode={mode} onModeChange={setMode}/><main id="shows" className="flex-1"><Hero/>
+  return <><Header mode={mode} onModeChange={setMode}/><ShowAdPopup/><main id="shows" className="flex-1"><Hero/>
     {mode==="member"&&<SectionRow id="for-you" eyebrow="FOR YOU" title="회원님을 위한 추천" action={<a href="/onboarding" className="text-xs text-muted underline underline-offset-4 hover:text-paper">추천 설정 변경</a>}>{recommended.length?recommended.map(({show,matchedReasons})=><ShowCard key={show.id} show={show} reason={reasonLabel(matchedReasons)}/>):<p className="text-sm text-muted">{showsLoading?"조건에 맞는 공연을 찾는 중입니다.":"현재 추천 조건에 맞는 공연이 없습니다. 추천 설정을 넓혀보세요."}</p>}</SectionRow>}
 
     {popularSource==="kopis" && popularDisplay.length>0 && <SectionRow eyebrow="KOPIS BOX OFFICE" title="지금 실제로 많이 선택되는 공연" id="popular-now" action={<span className="text-[11px] text-muted">최근 KOPIS 박스오피스 기준</span>}>

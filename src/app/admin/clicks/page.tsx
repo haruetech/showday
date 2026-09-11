@@ -19,9 +19,11 @@ export default function AdminClicks() {
 
   return (
     <div>
-      <p className="text-[11px] font-bold tracking-[.16em] text-[#b3742f]">TRAFFIC</p>
-      <h1 className="mt-1 text-2xl font-black">예매 클릭 통계</h1>
-      <p className="mt-1 text-sm text-[#8a7360]">"예매처에서 좌석·가격 확인" 버튼 클릭 데이터 — 예매처 제휴 협상 시 근거 자료로 활용합니다.</p>
+      <div className="rounded-2xl bg-gradient-to-br from-[#241a10] to-[#3d2a17] p-7 text-white">
+        <p className="text-[11px] font-bold tracking-[.2em] text-[#e8a353]">TRAFFIC</p>
+        <h1 className="mt-2 text-2xl font-black">예매 클릭 통계</h1>
+        <p className="mt-1 text-sm text-[#d8c3a4]">&quot;예매처에서 좌석·가격 확인&quot; 버튼 클릭 데이터 — 예매처 제휴 협상 시 근거 자료로 활용합니다.</p>
+      </div>
 
       {loading && <p className="mt-8 text-sm text-[#8a7360]">불러오는 중입니다...</p>}
 
@@ -34,13 +36,16 @@ export default function AdminClicks() {
 
       {!loading && data && !data.error && (
         <>
-          <div className="mt-7 rounded-xl border border-[#e7dcc9] bg-white p-6">
-            <p className="text-xs font-semibold text-[#8a7360]">누적 클릭 수 (최근 500건 기준)</p>
-            <p className="mt-2 text-3xl font-black">{data.total.toLocaleString()}</p>
+          <div className="mt-7 overflow-hidden rounded-2xl border border-[#e7dcc9] bg-white shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#e08a6d] to-[#b8543a]" />
+            <div className="p-6">
+              <p className="text-xs font-semibold text-[#8a7360]">누적 클릭 수 (최근 500건 기준)</p>
+              <p className="mt-2 text-3xl font-black text-[#241a10]">{data.total.toLocaleString()}</p>
+            </div>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="rounded-xl border border-[#e7dcc9] bg-white p-6">
+            <div className="rounded-2xl border border-[#e7dcc9] bg-white p-6 shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
               <h2 className="text-sm font-black">예매처별 클릭 비중</h2>
               {Object.keys(data.byPlatform).length === 0 ? (
                 <p className="mt-4 text-xs text-[#8a7360]">아직 데이터가 없습니다.</p>
@@ -49,8 +54,8 @@ export default function AdminClicks() {
                   {Object.entries(data.byPlatform).sort((a, b) => b[1] - a[1]).map(([platform, count]) => (
                     <div key={platform}>
                       <div className="flex justify-between text-xs font-bold"><span>{platform}</span><span>{count}</span></div>
-                      <div className="mt-1 h-2 w-full rounded-full bg-[#f0e6d6]">
-                        <div className="h-2 rounded-full bg-[#c98a4b]" style={{ width: `${(count / data.total) * 100}%` }} />
+                      <div className="mt-1.5 h-2 w-full rounded-full bg-[#f0e6d6]">
+                        <div className="h-2 rounded-full bg-gradient-to-r from-[#b3742f] to-[#e8a353]" style={{ width: `${(count / data.total) * 100}%` }} />
                       </div>
                     </div>
                   ))}
@@ -58,7 +63,7 @@ export default function AdminClicks() {
               )}
             </div>
 
-            <div className="rounded-xl border border-[#e7dcc9] bg-white p-6">
+            <div className="rounded-2xl border border-[#e7dcc9] bg-white p-6 shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
               <h2 className="text-sm font-black">클릭 많은 공연 TOP 10</h2>
               {data.topShows.length === 0 ? (
                 <p className="mt-4 text-xs text-[#8a7360]">아직 데이터가 없습니다.</p>
@@ -75,7 +80,7 @@ export default function AdminClicks() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-xl border border-[#e7dcc9] bg-white p-6">
+          <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-6 shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
             <h2 className="text-sm font-black">최근 클릭 로그</h2>
             {data.recent.length === 0 ? <p className="mt-4 text-xs text-[#8a7360]">아직 데이터가 없습니다.</p> : (
               <table className="mt-4 w-full text-left text-xs">

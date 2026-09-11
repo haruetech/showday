@@ -1,11 +1,11 @@
 "use client";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { TrendIcon, TicketIcon, CalendarIcon } from "@/components/Icons";
 
 const items = [
-  { href: "/admin", label: "운영 현황판" },
-  { href: "/admin/shows", label: "공연 등록·관리" },
-  { href: "/admin/clicks", label: "예매 클릭 통계" },
+  { href: "/admin", label: "운영 현황판", desc: "전체 지표 요약", icon: TrendIcon },
+  { href: "/admin/shows", label: "공연 등록·관리", desc: "기획사 제출 검토", icon: CalendarIcon },
+  { href: "/admin/clicks", label: "예매 클릭 통계", desc: "제휴 협상 근거자료", icon: TicketIcon },
 ];
 
 export default function AdminNav() {
@@ -19,23 +19,31 @@ export default function AdminNav() {
   };
 
   return (
-    <nav className="w-[200px] shrink-0">
-      <p className="mb-1 text-[11px] font-bold tracking-[.16em] text-[#b3742f]">SHOWDAY</p>
-      <p className="mb-6 text-lg font-black">관리자</p>
-      <div className="space-y-1">
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`block rounded-lg px-3 py-2.5 text-sm font-bold ${
-              pathname === item.href ? "bg-[#2a1d12] text-white" : "text-[#5c4a38] hover:bg-[#f0e6d6]"
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
+    <nav className="w-[240px] shrink-0">
+      <div className="rounded-2xl border border-[#e7dcc9] bg-white p-3 shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`mb-1 flex items-start gap-3 rounded-xl px-3.5 py-3 transition last:mb-0 ${
+                active ? "bg-[#241a10] text-white shadow-sm" : "text-[#5c4a38] hover:bg-[#f7f0e4]"
+              }`}
+            >
+              <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full ${active ? "bg-white/15 text-[#f0c88a]" : "bg-[#f7f0e4] text-[#b3742f]"}`}>
+                <Icon className="h-4 w-4" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold">{item.label}</span>
+                <span className={`block text-[11px] ${active ? "text-[#d8c3a4]" : "text-[#a1876a]"}`}>{item.desc}</span>
+              </span>
+            </a>
+          );
+        })}
       </div>
-      <button onClick={logout} className="mt-8 text-xs font-semibold text-[#a1876a] underline underline-offset-4">
+      <button onClick={logout} className="mt-4 w-full rounded-xl border border-[#e7dcc9] bg-white px-3.5 py-2.5 text-left text-xs font-bold text-[#a1876a] hover:text-[#241a10]">
         로그아웃
       </button>
     </nav>

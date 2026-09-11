@@ -20,22 +20,31 @@ export default function AdminLoginForm(){
     }
   };
 
-  return <div className="flex min-h-screen items-center justify-center bg-[#faf5ec] px-6">
-    <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-[#e7dcc9] bg-white p-8 shadow-sm">
-      <p className="text-[11px] font-bold tracking-[.16em] text-[#b3742f]">SHOWDAY ADMIN</p>
-      <h1 className="mt-2 text-xl font-black text-[#2a1d12]">관리자 로그인</h1>
-      <input
-        type="password"
-        value={password}
-        onChange={(e)=>setPassword(e.target.value)}
-        placeholder="관리자 비밀번호"
-        autoFocus
-        className="mt-6 w-full rounded-lg border border-[#e7dcc9] px-4 py-3 text-sm outline-none focus:border-[#b3742f]"
-      />
-      {error&&<p className="mt-2 text-xs font-semibold text-red-600">{error}</p>}
-      <button type="submit" disabled={loading||!password} className="mt-4 w-full rounded-lg bg-[#2a1d12] py-3 text-sm font-bold text-white disabled:opacity-40">
-        {loading?"확인 중...":"로그인"}
-      </button>
-    </form>
-  </div>;
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#1c130b] to-[#3d2a17] px-6">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/[0.04] p-9 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-[#e8a353] to-[#b3742f] text-lg font-black text-[#1c130b]">S</div>
+          <div>
+            <p className="text-base font-black text-white">SHOWDAY</p>
+            <p className="text-[10px] font-semibold tracking-[.2em] text-[#c9a877]">ADMIN CONSOLE</p>
+          </div>
+        </div>
+        <h1 className="mt-7 text-lg font-black text-white">관리자 로그인</h1>
+        <p className="mt-1 text-xs text-[#c9a877]">SHOWDAY 운영진 전용 페이지입니다.</p>
+        <input
+          type="password"
+          value={password}
+          onChange={(e)=>setPassword(e.target.value)}
+          placeholder="관리자 비밀번호"
+          autoFocus
+          className="mt-6 w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-sm text-white placeholder:text-[#8a7360] outline-none focus:border-[#e8a353]"
+        />
+        {error&&<p className="mt-2 text-xs font-semibold text-[#f0a0a0]">{error}</p>}
+        <button type="submit" disabled={loading||!password} className="mt-5 w-full rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] py-3.5 text-sm font-black text-[#1c130b] transition disabled:opacity-40">
+          {loading?"확인 중...":"로그인"}
+        </button>
+      </form>
+    </div>
+  );
 }

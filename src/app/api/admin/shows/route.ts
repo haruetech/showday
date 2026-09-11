@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     crew: body.crew || "",
     producer: body.producer || "",
     running_time: body.running_time || "",
+    is_featured: Boolean(body.is_featured),
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
