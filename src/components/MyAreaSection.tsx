@@ -142,12 +142,16 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
       {configured&&!loading&&visible.length===0&&<div className="my-area-empty">선택한 조건에 맞는 현재·예정 공연이나 행사가 없습니다. 반경이나 지역을 넓혀보세요.</div>}
 
       {fullPage&&visible.length>0&&<div className="my-area-result-summary"><strong>{visible.length}</strong>개의 {genre==="all"?"서울 공연·행사":`${genre} 공연`}를 보고 있습니다.</div>}
-      {visible.length>0&&<div ref={fullPage?undefined:scrollRef} className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=><article key={event.id} className="my-area-card">
-        <a href={event.officialUrl||event.bookingUrl||"#"} target="_blank" rel="noopener noreferrer" className="my-area-card-link">
+      {visible.length>0&&<div ref={fullPage?undefined:scrollRef} className={fullPage?"my-area-grid":"my-area-scroll no-scrollbar"}>{visible.map(event=>{
+        const link=event.officialUrl||event.bookingUrl||"";
+        const Wrapper=link?"a":"div";
+        const wrapperProps=link?{href:link,target:"_blank",rel:"noopener noreferrer"}:{};
+        return <article key={event.id} className="my-area-card">
+        <Wrapper {...wrapperProps} className="my-area-card-link">
           <div className="my-area-image">{event.imageUrl?<img src={event.imageUrl} alt="" loading="lazy"/>:<div className="my-area-image-fallback"><TicketIcon className="h-6 w-6"/></div>}<span>{event.category}</span>{event.isFree&&<b>FREE</b>}</div>
-          <div className="my-area-copy"><div className="my-area-meta"><span><PinIcon className="h-3 w-3"/>{event.district}</span>{event.distanceKm!=null&&<span>{event.distanceKm<1?`${Math.round(event.distanceKm*1000)}m`:`${event.distanceKm.toFixed(1)}km`}</span>}</div><h3>{event.title}</h3><p><CalendarIcon className="h-3.5 w-3.5"/>{event.dateText}{event.showTime?` · ${event.showTime}`:""}</p><p className="my-area-venue">{event.venue}</p><div className="my-area-price"><span>{event.priceText}</span><span>정보 보기</span></div></div>
-        </a>
-      </article>)}</div>}
+          <div className="my-area-copy"><div className="my-area-meta"><span><PinIcon className="h-3 w-3"/>{event.district}</span>{event.distanceKm!=null&&<span>{event.distanceKm<1?`${Math.round(event.distanceKm*1000)}m`:`${event.distanceKm.toFixed(1)}km`}</span>}</div><h3>{event.title}</h3><p><CalendarIcon className="h-3.5 w-3.5"/>{event.dateText}{event.showTime?` · ${event.showTime}`:""}</p><p className="my-area-venue">{event.venue}</p><div className="my-area-price"><span>{event.priceText}</span>{link?<span>정보 보기 ↗</span>:<span className="my-area-no-link">상세 정보 없음</span>}</div></div>
+        </Wrapper>
+      </article>})}</div>}
       {!fullPage&&visible.length>0&&<div className="my-area-mobile-more"><button type="button" onClick={()=>scrollMore(1)}>다음 공연 보기 <span aria-hidden="true">›</span></button></div>}
       <p className="my-area-source">문화행사 정보 제공: 서울특별시 · 종료된 행사는 자동 제외됩니다.</p>
     </div>

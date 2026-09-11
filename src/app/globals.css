@@ -483,6 +483,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .my-area-price { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:13px; padding-top:10px; border-top:1px solid rgba(60,36,27,.07); font-size:10px; font-weight:800; }
 .my-area-price span:first-child { overflow:hidden; color:var(--paper); white-space:nowrap; text-overflow:ellipsis; }
 .my-area-price span:last-child { flex:0 0 auto; color:var(--gold-dim); }
+.my-area-price .my-area-no-link { color:var(--muted); font-weight:700; }
 
 @media (max-width: 767px) {
   .my-area-section { padding-top:42px; padding-bottom:44px; }
