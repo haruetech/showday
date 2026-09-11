@@ -47,7 +47,8 @@ export default function Home(){
     fetch("/api/kopis?type=today",{cache:"no-store"}).then(r=>r.json()),
     fetch("/api/kopis?type=upcoming",{cache:"no-store"}).then(r=>r.json()),
     fetch("/api/kopis?type=popular&rows=16",{cache:"no-store"}).then(r=>r.json()),
-  ]).then(([todayData,upcomingData,popularData])=>{if(cancelled)return;if(Array.isArray(todayData?.shows))setLiveToday(todayData.shows);if(Array.isArray(upcomingData?.shows))setLiveUpcoming(upcomingData.shows);if(Array.isArray(popularData?.shows))setLivePopular(popularData.shows);setPopularSource(popularData?.source==="kopis-boxoffice"?"kopis":"none")}).catch(()=>{if(!cancelled)setPopularSource("none")}).finally(()=>{if(!cancelled)setShowsLoading(false)});return()=>{cancelled=true}},[]);
+    fetch("/api/manual-shows",{cache:"no-store"}).then(r=>r.json()).catch(()=>({shows:[]})),
+  ]).then(([todayData,upcomingData,popularData,manualData])=>{if(cancelled)return;const manualShows:Show[]=Array.isArray(manualData?.shows)?manualData.shows:[];if(Array.isArray(todayData?.shows))setLiveToday(todayData.shows);if(Array.isArray(upcomingData?.shows))setLiveUpcoming([...upcomingData.shows,...manualShows]);if(Array.isArray(popularData?.shows))setLivePopular(popularData.shows);setPopularSource(popularData?.source==="kopis-boxoffice"?"kopis":"none")}).catch(()=>{if(!cancelled)setPopularSource("none")}).finally(()=>{if(!cancelled)setShowsLoading(false)});return()=>{cancelled=true}},[]);
 
   useEffect(()=>{if(mode!=="member")return;let cancelled=false;getProfile().then(p=>{if(!cancelled&&p)setRecommended(recommendShows(visibleShows,p,6))});getFollowedArtistIds().then(ids=>{if(!cancelled)setFollowedArtistIds(ids)});return()=>{cancelled=true}},[mode,visibleShows]);
   async function handleToggleFollow(artistId:string){setFollowedArtistIds(prev=>{const next=new Set(prev);next.has(artistId)?next.delete(artistId):next.add(artistId);return next});await toggleArtistFollow(artistId)}
