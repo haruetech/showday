@@ -35,9 +35,9 @@ export default function AdminPopup() {
   return (
     <div>
       <div className="rounded-2xl bg-gradient-to-br from-[#241a10] to-[#3d2a17] p-7 text-white">
-        <p className="text-[11px] font-bold tracking-[.2em] text-[#e8a353]">MAIN SITE POPUP</p>
-        <h1 className="mt-2 text-2xl font-black">팝업 관리</h1>
-        <p className="mt-1 text-sm text-[#d8c3a4]">SHOWDAY 메인 화면에 하루 1회 뜨는 공연 광고 팝업을 관리합니다.</p>
+        <p className="text-[11px] font-bold tracking-[.2em] text-[#e8a353]">SHOW POPUP</p>
+        <h1 className="mt-2 text-2xl font-black">공연 팝업</h1>
+        <p className="mt-1 text-sm text-[#d8c3a4]">SHOWDAY 메인 화면에 하루 1회 뜨는 공연 광고 팝업을 관리합니다. &quot;홍보·공지 팝업&quot;이 켜져 있으면 그게 먼저 노출됩니다.</p>
       </div>
 
       {configError && (

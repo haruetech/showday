@@ -17,7 +17,9 @@ export async function POST(request: NextRequest) {
   if (file.size > MAX_SIZE) return NextResponse.json({ error: "이미지 용량은 5MB 이하여야 합니다." }, { status: 400 });
 
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `manual-shows/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const folderRaw = String(form?.get("folder") || "manual-shows");
+  const folder = /^[a-z0-9-]+$/i.test(folderRaw) ? folderRaw : "manual-shows";
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await admin.storage.from("posters").upload(path, buffer, {
