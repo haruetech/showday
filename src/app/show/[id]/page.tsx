@@ -29,7 +29,11 @@ export default function ShowDetail(){
   const shareShow=async()=>{
     try{
       const shareData={title:d?.title||"SHOWDAY 공연정보",text:d?`${d.title} · ${d.period} · ${d.venue}`:"SHOWDAY 공연정보",url:window.location.href};
-      if(typeof navigator!=="undefined"&&typeof navigator.share==="function"){
+      // PC(마우스 입력 위주)에서는 OS 공유창이 뜰 앱이 마땅히 없어 빈 채로 떴다가
+      // 바로 닫혀버리는 경우가 많다. 터치 입력이 주된 기기(폰·태블릿)에서만
+      // navigator.share를 쓰고, PC에서는 바로 링크 복사로 보낸다.
+      const isTouchPrimary = typeof window!=="undefined" && typeof window.matchMedia==="function" && window.matchMedia("(pointer: coarse)").matches;
+      if(isTouchPrimary&&typeof navigator!=="undefined"&&typeof navigator.share==="function"){
         try{
           await navigator.share(shareData);
           return;
