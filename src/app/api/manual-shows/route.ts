@@ -5,6 +5,8 @@ import type { Show } from "@/types/show";
 // 관리자 화면에서 '게시중'으로 승인한 공연만 공개 노출한다.
 // service_role 키로 조회하지만(관리자 전용 테이블이라 RLS에 공개 정책이 없음),
 // 여기서는 노출에 필요한 필드만 선택해서 내려주고 기획사 연락처(agency_contact)는 절대 포함하지 않는다.
+const PUBLIC_FIELDS = "id, title, genre, venue, region, period, price_label, booking_url, poster_url, show_time, age_label, synopsis, cast_info, crew, producer, running_time";
+
 export async function GET(request: NextRequest) {
   const admin = createAdminClient();
   if (!admin) return NextResponse.json({ shows: [] });
@@ -15,7 +17,7 @@ export async function GET(request: NextRequest) {
   if (id) {
     const { data, error } = await admin
       .from("manual_shows")
-      .select("id, title, genre, venue, region, period, price_label, booking_url, poster_url")
+      .select(PUBLIC_FIELDS)
       .eq("id", id)
       .eq("status", "게시중")
       .maybeSingle();
@@ -28,16 +30,16 @@ export async function GET(request: NextRequest) {
         genre: data.genre || "기타",
         venue: data.venue,
         period: data.period,
-        timeGuide: "정확한 회차·시간은 예매처에서 확인해주세요.",
-        cast: "",
-        crew: "",
-        producer: "",
-        synopsis: "공연 소개 정보가 등록되면 SHOWDAY에서 바로 확인할 수 있습니다.",
+        timeGuide: data.show_time || "정확한 회차·시간은 예매처에서 확인해주세요.",
+        cast: data.cast_info || "",
+        crew: data.crew || "",
+        producer: data.producer || "",
+        synopsis: data.synopsis || "공연 소개 정보가 등록되면 SHOWDAY에서 바로 확인할 수 있습니다.",
         posterUrl: data.poster_url || undefined,
         priceLabel: data.price_label || "가격 확인 필요",
         priceGuide: data.price_label || "",
-        ageLabel: "전체관람가",
-        runningTime: "상세페이지 확인",
+        ageLabel: data.age_label || "전체관람가",
+        runningTime: data.running_time || "상세페이지 확인",
         status: "공연예정",
         bookingUrl: data.booking_url || undefined,
       },
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await admin
     .from("manual_shows")
-    .select("id, title, genre, venue, region, period, price_label, booking_url, poster_url, agency_name")
+    .select(PUBLIC_FIELDS)
     .eq("status", "게시중")
     .order("created_at", { ascending: false });
 
@@ -67,8 +69,8 @@ export async function GET(request: NextRequest) {
       dateLabel: row.period,
       priceLabel: row.price_label || "가격 확인 필요",
       priceValue: Number.isFinite(priceNum) ? priceNum : 0,
-      ageLabel: "전체관람가",
-      runningTime: "상세페이지 확인",
+      ageLabel: row.age_label || "전체관람가",
+      runningTime: row.running_time || "상세페이지 확인",
       tags: [],
       posterFrom: "#b86a3f",
       posterTo: "#71331d",

@@ -10,7 +10,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const key of ["title","genre","venue","region","period","price_label","booking_url","poster_url","agency_name","agency_contact","status"]) {
+  for (const key of ["title","genre","venue","region","period","price_label","booking_url","poster_url","agency_name","agency_contact","status","show_time","age_label","synopsis","cast_info","crew","producer","running_time"]) {
     if (key in body) patch[key] = body[key];
   }
 

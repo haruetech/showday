@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
     agency_name: body.agency_name,
     agency_contact: body.agency_contact || "",
     status: body.status || "검토중",
+    show_time: body.show_time || "",
+    age_label: body.age_label || "",
+    synopsis: body.synopsis || "",
+    cast_info: body.cast_info || "",
+    crew: body.crew || "",
+    producer: body.producer || "",
+    running_time: body.running_time || "",
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
