@@ -55,22 +55,22 @@ export default function ShowAdPopup() {
 
   if (notice) {
     return (
-      <div className="fixed left-4 top-20 z-[70] w-[260px] overflow-hidden rounded-2xl border border-[#e7dcc9] bg-white shadow-xl sm:left-6 sm:top-24">
+      <div className="fixed left-3 top-16 z-[70] w-[168px] overflow-hidden rounded-xl border border-[#e7dcc9] bg-white shadow-xl sm:left-6 sm:top-24 sm:w-[260px] sm:rounded-2xl">
         <div className="relative">
-          <button onClick={close} aria-label="닫기" className="absolute right-2 top-2 z-10 grid h-6 w-6 place-items-center rounded-full bg-black/45 text-xs text-white backdrop-blur-sm">✕</button>
+          <button onClick={close} aria-label="닫기" className="absolute right-1.5 top-1.5 z-10 grid h-5 w-5 place-items-center rounded-full bg-black/45 text-[10px] text-white backdrop-blur-sm sm:right-2 sm:top-2 sm:h-6 sm:w-6 sm:text-xs">✕</button>
           {notice.image_url && <img src={notice.image_url} alt="" className="w-full h-auto object-contain bg-[#f7f0e4]" />}
         </div>
-        <div className="p-3.5">
+        <div className="p-2 sm:p-3.5">
           <p className="text-[9px] font-bold tracking-[.1em] text-[#b3742f]">SHOWDAY 소식</p>
-          <p className="mt-0.5 text-sm font-black text-[#241a10]">{notice.title}</p>
+          <p className="mt-0.5 text-xs font-black text-[#241a10] sm:text-sm">{notice.title}</p>
           {notice.body && <p className="mt-1 text-[11px] leading-5 text-[#5c4a38]">{notice.body}</p>}
           {notice.link_url && (
-            <a href={notice.link_url} target="_blank" rel="noopener noreferrer" className="mt-2.5 block rounded-lg bg-[#241a10] py-2 text-center text-xs font-black text-white">
+            <a href={notice.link_url} target="_blank" rel="noopener noreferrer" className="mt-2 block rounded-lg bg-[#241a10] py-1.5 text-center text-[11px] font-black text-white sm:mt-2.5 sm:py-2 sm:text-xs">
               {notice.link_label || "자세히 보기"}
             </a>
           )}
         </div>
-        <label className="flex items-center justify-center gap-1.5 border-t border-[#f0e6d6] py-2 text-[10px] font-semibold text-[#8a7360]">
+        <label className="flex items-center justify-center gap-1.5 border-t border-[#f0e6d6] py-1.5 text-[9px] font-semibold text-[#8a7360] sm:py-2 sm:text-[10px]">
           <input type="checkbox" checked={dontShowToday} onChange={(e) => setDontShowToday(e.target.checked)} className="h-3 w-3" />
           오늘 하루 보지 않기
         </label>
@@ -79,9 +79,9 @@ export default function ShowAdPopup() {
   }
 
   return (
-    <div className="fixed left-4 top-20 z-[70] w-[260px] overflow-hidden rounded-2xl border border-[#e7dcc9] bg-white shadow-xl sm:left-6 sm:top-24">
+    <div className="fixed left-3 top-16 z-[70] w-[168px] overflow-hidden rounded-xl border border-[#e7dcc9] bg-white shadow-xl sm:left-6 sm:top-24 sm:w-[260px] sm:rounded-2xl">
       <div className="relative">
-        <button onClick={close} aria-label="닫기" className="absolute right-2 top-2 z-10 grid h-6 w-6 place-items-center rounded-full bg-black/45 text-xs text-white backdrop-blur-sm">✕</button>
+        <button onClick={close} aria-label="닫기" className="absolute right-1.5 top-1.5 z-10 grid h-5 w-5 place-items-center rounded-full bg-black/45 text-[10px] text-white backdrop-blur-sm sm:right-2 sm:top-2 sm:h-6 sm:w-6 sm:text-xs">✕</button>
         <a href={`/show/${encodeURIComponent(show!.id)}`} className="block">
           {show!.posterUrl ? (
             <img src={show!.posterUrl} alt={`${show!.title} 포스터`} className="w-full h-auto object-contain bg-[#f7f0e4]" />
@@ -92,16 +92,16 @@ export default function ShowAdPopup() {
           )}
         </a>
       </div>
-      <div className="p-3.5">
+      <div className="p-2 sm:p-3.5">
         <p className="text-[9px] font-bold tracking-[.1em] text-[#b3742f]">{show!.genre} · SHOWDAY PICK</p>
-        <a href={`/show/${encodeURIComponent(show!.id)}`} className="mt-0.5 block truncate text-sm font-black text-[#241a10] hover:text-[#b3742f]">{show!.title}</a>
+        <a href={`/show/${encodeURIComponent(show!.id)}`} className="mt-0.5 block truncate text-xs font-black text-[#241a10] hover:text-[#b3742f] sm:text-sm">{show!.title}</a>
         <p className="mt-1 truncate text-[11px] text-[#5c4a38]">{show!.venue}</p>
         {show!.priceLabel && <p className="mt-0.5 truncate text-[11px] font-bold text-[#241a10]">{show!.priceLabel}</p>}
-        <a href={`/show/${encodeURIComponent(show!.id)}`} className="mt-2.5 block rounded-lg bg-[#241a10] py-2 text-center text-xs font-black text-white">
+        <a href={`/show/${encodeURIComponent(show!.id)}`} className="mt-2 block rounded-lg bg-[#241a10] py-1.5 text-center text-[11px] font-black text-white sm:mt-2.5 sm:py-2 sm:text-xs">
           공연 정보 보기
         </a>
       </div>
-      <label className="flex items-center justify-center gap-1.5 border-t border-[#f0e6d6] py-2 text-[10px] font-semibold text-[#8a7360]">
+      <label className="flex items-center justify-center gap-1.5 border-t border-[#f0e6d6] py-1.5 text-[9px] font-semibold text-[#8a7360] sm:py-2 sm:text-[10px]">
         <input type="checkbox" checked={dontShowToday} onChange={(e) => setDontShowToday(e.target.checked)} className="h-3 w-3" />
         오늘 하루 보지 않기
       </label>
