@@ -58,7 +58,7 @@ export default function ShowAdPopup() {
       <div className="fixed left-4 top-20 z-[70] w-[260px] overflow-hidden rounded-2xl border border-[#e7dcc9] bg-white shadow-xl sm:left-6 sm:top-24">
         <div className="relative">
           <button onClick={close} aria-label="닫기" className="absolute right-2 top-2 z-10 grid h-6 w-6 place-items-center rounded-full bg-black/45 text-xs text-white backdrop-blur-sm">✕</button>
-          {notice.image_url && <img src={notice.image_url} alt="" className="aspect-[16/10] w-full object-cover" />}
+          {notice.image_url && <img src={notice.image_url} alt="" className="w-full h-auto object-contain bg-[#f7f0e4]" />}
         </div>
         <div className="p-3.5">
           <p className="text-[9px] font-bold tracking-[.1em] text-[#b3742f]">SHOWDAY 소식</p>
@@ -84,7 +84,7 @@ export default function ShowAdPopup() {
         <button onClick={close} aria-label="닫기" className="absolute right-2 top-2 z-10 grid h-6 w-6 place-items-center rounded-full bg-black/45 text-xs text-white backdrop-blur-sm">✕</button>
         <a href={`/show/${encodeURIComponent(show!.id)}`} className="block">
           {show!.posterUrl ? (
-            <img src={show!.posterUrl} alt={`${show!.title} 포스터`} className="aspect-[16/10] w-full object-cover" />
+            <img src={show!.posterUrl} alt={`${show!.title} 포스터`} className="w-full h-auto object-contain bg-[#f7f0e4]" />
           ) : (
             <div className="flex aspect-[16/10] w-full items-end bg-[linear-gradient(145deg,#c8875e,#7a351d)] p-3">
               <p className="text-sm font-black leading-snug text-white">{show!.title}</p>
