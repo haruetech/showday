@@ -16,11 +16,11 @@ export default function Footer() {
         <div className="border-t border-line pt-4 leading-6">
           {/* TODO: 아래 [ ] 안 내용을 실제 사업자 정보로 채워주세요. 이 파일(src/components/Footer.tsx)에서 직접 수정하시면 됩니다. */}
           <p>
-            상호명 [ 하루애 ] ·   대표 [ 배준호 ] ·   사업자등록번호 [ 612-16-96538 ]
-            <br className="sm:hidden" />   통신판매업신고 [ 제2026-서울도봉-0131 ] ·   주소 [ 도봉구 도봉산3길 36 ]
+            상호명 [ 예: ㈜미니멈 ] · 대표 [ 대표자명 ] · 사업자등록번호 [ 000-00-00000 ]
+            <br className="sm:hidden" /> 통신판매업신고 [ 제0000-서울OO-00000호 ] · 주소 [ 사업장 주소 ]
           </p>
           <p className="mt-1">
-            고객센터 [ arenanow7@gmail.com ] · 사업자등록번호는{" "}
+            고객센터 [ 이메일 또는 전화번호 ] · 사업자등록번호는{" "}
             <a href="https://www.ftc.go.kr/bizCommPop.do" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-paper">
               공정거래위원회 사업자정보확인
             </a>
