@@ -7,6 +7,7 @@ export default function AdminChannel() {
   const [saved, setSaved] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/settings").then((r) => r.json()).then((d) => {
@@ -16,10 +17,12 @@ export default function AdminChannel() {
   }, []);
 
   const save = async () => {
-    setSaving(true);
+    setSaving(true); setError("");
     const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kakao_channel_id: channelId.trim() }) });
+    const data = await res.json().catch(() => ({}));
     setSaving(false);
-    if (res.ok) setSaved(channelId.trim());
+    if (res.ok) { setSaved(channelId.trim()); return; }
+    setError(data.error || `저장에 실패했습니다. (상태 코드 ${res.status})`);
   };
 
   return (
@@ -57,6 +60,7 @@ export default function AdminChannel() {
           )}
 
           {saved && <p className="mt-3 text-xs font-semibold text-[#4f7d63]">현재 저장된 채널 ID: {saved}</p>}
+          {error && <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>}
 
           <p className="mt-5 text-xs text-[#8a7360]">
             그 외 카카오 JavaScript 키(NEXT_PUBLIC_KAKAO_JS_KEY)는 앱 자체를 식별하는 값이라 Vercel 환경변수에서

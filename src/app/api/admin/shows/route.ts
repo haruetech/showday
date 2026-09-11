@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     producer: body.producer || "",
     running_time: body.running_time || "",
     is_featured: Boolean(body.is_featured),
+    poster_rights_confirmed: Boolean(body.poster_rights_confirmed),
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

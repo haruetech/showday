@@ -15,6 +15,7 @@ export default function AdminBusiness() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/settings").then((r) => r.json()).then((d) => setValues(d)).finally(() => setLoading(false));
@@ -23,11 +24,13 @@ export default function AdminBusiness() {
   const update = (key: string, v: string) => { setValues((prev) => ({ ...prev, [key]: v })); setSaved(false); };
 
   const save = async () => {
-    setSaving(true);
+    setSaving(true); setError(""); setSaved(false);
     const payload = Object.fromEntries(FIELDS.map((f) => [f.key, values[f.key] || ""]));
     const res = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const data = await res.json().catch(() => ({}));
     setSaving(false);
-    if (res.ok) setSaved(true);
+    if (res.ok) { setSaved(true); return; }
+    setError(data.error || `저장에 실패했습니다. (상태 코드 ${res.status})`);
   };
 
   return (
@@ -62,6 +65,7 @@ export default function AdminBusiness() {
             {saving ? "저장 중..." : "저장"}
           </button>
           {saved && <span className="text-xs font-bold text-[#4f7d63]">저장되었습니다. 하단 화면에 바로 반영됩니다.</span>}
+          {error && <span className="text-xs font-bold text-red-600">{error}</span>}
         </div>
       </div>
 

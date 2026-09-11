@@ -7,6 +7,7 @@ type ManualShow = {
   agency_contact: string; status: string; created_at: string;
   show_time?: string; age_label?: string; synopsis?: string; cast_info?: string; crew?: string; producer?: string; running_time?: string;
   is_featured?: boolean;
+  poster_rights_confirmed?: boolean;
 };
 
 const BOOKING_SITES = [
@@ -29,7 +30,7 @@ const emptyForm = {
   booking_url: "", bookingSite: BOOKING_SITES[0].label,
   poster_url: "", age_label: AGE_OPTIONS[0], running_time: "",
   synopsis: "", cast_info: "", crew: "", producer: "",
-  agency_name: "", agency_contact: "", status: "검토중", is_featured: false,
+  agency_name: "", agency_contact: "", status: "검토중", is_featured: false, poster_rights_confirmed: false,
 };
 
 function formatPeriod(start: string, end: string) {
@@ -49,6 +50,9 @@ export default function AdminShows() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [showUrlFallback, setShowUrlFallback] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -72,7 +76,7 @@ export default function AdminShows() {
     setForm((f) => ({ ...f, bookingSite: label, booking_url: site?.url || "" }));
   };
 
-  const closeModal = () => { setModalOpen(false); setEditingId(null); setForm(emptyForm); setPriceRows(emptyPriceRows); setError(""); };
+  const closeModal = () => { setModalOpen(false); setEditingId(null); setForm(emptyForm); setPriceRows(emptyPriceRows); setError(""); setUploadError(""); setShowUrlFallback(false); };
 
   // "2026.10.01~2026.10.31" -> {startDate:"2026-10-01", endDate:"2026-10-31"} (input type=date가 요구하는 형식으로 변환)
   const parsePeriod = (period: string) => {
@@ -90,6 +94,17 @@ export default function AdminShows() {
     });
   };
 
+  const uploadPoster = async (file: File) => {
+    setUploading(true); setUploadError("");
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+    const data = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) { setUploadError(data.error || "업로드에 실패했습니다."); return; }
+    setForm((f) => ({ ...f, poster_url: data.url }));
+  };
+
   const startEdit = (s: ManualShow) => {
     const { startDate, endDate } = parsePeriod(s.period);
     const site = BOOKING_SITES.find((b) => s.booking_url?.startsWith(b.url) && b.url) || BOOKING_SITES[BOOKING_SITES.length - 1];
@@ -100,14 +115,20 @@ export default function AdminShows() {
       poster_url: s.poster_url || "", age_label: s.age_label || AGE_OPTIONS[0], running_time: s.running_time || "",
       synopsis: s.synopsis || "", cast_info: s.cast_info || "", crew: s.crew || "", producer: s.producer || "",
       agency_name: s.agency_name, agency_contact: s.agency_contact || "", status: s.status, is_featured: Boolean(s.is_featured),
+      poster_rights_confirmed: Boolean(s.poster_rights_confirmed),
     });
     setPriceRows(parsePriceLabel(s.price_label));
     setEditingId(s.id);
+    setUploadError("");
     setModalOpen(true);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.poster_url && !form.poster_rights_confirmed) {
+      setError("포스터 이미지를 등록하려면 저작권 확인 체크박스에 동의해주세요.");
+      return;
+    }
     setSubmitting(true); setError("");
     const price_label = priceRows.filter((r) => r.tier && r.price).map((r) => `${r.tier} ${r.price}`).join(" / ");
     const period = formatPeriod(form.startDate, form.endDate);
@@ -146,7 +167,7 @@ export default function AdminShows() {
             <p className="mt-1 text-sm text-[#d8c3a4]">기획사가 직접 제출한 공연을 검토하고 게시 상태를 관리합니다.</p>
           </div>
           <button onClick={() => setModalOpen(true)} className="shrink-0 rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] px-5 py-3 text-sm font-black text-[#1c130b]">
-            + 새 공연 등록
+            + 공연 등록 요청
           </button>
         </div>
       </div>
@@ -160,7 +181,7 @@ export default function AdminShows() {
       <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-6 shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
         <h2 className="text-sm font-black">등록된 공연 목록 ({shows.length})</h2>
         {loading ? <p className="mt-4 text-xs text-[#8a7360]">불러오는 중입니다...</p> : shows.length === 0 ? (
-          <p className="mt-4 text-xs text-[#8a7360]">아직 등록된 공연이 없습니다. 오른쪽 위 &quot;+ 새 공연 등록&quot; 버튼으로 시작해보세요.</p>
+          <p className="mt-4 text-xs text-[#8a7360]">아직 등록된 공연이 없습니다. 오른쪽 위 &quot;+ 공연 등록 요청&quot; 버튼으로 시작해보세요.</p>
         ) : (
           <div className="mt-4 divide-y divide-[#f0e6d6]">
             {shows.map((s) => (
@@ -186,7 +207,7 @@ export default function AdminShows() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeModal}>
           <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-7 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-[#241a10]">{editingId ? "공연 수정" : "새 공연 등록"}</h2>
+              <h2 className="text-lg font-black text-[#241a10]">{editingId ? "공연 수정" : "공연 등록 요청"}</h2>
               <button onClick={closeModal} className="grid h-8 w-8 place-items-center rounded-full text-[#8a7360] hover:bg-[#f7f0e4]">✕</button>
             </div>
 
@@ -237,11 +258,51 @@ export default function AdminShows() {
                     </div>
                   </Field>
                   <Field label="예매 링크 (정확한 공연 페이지 주소로 수정)"><input value={form.booking_url} onChange={(e) => setForm({ ...form, booking_url: e.target.value })} placeholder="https://..." className="admin-input" /></Field>
-                  <Field label="포스터 이미지 URL"><input value={form.poster_url} onChange={(e) => setForm({ ...form, poster_url: e.target.value })} placeholder="https://... (기획사가 갖고 있는 포스터 이미지 주소)" className="admin-input" /></Field>
                   <Field label="관람연령"><select value={form.age_label} onChange={(e) => setForm({ ...form, age_label: e.target.value })} className="admin-input">
                     {AGE_OPTIONS.map((a)=><option key={a}>{a}</option>)}
                   </select></Field>
                   <Field label="러닝타임"><input value={form.running_time} onChange={(e) => setForm({ ...form, running_time: e.target.value })} placeholder="예: 150분(인터미션 20분 포함)" className="admin-input" /></Field>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-[#5c4a38]">포스터 이미지</p>
+                  <div className="mt-1.5 flex items-start gap-4">
+                    {form.poster_url ? (
+                      <img src={form.poster_url} alt="포스터 미리보기" className="h-32 w-24 shrink-0 rounded-lg border border-[#e7dcc9] object-cover" />
+                    ) : (
+                      <div className="grid h-32 w-24 shrink-0 place-items-center rounded-lg border border-dashed border-[#e7dcc9] text-center text-[10px] text-[#a1876a]">
+                        미리보기
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <label className="inline-block cursor-pointer rounded-lg border border-[#e7dcc9] px-3.5 py-2 text-xs font-bold text-[#5c4a38] hover:border-[#b3742f] hover:text-[#b3742f]">
+                        {uploading ? "업로드 중..." : form.poster_url ? "이미지 교체" : "이미지 선택"}
+                        <input
+                          type="file" accept="image/*" className="hidden" disabled={uploading}
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPoster(f); e.target.value = ""; }}
+                        />
+                      </label>
+                      {form.poster_url && (
+                        <button type="button" onClick={() => setForm({ ...form, poster_url: "" })} className="ml-2 text-xs font-semibold text-red-500">
+                          제거
+                        </button>
+                      )}
+                      {uploadError && <p className="mt-1.5 text-xs font-semibold text-red-600">{uploadError}</p>}
+                      <p className="mt-1.5 text-[11px] text-[#8a7360]">JPG·PNG·WEBP·GIF, 5MB 이하. 선택하면 자동으로 업로드되어 주소가 채워집니다.</p>
+                      <button type="button" onClick={() => setShowUrlFallback((v) => !v)} className="mt-1.5 text-[11px] font-semibold text-[#a1876a] underline underline-offset-2">
+                        {showUrlFallback ? "URL 직접 입력 닫기" : "관리자용 · URL 직접 입력"}
+                      </button>
+                      {showUrlFallback && (
+                        <input value={form.poster_url} onChange={(e) => setForm({ ...form, poster_url: e.target.value })} placeholder="https://..." className="admin-input mt-2" />
+                      )}
+                      {form.poster_url && (
+                        <label className="mt-3 flex items-start gap-2 text-[11px] font-semibold text-[#5c4a38]">
+                          <input type="checkbox" checked={form.poster_rights_confirmed} onChange={(e) => setForm({ ...form, poster_rights_confirmed: e.target.checked })} className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          본인은 해당 포스터 이미지를 등록·사용할 권한이 있음을 확인합니다.
+                        </label>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -269,7 +330,7 @@ export default function AdminShows() {
               <div className="mt-6 flex gap-2">
                 <button type="button" onClick={closeModal} className="flex-1 rounded-xl border border-[#e7dcc9] py-3 text-sm font-bold text-[#5c4a38]">취소</button>
                 <button type="submit" disabled={submitting} className="flex-1 rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] py-3 text-sm font-black text-[#1c130b] disabled:opacity-40">
-                  {submitting ? (editingId ? "저장 중..." : "등록 중...") : (editingId ? "수정 사항 저장" : "공연 등록")}
+                  {submitting ? (editingId ? "저장 중..." : "등록 중...") : (editingId ? "수정 사항 저장" : "등록 요청 접수")}
                 </button>
               </div>
             </form>
