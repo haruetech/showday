@@ -19,11 +19,32 @@ export default function ShowDetail(){
   const {id}=useParams<{id:string}>();const [isMember,setIsMember]=useState(false);const [mode,setMode]=useState<"guest"|"member">("guest");const [d,setD]=useState<Detail|null|undefined>(undefined);const [ended,setEnded]=useState(false);const [similar,setSimilar]=useState<Show[]>([]);const [saved,setSaved]=useState(false);const [alerted,setAlerted]=useState(false);const [shareMsg,setShareMsg]=useState("");
   useEffect(()=>{const supabase=createClient();supabase?.auth.getSession().then(({data})=>setIsMember(Boolean(data.session)));const {data:listener}=supabase?.auth.onAuthStateChange((_event,session)=>setIsMember(Boolean(session)))||{data:{subscription:null}};return()=>listener.subscription?.unsubscribe()},[]);
   useEffect(()=>{setSaved(loadSet(favKey).has(id));setAlerted(loadSet(alertKey).has(id));fetch(`/api/kopis?type=detail&id=${encodeURIComponent(id)}`,{cache:"no-store"}).then(r=>r.json()).then(x=>{setEnded(Boolean(x.ended));setD(x.detail||null)}).catch(()=>setD(null))},[id]);
+  // 다른 공연 카드를 눌러 이동해도(같은 페이지 컴포넌트를 재사용하는 특성상) 스크롤 위치가
+  // 그대로 유지되던 문제 — id가 바뀔 때마다 항상 맨 위로 스크롤을 강제한다.
+  useEffect(()=>{window.scrollTo(0,0)},[id]);
   useEffect(()=>{if(!d)return;fetch('/api/kopis?type=upcoming&rows=40',{cache:'no-store'}).then(r=>r.json()).then(x=>{const list=(x.shows||[]) as Show[];setSimilar(list.filter(s=>s.id!==id&&(s.genre===d.genre||s.venue===d.venue)).slice(0,8))}).catch(()=>setSimilar([]))},[d,id]);
   const requireLogin=()=>{if(isAuthConfigured)signInWithKakao();else alert("관심 공연 저장과 일정 알림은 로그인 후 이용할 수 있습니다.")};
   const toggle=(key:string,current:boolean,setter:(v:boolean)=>void)=>{if(!isMember){requireLogin();return}const set=loadSet(key);current?set.delete(id):set.add(id);saveSet(key,set);setter(!current)};
   const copyShareLink=async()=>{let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(window.location.href);copied=true}}catch{}if(!copied){try{const el=document.createElement("textarea");el.value=window.location.href;el.setAttribute("readonly","");el.style.position="fixed";el.style.left="-9999px";document.body.appendChild(el);el.select();copied=document.execCommand("copy");document.body.removeChild(el)}catch{copied=false}}setShareMsg(copied?"공연 링크를 복사했습니다.":"주소창의 공연 링크를 복사해 공유해 주세요.");setTimeout(()=>setShareMsg(""),3000)};
-  const shareShow=async()=>{const shareData={title:d?.title||"SHOWDAY 공연정보",text:d?`${d.title} · ${d.period} · ${d.venue}`:"SHOWDAY 공연정보",url:window.location.href};if(typeof navigator!=="undefined"&&"share" in navigator){try{await navigator.share(shareData);return}catch(err){if(err instanceof DOMException&&err.name==="AbortError")return}}await copyShareLink()};
+  const shareShow=async()=>{
+    try{
+      const shareData={title:d?.title||"SHOWDAY 공연정보",text:d?`${d.title} · ${d.period} · ${d.venue}`:"SHOWDAY 공연정보",url:window.location.href};
+      if(typeof navigator!=="undefined"&&typeof navigator.share==="function"){
+        try{
+          await navigator.share(shareData);
+          return;
+        }catch(err){
+          // 사용자가 공유 시트에서 직접 취소한 경우는 실패로 취급하지 않고 조용히 종료한다.
+          if(err instanceof DOMException&&err.name==="AbortError")return;
+        }
+      }
+      await copyShareLink();
+    }catch{
+      // 공유·복사가 모두 막힌 환경(예: 일부 인앱 브라우저)에서도 사용자에게 안내는 반드시 보여준다.
+      setShareMsg("주소창의 공연 링크를 복사해 공유해 주세요.");
+      setTimeout(()=>setShareMsg(""),3000);
+    }
+  };
 
   return <><Header mode={mode} onModeChange={setMode}/><main className="min-h-screen bg-ink text-paper"><div className="mx-auto max-w-[1180px] px-6 py-8"><a href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-paper"><ArrowIcon className="h-3.5 w-3.5 rotate-180"/>목록으로</a>
     {d===undefined?<div className="mt-10 border-y border-line py-10 text-sm text-muted">공연 상세정보를 불러오는 중입니다.</div>:!d?<div className="mt-10 border-y border-line py-10"><h1 className="text-2xl font-black">{ended?"종료된 공연입니다.":"공연 상세정보를 찾지 못했습니다."}</h1><p className="mt-3 text-sm text-muted">{ended?"SHOWDAY는 현재 진행 중이거나 앞으로 예정된 공연만 소개합니다.":"공연정보가 갱신 중이거나 상세정보가 아직 등록되지 않았을 수 있습니다."}</p><a href="/" className="mt-6 inline-flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-xs font-bold text-paper">현재·예정 공연 보기 <ArrowIcon className="h-3.5 w-3.5"/></a></div>:<>

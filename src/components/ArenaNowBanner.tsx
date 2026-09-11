@@ -12,7 +12,7 @@ export default function ArenaNowBanner() {
             공연 가는 하루를 더 편리하게 만드는 SHOWDAY의 현장 서비스를 순차적으로 선보일 예정입니다.
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-gold/40 px-5 py-2.5 text-center text-xs font-bold text-gold">서비스 준비 중</span>
+        <a href="https://arena.showday.kr" target="_blank" rel="noopener noreferrer" className="shrink-0 rounded-full border border-gold/40 px-5 py-2.5 text-center text-xs font-bold text-gold transition hover:bg-gold/10">미리보기 →</a>
       </div>
     </section>
   );
