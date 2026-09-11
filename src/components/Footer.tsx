@@ -16,8 +16,8 @@ export default function Footer() {
         <div className="border-t border-line pt-4 leading-6">
           {/* TODO: 아래 [ ] 안 내용을 실제 사업자 정보로 채워주세요. 이 파일(src/components/Footer.tsx)에서 직접 수정하시면 됩니다. */}
           <p>
-            상호명 [ 하루애 ] · 대표 [ 배준호 ] · 사업자등록번호 [ 612-16-96538 ]
-            <br className="sm:hidden" /> 통신판매업신고 [ 제2026-서울도봉-0131 ] · 주소 [ 도봉구 도봉산3길 36 ]
+            상호명 [ 하루애 ] ·   대표 [ 배준호 ] ·   사업자등록번호 [ 612-16-96538 ]
+            <br className="sm:hidden" />   통신판매업신고 [ 제2026-서울도봉-0131 ] ·   주소 [ 도봉구 도봉산3길 36 ]
           </p>
           <p className="mt-1">
             고객센터 [ arenanow7@gmail.com ] · 사업자등록번호는{" "}
