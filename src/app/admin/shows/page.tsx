@@ -33,6 +33,8 @@ type ManualShow = {
   submission_source?: string;
   status: string;
   created_at: string;
+  start_date?: string;
+  end_date?: string;
   show_time?: string;
   age_label?: string;
   synopsis?: string;
