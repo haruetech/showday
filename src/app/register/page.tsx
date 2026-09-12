@@ -12,6 +12,9 @@ type FormState = {
   region: string;
   startDate: string;
   endDate: string;
+  start_time: string;
+  end_time: string;
+  schedule_note: string;
   show_time: string;
   price_label: string;
   booking_url: string;
@@ -30,7 +33,8 @@ type FormState = {
 };
 
 const initialForm: FormState = {
-  title: "", genre: "콘서트", venue: "", region: "", startDate: "", endDate: "", show_time: "",
+  title: "", genre: "콘서트", venue: "", region: "", startDate: "", endDate: "",
+  start_time: "", end_time: "", schedule_note: "", show_time: "",
   price_label: "", booking_url: "", poster_url: "", age_label: "전체관람가", running_time: "",
   synopsis: "", cast_info: "", producer: "", agency_name: "", agency_contact: "", agency_email: "",
   poster_rights_confirmed: false, privacy_consent: false, website: "",
