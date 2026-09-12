@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import KakaoChannelButton from "@/components/KakaoChannelButton";
-import KakaoChannelQr from "@/components/KakaoChannelQr";
+import KakaoChannelButton from "@/components/kakao/KakaoChannelButton";
+import KakaoChannelQr from "@/components/kakao/KakaoChannelQr";
 
 type BusinessInfo = {
   business_name?: string; ceo_name?: string; business_reg_no?: string;

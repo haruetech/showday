@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
     poster_url: body.poster_url || "",
     agency_name: body.agency_name,
     agency_contact: body.agency_contact || "",
+    agency_email: body.agency_email || "",
+    submission_source: body.submission_source || "admin",
     status: body.status || "검토중",
     show_time: body.show_time || "",
     age_label: body.age_label || "",

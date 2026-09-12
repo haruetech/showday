@@ -1,6 +1,6 @@
 "use client";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { ArrowIcon } from "@/components/Icons";
+import { ArrowIcon } from "@/components/common/Icons";
 
 export default function SectionRow({eyebrow,title,action,children,id}:{eyebrow?:string;title:string;action?:ReactNode;children:ReactNode;id?:string}){
   const trackRef=useRef<HTMLDivElement>(null);const [left,setLeft]=useState(false);const [right,setRight]=useState(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon, PinIcon, SearchIcon, SparkIcon, TicketIcon } from "@/components/Icons";
+import { CalendarIcon, PinIcon, SearchIcon, SparkIcon, TicketIcon } from "@/components/common/Icons";
 
 const items = [
   { href: "/#show-search", label: "찾기", icon: SearchIcon },

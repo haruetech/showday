@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowIcon } from "@/components/Icons";
+import { ArrowIcon } from "@/components/common/Icons";
 import { Show } from "@/types/show";
 
 export default function ShowCard({ show, reason }: { show: Show; reason?: string }) {

@@ -1,5 +1,5 @@
 "use client";
-import { ArrowIcon, HeartIcon } from "@/components/Icons";
+import { ArrowIcon, HeartIcon } from "@/components/common/Icons";
 import { Artist, Show } from "@/types/show";
 import { signInWithKakao, isAuthConfigured } from "@/lib/auth";
 

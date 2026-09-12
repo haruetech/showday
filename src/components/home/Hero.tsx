@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/Icons";
+import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
 
 type Timing = "오늘" | "이번 주말" | "이번 달" | "날짜 선택";

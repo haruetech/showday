@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { TrendIcon, TicketIcon, CalendarIcon, SparkIcon, BellIcon, PinIcon } from "@/components/Icons";
+import { TrendIcon, TicketIcon, CalendarIcon, SparkIcon, BellIcon, PinIcon } from "@/components/common/Icons";
 
 const items = [
   { href: "/admin", label: "운영 현황판", desc: "전체 지표 요약", icon: TrendIcon },

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import MyAreaSection from "@/components/MyAreaSection";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import MyAreaSection from "@/components/home/MyAreaSection";
 
 type ViewMode = "guest" | "member";
 

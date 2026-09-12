@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 type ManualShow = {
   id: string; title: string; genre: string; venue: string; region: string; period: string;
   price_label: string; booking_url: string; poster_url: string; agency_name: string;
-  agency_contact: string; status: string; created_at: string;
+  agency_contact: string; agency_email?: string; submission_source?: string; status: string; created_at: string;
   show_time?: string; age_label?: string; synopsis?: string; cast_info?: string; crew?: string; producer?: string; running_time?: string;
   is_featured?: boolean;
   poster_rights_confirmed?: boolean;
@@ -187,8 +187,8 @@ export default function AdminShows() {
             {shows.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-[#241a10]">{s.title}{s.is_featured&&<span className="ml-2 rounded-full bg-[#fff3e0] px-2 py-0.5 text-[10px] font-black text-[#b3742f]">광고 노출중</span>}</p>
-                  <p className="text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
+                  <p className="text-sm font-bold text-[#241a10]">{s.title}{s.is_featured&&<span className="ml-2 rounded-full bg-[#fff3e0] px-2 py-0.5 text-[10px] font-black text-[#b3742f]">광고 노출중</span>}{s.submission_source === "public-register" && <span className="ml-2 rounded-full bg-[#eef7ff] px-2 py-0.5 text-[10px] font-black text-[#2563a6]">업체 직접등록</span>}</p>
+                  <p className="text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>{s.submission_source === "public-register" && <p className="mt-1 text-[11px] text-[#8a7360]">담당자: {s.agency_contact || "-"}{s.agency_email ? ` · ${s.agency_email}` : ""}</p>}
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-2.5 py-1.5 text-xs font-bold text-[#5c4a38] hover:border-[#b3742f] hover:text-[#b3742f]">수정</button>

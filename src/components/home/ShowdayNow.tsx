@@ -1,6 +1,6 @@
 "use client";
 import { useEffect,useMemo,useState } from "react";
-import { ArrowIcon, TicketIcon } from "@/components/Icons";
+import { ArrowIcon, TicketIcon } from "@/components/common/Icons";
 
 type News={id:string;title:string;link:string;publishedAt:string;source:string};
 export default function ShowdayNow(){

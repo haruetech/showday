@@ -1,8 +1,8 @@
 "use client";
 import { useEffect,useMemo,useRef,useState } from "react";
 import type { ComponentType } from "react";
-import ShowCard from "@/components/ShowCard";
-import { ArrowIcon, CalendarIcon, PinIcon } from "@/components/Icons";
+import ShowCard from "@/components/show/ShowCard";
+import { ArrowIcon, CalendarIcon, PinIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
 
 export default function ShowdayTrends({ shows, loading }: { shows: Show[]; loading?: boolean }){

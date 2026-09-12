@@ -1,4 +1,4 @@
-import { ArrowIcon, BrainIcon, PlayIcon, WalkIcon, WellnessIcon } from "@/components/Icons";
+import { ArrowIcon, BrainIcon, PlayIcon, WalkIcon, WellnessIcon } from "@/components/common/Icons";
 
 const services = [
   { icon:WellnessIcon, title:"힐링 · 마음 휴식", desc:"5~15분 음악·호흡·명상처럼 바로 이용할 수 있는 짧은 휴식 콘텐츠", badge:"WELLNESS" },

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import KakaoChannelButton from "@/components/KakaoChannelButton";
-import KakaoChannelQr from "@/components/KakaoChannelQr";
+import KakaoChannelButton from "@/components/kakao/KakaoChannelButton";
+import KakaoChannelQr from "@/components/kakao/KakaoChannelQr";
 
 export default function AdminChannel() {
   const [channelId, setChannelId] = useState("");

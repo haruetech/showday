@@ -2,13 +2,13 @@
 
 import { useEffect,useMemo,useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowIcon, BellIcon, HeartIcon, TicketIcon } from "@/components/Icons";
+import { ArrowIcon, BellIcon, HeartIcon, TicketIcon } from "@/components/common/Icons";
 import { createClient } from "@/lib/supabase/client";
 import { signInWithKakao, isAuthConfigured } from "@/lib/auth";
 import { toBookingLink } from "@/lib/affiliateLinks";
-import ShowCard from "@/components/ShowCard";
-import SectionRow from "@/components/SectionRow";
-import Header from "@/components/Header";
+import ShowCard from "@/components/show/ShowCard";
+import SectionRow from "@/components/show/SectionRow";
+import Header from "@/components/layout/Header";
 import type { Show } from "@/types/show";
 
 type Detail={id:string;title:string;genre:string;venue:string;period:string;timeGuide:string;cast:string;crew:string;producer:string;synopsis:string;posterUrl?:string;priceLabel:string;priceGuide:string;ageLabel:string;runningTime:string;status:string;bookingUrl?:string};

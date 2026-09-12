@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { TrendIcon, TicketIcon, CalendarIcon, SparkIcon } from "@/components/Icons";
+import { TrendIcon, TicketIcon, CalendarIcon, SparkIcon } from "@/components/common/Icons";
 
 type Overview = {
   memberCount: number;

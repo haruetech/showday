@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarIcon, PinIcon, SparkIcon, TicketIcon } from "@/components/Icons";
+import { CalendarIcon, PinIcon, SparkIcon, TicketIcon } from "@/components/common/Icons";
 
 type LocalEvent = {
   id: string;

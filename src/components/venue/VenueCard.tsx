@@ -1,5 +1,5 @@
 "use client";
-import { ArrowIcon, PinIcon } from "@/components/Icons";
+import { ArrowIcon, PinIcon } from "@/components/common/Icons";
 import { Show, Venue } from "@/types/show";
 
 export default function VenueCard({venue,shows=[]}:{venue:Venue;shows?:Show[]}){
