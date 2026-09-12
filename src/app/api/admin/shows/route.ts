@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       agency_contact: body.agency_contact || "",
       agency_email: body.agency_email || "",
       submission_source: body.submission_source || "admin",
-      status: body.status || "검토중",
+      status: body.status || "게시중",
       show_time: formatShowTime(schedules) || body.show_time || "",
       age_label: body.age_label || "",
       synopsis: body.synopsis || "",

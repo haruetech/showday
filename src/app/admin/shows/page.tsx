@@ -78,7 +78,7 @@ const emptyForm = {
   producer: "",
   agency_name: "",
   agency_contact: "",
-  status: "검토중",
+  status: "게시중",
   is_featured: false,
   poster_rights_confirmed: false,
 };
@@ -109,6 +109,13 @@ export default function AdminShows() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showUrlFallback, setShowUrlFallback] = useState(false);
+
+  const pendingExternal = shows.filter(
+    (s) => s.submission_source === "public-register" && (s.status === "검토중" || s.status === "반려")
+  );
+  const managedShows = shows.filter(
+    (s) => !(s.submission_source === "public-register" && (s.status === "검토중" || s.status === "반려"))
+  );
 
   const load = () => {
     setLoading(true);
@@ -176,6 +183,17 @@ export default function AdminShows() {
     setForm((f) => ({ ...f, poster_url: data.url }));
   };
 
+  const openDirectCreate = () => {
+    setEditingId(null);
+    setForm({ ...emptyForm, status: "게시중" });
+    setSchedules([emptySchedule()]);
+    setTicketPrices([emptyTicketPrice()]);
+    setError("");
+    setUploadError("");
+    setShowUrlFallback(false);
+    setModalOpen(true);
+  };
+
   const startEdit = (s: ManualShow) => {
     const { startDate, endDate } = parsePeriod(s.period);
     const site = BOOKING_SITES.find((b) => s.booking_url?.startsWith(b.url) && b.url) || BOOKING_SITES[BOOKING_SITES.length - 1];
@@ -241,6 +259,8 @@ export default function AdminShows() {
     const payload = {
       ...form,
       period,
+      submission_source: editingId ? undefined : "admin",
+      status: editingId ? form.status : "게시중",
       schedules: validSchedules,
       ticket_prices: validPrices.map((p) => ({
         seat_grade: p.seat_grade,
@@ -297,59 +317,109 @@ export default function AdminShows() {
       <div className="rounded-2xl bg-gradient-to-br from-[#241a10] to-[#3d2a17] p-7 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold tracking-[.2em] text-[#e8a353]">AGENCY SUBMISSIONS</p>
-            <h1 className="mt-2 text-2xl font-black">공연 등록·관리</h1>
-            <p className="mt-1 text-sm text-[#d8c3a4]">기획사가 직접 제출한 공연을 검토하고 회차·좌석가격·게시 상태를 관리합니다.</p>
+            <p className="text-[11px] font-bold tracking-[.2em] text-[#e8a353]">SHOW MANAGEMENT</p>
+            <h1 className="mt-2 text-2xl font-black">공연 승인·등록</h1>
+            <p className="mt-1 text-sm text-[#d8c3a4]">외부 기획사 등록 요청은 검수·승인하고, SHOWDAY 본사 공연은 바로 등록·게시합니다.</p>
           </div>
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={openDirectCreate}
             className="shrink-0 rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] px-5 py-3 text-sm font-black text-[#1c130b]"
           >
-            + 공연 등록 요청
+            + 본사 공연 직접 등록
           </button>
         </div>
       </div>
 
       {configError && (
         <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          Supabase 설정 또는 공연 회차/좌석가격 테이블을 확인해주세요.
+          Supabase 서버 설정 또는 공연 회차·좌석가격 테이블을 확인해주세요.
         </div>
       )}
 
       <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-6">
-        <h2 className="text-sm font-black">등록된 공연 목록 ({shows.length})</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-black tracking-[.16em] text-[#b3742f]">EXTERNAL REQUESTS</p>
+            <h2 className="mt-1 text-base font-black text-[#241a10]">외부 공연 등록 요청 ({pendingExternal.length})</h2>
+            <p className="mt-1 text-xs text-[#8a7360]">기획사·주최사가 /register에서 제출한 공연입니다. 확인 후 승인·게시 또는 반려하세요.</p>
+          </div>
+          <a href="/register" target="_blank" rel="noreferrer" className="rounded-lg border border-[#e7dcc9] px-3 py-2 text-xs font-bold text-[#5c4a38] hover:border-[#b3742f]">
+            외부 등록페이지 보기 ↗
+          </a>
+        </div>
 
         {loading ? (
-          <p className="mt-4 text-xs text-[#8a7360]">불러오는 중입니다...</p>
-        ) : shows.length === 0 ? (
-          <p className="mt-4 text-xs text-[#8a7360]">아직 등록된 공연이 없습니다.</p>
+          <p className="mt-5 text-xs text-[#8a7360]">불러오는 중입니다...</p>
+        ) : pendingExternal.length === 0 ? (
+          <div className="mt-5 rounded-xl bg-[#faf7f1] px-4 py-5 text-xs text-[#8a7360]">현재 검토할 외부 공연 등록 요청이 없습니다.</div>
         ) : (
-          <div className="mt-4 divide-y divide-[#f0e6d6]">
-            {shows.map((s) => (
-              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+          <div className="mt-5 divide-y divide-[#f0e6d6]">
+            {pendingExternal.map((s) => (
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#241a10]">
+                  <p className="text-sm font-black text-[#241a10]">
                     {s.title}
-                    {s.is_featured && <span className="ml-2 rounded-full bg-[#fff3e0] px-2 py-0.5 text-[10px] font-black text-[#b3742f]">광고 노출중</span>}
-                    {s.submission_source === "public-register" && <span className="ml-2 rounded-full bg-[#eef7ff] px-2 py-0.5 text-[10px] font-black text-[#2563a6]">업체 직접등록</span>}
+                    <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-black ${s.status === "반려" ? "bg-red-50 text-red-600" : "bg-[#eef7ff] text-[#2563a6]"}`}>
+                      {s.status === "반려" ? "반려" : "검토대기"}
+                    </span>
                   </p>
                   <p className="mt-1 text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
-
                   {!!s.show_schedules?.length && (
                     <p className="mt-1 text-[11px] leading-5 text-[#8a7360]">
                       회차: {s.show_schedules.map((r) => `${r.performance_date} ${String(r.start_time).slice(0, 5)}`).join(" · ")}
                     </p>
                   )}
-
                   {!!s.show_ticket_prices?.length && (
                     <p className="text-[11px] leading-5 text-[#8a7360]">
                       가격: {s.show_ticket_prices.map((r) => `${r.seat_grade} ${Number(r.price).toLocaleString("ko-KR")}원`).join(" · ")}
                     </p>
                   )}
+                  <p className="mt-1 text-[11px] text-[#8a7360]">담당자: {s.agency_contact || "-"}{s.agency_email ? ` · ${s.agency_email}` : ""}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-3 py-2 text-xs font-bold text-[#5c4a38]">내용 확인·수정</button>
+                  <button onClick={() => updateStatus(s.id, "게시중")} className="rounded-lg bg-[#241a10] px-3 py-2 text-xs font-black text-white">승인·게시</button>
+                  <button onClick={() => updateStatus(s.id, "반려")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600">반려</button>
+                  <button onClick={() => remove(s.id)} className="px-2 py-2 text-xs font-semibold text-red-500">삭제</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-                  {s.submission_source === "public-register" && (
-                    <p className="mt-1 text-[11px] text-[#8a7360]">
-                      담당자: {s.agency_contact || "-"}{s.agency_email ? ` · ${s.agency_email}` : ""}
+      <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-6">
+        <div>
+          <p className="text-[11px] font-black tracking-[.16em] text-[#b3742f]">PUBLISHED & MANAGED</p>
+          <h2 className="mt-1 text-base font-black text-[#241a10]">등록·게시 공연 ({managedShows.length})</h2>
+          <p className="mt-1 text-xs text-[#8a7360]">본사 직접등록 공연과 승인 완료된 외부 공연을 관리합니다.</p>
+        </div>
+
+        {loading ? (
+          <p className="mt-5 text-xs text-[#8a7360]">불러오는 중입니다...</p>
+        ) : managedShows.length === 0 ? (
+          <div className="mt-5 rounded-xl bg-[#faf7f1] px-4 py-5 text-xs text-[#8a7360]">현재 등록·게시된 공연이 없습니다.</div>
+        ) : (
+          <div className="mt-5 divide-y divide-[#f0e6d6]">
+            {managedShows.map((s) => (
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-[#241a10]">
+                    {s.title}
+                    {s.is_featured && <span className="ml-2 rounded-full bg-[#fff3e0] px-2 py-0.5 text-[10px] font-black text-[#b3742f]">광고 노출중</span>}
+                    <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-black ${s.submission_source === "public-register" ? "bg-[#eef7ff] text-[#2563a6]" : "bg-[#f3f0eb] text-[#6f5b46]"}`}>
+                      {s.submission_source === "public-register" ? "외부 승인" : "본사 등록"}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
+                  {!!s.show_schedules?.length && (
+                    <p className="mt-1 text-[11px] leading-5 text-[#8a7360]">
+                      회차: {s.show_schedules.map((r) => `${r.performance_date} ${String(r.start_time).slice(0, 5)}`).join(" · ")}
+                    </p>
+                  )}
+                  {!!s.show_ticket_prices?.length && (
+                    <p className="text-[11px] leading-5 text-[#8a7360]">
+                      가격: {s.show_ticket_prices.map((r) => `${r.seat_grade} ${Number(r.price).toLocaleString("ko-KR")}원`).join(" · ")}
                     </p>
                   )}
                 </div>
@@ -357,7 +427,7 @@ export default function AdminShows() {
                 <div className="flex items-center gap-2">
                   <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-2.5 py-1.5 text-xs font-bold text-[#5c4a38]">수정</button>
                   <select value={s.status} onChange={(e) => updateStatus(s.id, e.target.value)} className="rounded-lg border border-[#e7dcc9] px-2 py-1.5 text-xs font-bold">
-                    {["검토중", "게시중", "종료"].map((st) => <option key={st}>{st}</option>)}
+                    {["게시중", "종료", "검토중", "반려"].map((st) => <option key={st}>{st}</option>)}
                   </select>
                   <button onClick={() => remove(s.id)} className="text-xs font-semibold text-red-500">삭제</button>
                 </div>
@@ -371,7 +441,7 @@ export default function AdminShows() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeModal}>
           <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-7 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-[#241a10]">{editingId ? "공연 수정" : "공연 등록 요청"}</h2>
+              <h2 className="text-lg font-black text-[#241a10]">{editingId ? "공연 수정" : "본사 공연 직접 등록"}</h2>
               <button onClick={closeModal} className="grid h-8 w-8 place-items-center rounded-full text-[#8a7360]">✕</button>
             </div>
 
@@ -493,7 +563,7 @@ export default function AdminShows() {
               <div className="mt-6 flex gap-2">
                 <button type="button" onClick={closeModal} className="flex-1 rounded-xl border border-[#e7dcc9] py-3 text-sm font-bold text-[#5c4a38]">취소</button>
                 <button type="submit" disabled={submitting} className="flex-1 rounded-xl bg-gradient-to-r from-[#e8a353] to-[#b3742f] py-3 text-sm font-black text-[#1c130b] disabled:opacity-40">
-                  {submitting ? (editingId ? "저장 중..." : "등록 중...") : (editingId ? "수정 사항 저장" : "등록 요청 접수")}
+                  {submitting ? (editingId ? "저장 중..." : "등록·게시 중...") : (editingId ? "수정 사항 저장" : "등록 후 바로 게시")}
                 </button>
               </div>
             </form>

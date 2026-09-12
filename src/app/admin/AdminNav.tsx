@@ -4,7 +4,7 @@ import { TrendIcon, TicketIcon, CalendarIcon, SparkIcon, BellIcon, PinIcon } fro
 
 const items = [
   { href: "/admin", label: "운영 현황판", desc: "전체 지표 요약", icon: TrendIcon },
-  { href: "/admin/shows", label: "공연 등록·관리", desc: "기획사 제출 검토", icon: CalendarIcon },
+  { href: "/admin/shows", label: "공연 승인·등록", desc: "외부 검수·본사 직접등록", icon: CalendarIcon },
   { href: "/admin/popup", label: "공연 팝업", desc: "등록 공연 광고 팝업", icon: SparkIcon },
   { href: "/admin/notices", label: "홍보·공지 팝업", desc: "자유 형식 공지·이벤트", icon: BellIcon },
   { href: "/admin/channel", label: "채널 설정", desc: "카카오톡 채널 연결", icon: BellIcon },
