@@ -91,6 +91,7 @@ export default function Hero(){
   const [loading,setLoading]=useState(false);
   const [searched,setSearched]=useState(false);
   const [locationMsg,setLocationMsg]=useState("");
+  const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
   const [listening,setListening]=useState(false);
   const [voiceMsg,setVoiceMsg]=useState("");
 
@@ -99,6 +100,33 @@ export default function Hero(){
   function chooseCompanion(v:Companion){
     setCompanion(v);
     if(v!=="아이와") setChildAge(null);
+  }
+
+  async function requestCurrentLocation(){
+    if(!navigator.geolocation){
+      setLocationMsg("이 브라우저에서는 현재 위치를 사용할 수 없습니다.");
+      return null;
+    }
+    if(userLocation) return userLocation;
+    try{
+      setLocationMsg("현재 위치를 확인하고 있습니다. 위치 권한 요청 창이 뜨면 '허용'을 눌러주세요.");
+      const pos=await new Promise<GeolocationPosition>((resolve,reject)=>
+        navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:8000,maximumAge:300000,enableHighAccuracy:false})
+      );
+      const next={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      setUserLocation(next);
+      setLocationMsg("현재 위치를 확인했습니다. 검색하면 가까운 공연부터 보여드립니다.");
+      return next;
+    }catch{
+      setLocationMsg("위치 권한을 허용하면 내 주변 공연을 가까운 순으로 찾을 수 있습니다.");
+      return null;
+    }
+  }
+
+  function chooseRegion(v:Region){
+    setRegion(v);
+    if(v==="내 주변") void requestCurrentLocation();
+    else setLocationMsg("");
   }
 
   function applyVoiceCommand(text:string){
@@ -111,12 +139,12 @@ export default function Hero(){
     else if(/친구|부부|배우자|남편|아내/.test(t)) chooseCompanion("친구·부부");
     else if(/혼자|나홀로/.test(t)) chooseCompanion("혼자");
 
-    if(/내 주변|근처|가까운 곳|주변/.test(t)) setRegion("내 주변");
-    else if(/서울/.test(t)) setRegion("서울");
-    else if(/경기|경기도/.test(t)) setRegion("경기");
-    else if(/인천/.test(t)) setRegion("인천");
-    else if(/부산/.test(t)) setRegion("부산");
-    else if(/전국/.test(t)) setRegion("전국");
+    if(/내 주변|근처|가까운 곳|주변/.test(t)) chooseRegion("내 주변");
+    else if(/서울/.test(t)) chooseRegion("서울");
+    else if(/경기|경기도/.test(t)) chooseRegion("경기");
+    else if(/인천/.test(t)) chooseRegion("인천");
+    else if(/부산/.test(t)) chooseRegion("부산");
+    else if(/전국/.test(t)) chooseRegion("전국");
 
     if(/오늘/.test(t)) setTiming("오늘");
     else if(/이번\s*주말|주말/.test(t)) setTiming("이번 주말");
@@ -204,11 +232,14 @@ export default function Hero(){
         // 그 결과 브라우저 위치 권한 창이 아예 뜨지 않았다. "내 주변"을 선택해 검색한
         // 이상 위치는 항상 확인해야 하므로, 결과 유무와 무관하게 위치부터 요청한다.
         try{
-          setLocationMsg("현재 위치를 확인하고 있습니다. 위치 권한 요청 창이 뜨면 '허용'을 눌러주세요.");
-          const pos=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:7000,maximumAge:300000}));
+          const current=await requestCurrentLocation();
+          if(!current){
+            setResults([]);
+            return;
+          }
           if(list.length){
             const candidates=list.slice(0,24);
-            const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:{lat:pos.coords.latitude,lng:pos.coords.longitude},venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
+            const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:current,venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
             if(tt?.configured===false){
               setLocationMsg("내 주변 검색을 사용하려면 Vercel에 KAKAO_REST_API_KEY를 설정해주세요.");
               list=[];
@@ -274,7 +305,7 @@ export default function Hero(){
             <Choice label="2. 언제" options={timings} value={timing} setValue={setTiming}/>
             {timing==="날짜 선택"&&<label className="mt-3 flex max-w-[280px] items-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5"><CalendarIcon className="h-4 w-4 shrink-0 text-gold"/><input type="date" value={customDate} min={toIsoDate(new Date())} onChange={e=>setCustomDate(e.target.value)} className="min-w-0 w-full bg-transparent text-sm font-semibold text-paper outline-none"/></label>}
           </div>
-          <Choice label="3. 어디서" options={regions} value={region} setValue={setRegion}/>
+          <div><Choice label="3. 어디서" options={regions} value={region} setValue={chooseRegion}/>{region==="내 주변"&&locationMsg&&<p className="mt-2 text-[11px] font-semibold leading-5 text-[#7b5a45]">{locationMsg}</p>}</div>
           <Choice label="4. 무엇을" options={genres} value={genre} setValue={setGenre}/>
           <div className="lg:col-span-2">
             <Choice label="5. 어떤 공연" options={discoveries} value={discovery} setValue={setDiscovery}/>
@@ -301,7 +332,7 @@ export default function Hero(){
           <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
           <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
           <Quick label="부모님과 이번 주말" onClick={()=>{chooseCompanion("부모님과");setTiming("이번 주말");setGenre("전체");setDiscovery("전체")}}/>
-          <Quick label="오늘 내 주변" onClick={()=>{setRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
+          <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
         </div>
       </div>
 
