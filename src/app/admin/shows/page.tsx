@@ -109,12 +109,47 @@ export default function AdminShows() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showUrlFallback, setShowUrlFallback] = useState(false);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("전체");
+  const [sourceFilter, setSourceFilter] = useState("전체");
+  const [sortMode, setSortMode] = useState("최근등록순");
+  const [reviewChecks, setReviewChecks] = useState({
+    poster: false,
+    schedule: false,
+    venue: false,
+    price: false,
+    booking: false,
+    agency: false,
+    copyright: false,
+  });
 
-  const pendingExternal = shows.filter(
-    (s) => s.submission_source === "public-register" && (s.status === "검토중" || s.status === "반려")
+  const reviewComplete = Object.values(reviewChecks).every(Boolean);
+
+  const visibleShows = [...shows]
+    .filter((s) => {
+      const q = query.trim().toLowerCase();
+      const text = `${s.title || ""} ${s.venue || ""} ${s.agency_name || ""}`.toLowerCase();
+      if (q && !text.includes(q)) return false;
+      if (statusFilter !== "전체" && s.status !== statusFilter) return false;
+      if (sourceFilter === "외부" && s.submission_source !== "public-register") return false;
+      if (sourceFilter === "본사" && s.submission_source === "public-register") return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortMode === "공연일 임박순") return String(a.start_date || "").localeCompare(String(b.start_date || ""));
+      if (sortMode === "검토대기 우선") {
+        const ap = a.status === "검토중" || a.status === "보완요청" ? 0 : 1;
+        const bp = b.status === "검토중" || b.status === "보완요청" ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+      }
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    });
+
+  const pendingExternal = visibleShows.filter(
+    (s) => s.submission_source === "public-register" && ["검토중", "보완요청", "반려"].includes(s.status)
   );
-  const managedShows = shows.filter(
-    (s) => !(s.submission_source === "public-register" && (s.status === "검토중" || s.status === "반려"))
+  const managedShows = visibleShows.filter(
+    (s) => !(s.submission_source === "public-register" && ["검토중", "보완요청", "반려"].includes(s.status))
   );
 
   const load = () => {
@@ -181,6 +216,15 @@ export default function AdminShows() {
       return;
     }
     setForm((f) => ({ ...f, poster_url: data.url }));
+  };
+
+  const waitingLabel = (createdAt?: string) => {
+    if (!createdAt) return "";
+    const ms = Date.now() - new Date(createdAt).getTime();
+    const hours = Math.max(0, Math.floor(ms / 3600000));
+    if (hours < 1) return "등록 1시간 이내";
+    if (hours < 24) return `등록 ${hours}시간 전`;
+    return `등록 ${Math.floor(hours / 24)}일 전`;
   };
 
   const openDirectCreate = () => {
@@ -336,6 +380,21 @@ export default function AdminShows() {
         </div>
       )}
 
+      <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-4">
+        <div className="grid gap-3 md:grid-cols-4">
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="공연명·공연장·기획사 검색" className="rounded-xl border border-[#e7dcc9] px-3 py-2 text-sm outline-none focus:border-[#b3742f]" />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-[#e7dcc9] px-3 py-2 text-sm">
+            {["전체","검토중","보완요청","게시중","종료","반려"].map((v) => <option key={v}>{v}</option>)}
+          </select>
+          <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className="rounded-xl border border-[#e7dcc9] px-3 py-2 text-sm">
+            {["전체","외부","본사"].map((v) => <option key={v}>{v}</option>)}
+          </select>
+          <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} className="rounded-xl border border-[#e7dcc9] px-3 py-2 text-sm">
+            {["최근등록순","공연일 임박순","검토대기 우선"].map((v) => <option key={v}>{v}</option>)}
+          </select>
+        </div>
+      </div>
+
       <div className="mt-6 rounded-2xl border border-[#e7dcc9] bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -363,7 +422,7 @@ export default function AdminShows() {
                       {s.status === "반려" ? "반려" : "검토대기"}
                     </span>
                   </p>
-                  <p className="mt-1 text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>
+                  <p className="mt-1 text-xs text-[#8a7360]">{s.venue} · {s.period} · {s.agency_name}</p>\n                  <p className={`mt-1 text-[11px] font-bold ${waitingLabel(s.created_at).includes("일 전") ? "text-red-600" : "text-[#b3742f]"}`}>{waitingLabel(s.created_at)}</p>
                   {!!s.show_schedules?.length && (
                     <p className="mt-1 text-[11px] leading-5 text-[#8a7360]">
                       회차: {s.show_schedules.map((r) => `${r.performance_date} ${String(r.start_time).slice(0, 5)}`).join(" · ")}
@@ -379,7 +438,7 @@ export default function AdminShows() {
                 <div className="flex flex-wrap items-center gap-2">
                   <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-3 py-2 text-xs font-bold text-[#5c4a38]">내용 확인·수정</button>
                   <button onClick={() => updateStatus(s.id, "게시중")} className="rounded-lg bg-[#241a10] px-3 py-2 text-xs font-black text-white">승인·게시</button>
-                  <button onClick={() => updateStatus(s.id, "반려")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600">반려</button>
+                  <button onClick={() => updateStatus(s.id, "보완요청")} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">보완요청</button>\n                  <button onClick={() => updateStatus(s.id, "반려")} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600">반려</button>
                   <button onClick={() => remove(s.id)} className="px-2 py-2 text-xs font-semibold text-red-500">삭제</button>
                 </div>
               </div>
@@ -427,7 +486,7 @@ export default function AdminShows() {
                 <div className="flex items-center gap-2">
                   <button onClick={() => startEdit(s)} className="rounded-lg border border-[#e7dcc9] px-2.5 py-1.5 text-xs font-bold text-[#5c4a38]">수정</button>
                   <select value={s.status} onChange={(e) => updateStatus(s.id, e.target.value)} className="rounded-lg border border-[#e7dcc9] px-2 py-1.5 text-xs font-bold">
-                    {["게시중", "종료", "검토중", "반려"].map((st) => <option key={st}>{st}</option>)}
+                    {["게시중", "종료", "검토중", "보완요청", "반려"].map((st) => <option key={st}>{st}</option>)}
                   </select>
                   <button onClick={() => remove(s.id)} className="text-xs font-semibold text-red-500">삭제</button>
                 </div>
