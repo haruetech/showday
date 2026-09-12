@@ -1,46 +1,26 @@
-# SHOWDAY 회차·좌석가격 업데이트
+# SHOWDAY 관리자 구조 수정
 
-이 폴더는 GitHub 저장소 루트에 그대로 덮어쓰기 위한 업데이트 패키지입니다.
+이 패키지는 기존 회차·좌석가격 업데이트 이후 관리자 화면을 운영 흐름에 맞게 분리합니다.
 
-## 포함 파일
+## 변경점
+- `/admin/shows` 제목: 공연 승인·등록
+- 외부 `/register` 등록건:
+  - `submission_source = public-register`
+  - 기본 `status = 검토중`
+  - 관리자에서 `승인·게시 / 반려 / 내용 확인·수정`
+- SHOWDAY 본사 관리자 직접등록:
+  - `+ 본사 공연 직접 등록`
+  - 기본 `submission_source = admin`
+  - 저장 즉시 `status = 게시중`
+- 목록을 `외부 공연 등록 요청` / `등록·게시 공연`으로 분리
+- 관리자 메뉴 문구를 `공연 승인·등록`으로 변경
 
-- `src/app/register/page.tsx`
-  - 업체 직접 등록 화면
-  - 공연기간
-  - 날짜+시간 방식 회차 추가/삭제
-  - 좌석등급별 가격 추가/삭제
-- `src/app/api/register/route.ts`
-  - 외부 업체 등록 API
-  - manual_shows + show_schedules + show_ticket_prices 저장
+## 덮어쓰기 파일
+- `src/app/admin/AdminNav.tsx`
 - `src/app/admin/shows/page.tsx`
-  - 관리자 회차/좌석가격 확인 및 수정
 - `src/app/api/admin/shows/route.ts`
-  - 관리자 공연 목록/등록 API
 - `src/app/api/admin/shows/[id]/route.ts`
-  - 관리자 공연 수정/삭제 API
-- `supabase/migrations/0010_show_schedules_ticket_prices.sql`
-  - 회차·좌석가격 테이블 생성
 
-## 적용 순서
-
-1. Supabase SQL Editor에서 `0010_show_schedules_ticket_prices.sql` 실행
-2. 이 업데이트 폴더의 `src`와 `supabase` 폴더를 SHOWDAY 저장소 루트에 그대로 덮어쓰기
-3. GitHub Commit / Push
-4. Vercel 빌드가 Ready인지 확인
-5. `/register`에서 테스트 등록
-6. `/admin/shows`에서 회차와 좌석가격 확인
-
-## 데이터 예시
-
-공연 회차:
-- 2026-09-12 15:00
-- 2026-09-12 19:00
-- 2026-09-13 15:00
-
-티켓 가격:
-- VIP석 154,000원
-- R석 132,000원
-- S석 110,000원
-- 전석 0원 (무료 공연도 가능)
-
-기존 `manual_shows.show_time`과 `price_label`도 자동 생성해 기존 SHOWDAY 화면과 호환됩니다.
+## 적용
+이 폴더의 `src`를 SHOWDAY 저장소 루트에 그대로 덮어쓴 뒤 Commit/Push 하세요.
+기존 `0010_show_schedules_ticket_prices.sql`은 이미 실행했다면 다시 실행할 필요 없습니다.
