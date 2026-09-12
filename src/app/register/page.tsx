@@ -130,7 +130,9 @@ export default function RegisterShowPage() {
                 <Field label="지역"><input className="input" placeholder="예: 서울 도봉구" value={form.region} onChange={(e)=>set("region",e.target.value)} /></Field>
                 <Field label="시작일 *"><input type="date" className="input" value={form.startDate} onChange={(e)=>set("startDate",e.target.value)} /></Field>
                 <Field label="종료일 *"><input type="date" className="input" value={form.endDate} onChange={(e)=>set("endDate",e.target.value)} /></Field>
-                <Field label="공연시간"><input className="input" placeholder="예: 토 15:00 / 19:00" value={form.show_time} onChange={(e)=>set("show_time",e.target.value)} /></Field>
+                <Field label="공연 시작시간"><input type="time" className="input" value={form.start_time} onChange={(e)=>set("start_time",e.target.value)} /></Field>
+                <Field label="공연 종료시간"><input type="time" className="input" value={form.end_time} onChange={(e)=>set("end_time",e.target.value)} /></Field>
+                <div className="sm:col-span-2"><Field label="회차·공연시간 상세안내"><input className="input" placeholder="예: 토 15:00 / 19:00 · 일 14:00 / 18:00" value={form.schedule_note} onChange={(e)=>set("schedule_note",e.target.value)} /></Field></div>
                 <Field label="관람연령"><select className="input" value={form.age_label} onChange={(e)=>set("age_label",e.target.value)}>{ages.map(a=><option key={a}>{a}</option>)}</select></Field>
                 <Field label="티켓 가격"><input className="input" placeholder="예: R석 88,000원 / S석 66,000원" value={form.price_label} onChange={(e)=>set("price_label",e.target.value)} /></Field>
                 <Field label="러닝타임"><input className="input" placeholder="예: 120분" value={form.running_time} onChange={(e)=>set("running_time",e.target.value)} /></Field>
