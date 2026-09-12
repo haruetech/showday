@@ -10,12 +10,12 @@ import { getProfile } from "@/lib/profile";
 type ViewMode = "guest" | "member";
 
 export default function Header({
-  mode,
-  onModeChange,
+  mode = "guest",
+  onModeChange = () => {},
 }: {
-  mode: ViewMode;
-  onModeChange: (m: ViewMode) => void;
-}) {
+  mode?: ViewMode;
+  onModeChange?: (m: ViewMode) => void;
+} = {}) {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
