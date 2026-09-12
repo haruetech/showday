@@ -25,147 +25,6 @@ npm run dev
 
 공연장 데이터(`venues`)는 서울아레나에 종속되지 않은 공통 구조입니다 — 서울아레나·고척스카이돔·KSPO DOME·세종문화회관 등을 동등하게 다루고, 서울아레나 제휴가 구체화되면 그때 `/arena`만 별도로 확장합니다.
 
-
-## SHOWDAY 폴더 구조 및 공연 직접등록 운영 기준
-
-SHOWDAY 프로젝트는 기능별 위치를 명확하게 나누어 관리합니다.  
-새 기능을 추가할 때는 기존 파일을 한꺼번에 이동하기보다, 현재 동작 중인 경로를 유지하면서 필요한 기능만 별도 폴더로 추가하는 것을 원칙으로 합니다.
-
-### 주요 페이지 위치
-
-```text
-showday
-├─ src
-│  ├─ app
-│  │  ├─ page.tsx                 ← SHOWDAY 메인
-│  │  ├─ performances
-│  │  │  └─ page.tsx             ← 공연 목록
-│  │  ├─ performance
-│  │  │  └─ [id]
-│  │  │     └─ page.tsx          ← 공연 상세
-│  │  ├─ register
-│  │  │  └─ page.tsx             ← 기획사·주최사 공연 직접등록
-│  │  ├─ admin
-│  │  │  └─ page.tsx             ← SHOWDAY 관리자
-│  │  └─ api
-│  │     └─ performances         ← 공연 등록·조회 API
-│  │
-│  ├─ components
-│  │  ├─ Header.tsx
-│  │  ├─ Footer.tsx
-│  │  ├─ PerformanceCard.tsx
-│  │  └─ RegisterForm.tsx        ← 공연 등록 폼
-│  │
-│  └─ lib
-│     ├─ supabase.ts
-│     └─ kopis.ts
-│
-├─ public
-│  ├─ images
-│  ├─ posters
-│  └─ icons
-│
-└─ package.json
-```
-
-> 실제 프로젝트에서 파일명이 다를 수 있으므로, 기존 파일을 무작정 이동하거나 삭제하지 않습니다.  
-> 먼저 VS Code에서 `Ctrl + Shift + F`로 화면에 보이는 문구를 검색해 실제 사용 파일을 확인한 뒤 정리합니다.
-
-### 공연 직접등록 운영 구조
-
-기획사·주최사가 SHOWDAY 관리자 페이지에 들어오는 방식이 아니라, 공개 등록 페이지를 별도로 둡니다.
-
-```text
-기획사·주최사
-    ↓
-showday.kr/register
-    ↓
-공연정보 + 포스터 직접 입력
-    ↓
-Supabase 저장
-status = pending
-    ↓
-showday.kr/admin
-관리자 검수
-    ↓
-승인 approved / 반려 rejected
-    ↓
-승인된 공연만 SHOWDAY 공개
-```
-
-### 페이지 역할
-
-- `showday.kr` — 일반 관객용 SHOWDAY 서비스
-- `showday.kr/register` — 기획사·주최사 공개 공연등록 페이지, 로그인 없이 등록 가능
-- `showday.kr/admin` — SHOWDAY 관리자 전용, 로그인 후 검수·승인·수정·반려
-- 업체 등록 내용은 즉시 공개하지 않고 반드시 `pending` 상태로 저장
-- 관리자가 승인한 공연만 실제 SHOWDAY 공연 목록과 상세페이지에 노출
-
-### 공연 등록 기본 항목
-
-업체 등록 화면은 복잡하게 만들지 않고 아래 항목을 중심으로 구성합니다.
-
-- 공연명
-- 포스터 이미지 직접 업로드
-- 공연 장르
-- 공연일 / 공연시간
-- 공연장
-- 출연 아티스트
-- 티켓 가격
-- 예매 URL
-- 공연 소개
-- 주최·주관사
-- 담당자명
-- 담당자 연락처
-- 담당자 이메일
-- 무료공연 / 축제 / 행사 여부
-- 개인정보 수집·이용 동의
-
-등록 완료 문구 예시:
-
-> 공연 등록 신청이 완료되었습니다.  
-> SHOWDAY 검수 후 공연정보에 반영됩니다.
-
-### 공연 상태값 권장안
-
-```text
-pending   → 검수대기
-approved  → 승인 / 공개
-rejected  → 반려
-ended     → 공연종료
-```
-
-업체가 `/register`에서 등록하면 기본값은 항상 `pending`으로 저장합니다.  
-관리자가 `/admin`에서 승인했을 때만 `approved`로 변경하고 SHOWDAY에 공개합니다.
-
-### 공개 등록 보안 원칙
-
-로그인 없이 등록할 수 있게 하되 다음 원칙을 유지합니다.
-
-- 업체가 등록한 공연은 자동 공개하지 않음
-- 관리자 승인 필수
-- 포스터 파일 형식·크기 제한
-- 동일 IP의 반복 제출 제한
-- 봇·스팸 방지 기능 적용
-- 담당자 연락처와 이메일은 일반 사용자 화면에 노출하지 않음
-
-### 현재 작업 시 주의사항
-
-SHOWDAY 프로젝트가 여러 차례 전체 업로드·수정된 상태라면 파일 위치가 혼재할 수 있습니다.  
-따라서 폴더를 한 번에 대규모로 이동하지 말고 다음 순서로 정리합니다.
-
-1. `src/app/page.tsx` — 현재 메인 확인
-2. `/admin` 화면을 만드는 실제 파일 확인
-3. 공연 목록·상세 관련 파일 확인
-4. 중복·미사용 파일 확인
-5. `src/app/register/page.tsx` 신규 추가
-6. `/register` → Supabase `pending` 저장 연결
-7. `/admin` → 검수대기 목록 연결
-8. 승인 시 SHOWDAY 실제 공연 데이터로 노출
-
-특히 기존 `import` 경로가 연결되어 있으므로 사용 여부를 확인하지 않은 파일을 이동·삭제하지 않습니다.
-
-
 ## 카카오 로그인 설정
 Supabase Auth의 소셜 로그인(Kakao Provider)을 사용합니다. 앱 코드에는 카카오 키를
 넣지 않고, Supabase 대시보드에서 연결합니다.
@@ -228,3 +87,33 @@ K-라이스 디저트 직접판매는 가장 마지막)
 - 온보딩에 동행자 우선 선택, 자녀 동행 시 아이 연령(0~3/4~7/8~10/11~13) 추가
 - `supabase/migrations/0002_profile_child_age.sql` 적용 필요
 - `.env.local`은 GitHub에 올리지 않음. Vercel Environment Variables에 실제 값을 설정
+
+## 2026-09-12 구조 정리 — 업체 공연 직접등록
+
+현재 실제 프로젝트 구조를 기준으로 공개 등록 기능을 분리했습니다.
+
+- `src/app/page.tsx` — SHOWDAY 메인
+- `src/app/show/[id]/page.tsx` — 공연 상세
+- `src/app/register/page.tsx` — **기획사·주최사 공개 공연등록** (로그인 불필요)
+- `src/app/admin/` — **SHOWDAY 관리자 전용** (로그인 필요)
+- `src/app/admin/shows/page.tsx` — 업체 제출 검수 + 관리자 직접등록/수정
+- `src/app/api/register/route.ts` — 공개 공연등록 접수 API. 상태를 강제로 `검토중`으로 저장
+- `src/app/api/register/upload/route.ts` — 외부 업체 포스터 업로드(JPG/PNG/WEBP, 5MB 이하)
+- `src/app/api/admin/shows/` — 관리자용 공연 조회/등록/수정/삭제
+- `src/app/api/admin/upload/route.ts` — 관리자용 포스터 업로드
+- `supabase/migrations/0009_public_show_submissions.sql` — 업체 이메일/등록 출처 필드 추가
+
+공개 등록 흐름:
+
+```text
+기획사·주최사
+  → showday.kr/register
+  → 공연정보·포스터 입력
+  → manual_shows(status='검토중', submission_source='public-register')
+  → showday.kr/admin/shows 에서 운영자 검수
+  → 게시중으로 변경
+  → SHOWDAY 공개 노출
+```
+
+`/admin`을 업체에 공개하지 않습니다. 외부 업체는 `/register`만 사용합니다.
+포스터와 담당자 정보가 포함되므로 공개 제출은 자동 게시하지 않고 반드시 관리자 검수를 거칩니다.
