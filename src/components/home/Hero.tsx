@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, TouchEvent } from "react";
 import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
 import type { ShowdayEvent } from "@/lib/events/eventTypes";
@@ -326,7 +326,10 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           </h1>
           <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 선택하세요.</p>
           <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">공연부터 전시·체험·축제까지 SHOWDAY가 찾아드려요.</p>
-          <a href="#quick-search" className="mt-7 inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
+          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <a href="#quick-search" className="inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
+            <a href="/simple-search" className="relative z-20 inline-flex min-h-[44px] items-center rounded-full border border-white/45 bg-black/20 px-4 text-xs font-bold text-white sm:hidden">구형 iPhone 간편검색</a>
+          </div>
         </div>
       </div>
     </div>
@@ -482,6 +485,16 @@ type SpeechRecognitionLike = {
 
 function MicIcon({className=""}:{className?:string}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>}
 
+function mobilePress(handler:()=>void){
+  return {
+    onClick: handler,
+    onTouchEnd: (e: TouchEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      handler();
+    },
+  };
+}
+
 function ChildAgeChoice({value,setValue}:{value:ChildAge|null;setValue:(v:ChildAge)=>void}){
   return <div id="child-age-filter" className="mt-3 rounded-2xl border border-[#d9b89f] bg-[#fff8f0] p-3.5 sm:p-4">
     <div className="flex items-end justify-between gap-3">
@@ -491,47 +504,45 @@ function ChildAgeChoice({value,setValue}:{value:ChildAge|null;setValue:(v:ChildA
     <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
       {childAges.map(age=>{
         const selected=age===value;
-        return <label key={age} className={`relative flex min-h-[44px] cursor-pointer select-none items-center justify-center rounded-xl border px-2 py-2 text-xs font-black ${selected?"border-paper bg-paper text-white shadow-sm":"border-[#e7cdb9] bg-white text-[#6f5949]"}`}>
-          <input
-            type="radio"
-            name="showday-child-age"
-            value={age}
-            checked={selected}
-            onChange={()=>setValue(age)}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            aria-label={`아이 나이 ${age}`}
-          />
-          <span className="pointer-events-none">{age}</span>
-        </label>
+        return <button
+          key={age}
+          type="button"
+          {...mobilePress(()=>setValue(age))}
+          aria-pressed={selected}
+          className={`relative z-10 min-h-[44px] w-full cursor-pointer select-none rounded-xl border px-2 py-2 text-xs font-black ${selected?"border-paper bg-paper text-white shadow-sm":"border-[#e7cdb9] bg-white text-[#6f5949]"}`}
+          style={{WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}
+        >{age}</button>
       })}
     </div>
     <p className="mt-3 text-[10px] font-semibold leading-4 text-[#8b6a53]">선택한 나이에 관람 가능한 것으로 확인된 공연을 우선 보여드립니다.</p>
   </div>
 }
 function Choice<T extends string>({label,options,value,setValue}:{label:string;options:readonly T[];value:T|null;setValue:(v:T)=>void}){
-  const groupName=`showday-${label.replace(/[^a-zA-Z0-9가-힣]/g,"-")}`;
   return <div>
     <p className="mb-2 text-xs font-black text-paper">{label}</p>
     <div className="flex flex-wrap gap-2 pb-1">
       {options.map(o=>{
         const selected=o===value;
-        return <label key={o} className={`relative flex min-h-[44px] shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-bold ${selected?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/70 text-muted"}`}>
-          <input
-            type="radio"
-            name={groupName}
-            value={o}
-            checked={selected}
-            onChange={()=>setValue(o)}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            aria-label={`${label} ${o}`}
-          />
-          <span className="pointer-events-none">{o}</span>
-        </label>
+        return <button
+          key={o}
+          type="button"
+          {...mobilePress(()=>setValue(o))}
+          aria-pressed={selected}
+          className={`relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-bold ${selected?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/70 text-muted"}`}
+          style={{WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}
+        >{o}</button>
       })}
     </div>
   </div>
 }
-function Quick({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted hover:border-gold/60 hover:text-paper">{label}</button>}
+function Quick({label,onClick}:{label:string;onClick:()=>void}){
+  return <button
+    type="button"
+    {...mobilePress(onClick)}
+    className="relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted hover:border-gold/60 hover:text-paper"
+    style={{WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}
+  >{label}</button>
+}
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/80 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
 function Empty(){return <div className="border-y border-line py-8 text-center"><p className="text-sm font-semibold text-paper">조건에 맞는 현재·예정 공연을 찾지 못했습니다.</p><p className="mt-2 text-xs text-muted">지역이나 날짜를 조금 넓혀 다시 찾아보세요.</p></div>}
 function ResultCard({show}:{show:Show}){const hasPrice=show.priceLabel&&show.priceLabel!=="가격 정보 없음";const hasDistance=Number.isFinite(show.distanceFromDobongKm)&&show.distanceFromDobongKm<999;return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
