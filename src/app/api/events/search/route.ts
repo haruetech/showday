@@ -4,6 +4,7 @@ import { fetchForestEducation } from "@/lib/external/forestEdu";
 import { fetchSeoulReservations } from "@/lib/external/seoulReservation";
 import { fetchTourFestivalEvents } from "@/lib/external/tourApi";
 import { fetchYouthPrograms } from "@/lib/external/youthProgram";
+import { fetchYouthVacationPrograms } from "@/lib/external/youthVacation";
 import { dedupeEvents } from "@/lib/events/dedupeEvents";
 import { isEnded } from "@/lib/events/normalizeEvent";
 import type { EventSourceResult, ShowdayEvent } from "@/lib/events/eventTypes";
@@ -31,12 +32,13 @@ export async function GET(req: NextRequest) {
   const category = sp.get("category")?.trim() || "전체";
   const region = sp.get("region")?.trim() || "전국";
   const rows = Math.min(Math.max(Number(sp.get("rows") || 100), 20), 300);
-  const sourceFilter = new Set((sp.get("sources") || "culture,tour,youth,seoul,forest").split(",").map(s=>s.trim()).filter(Boolean));
+  const sourceFilter = new Set((sp.get("sources") || "culture,tour,youth,youth-vacation,seoul,forest").split(",").map(s=>s.trim()).filter(Boolean));
 
   const jobs: Promise<EventSourceResult>[] = [];
   if (sourceFilter.has("culture")) jobs.push(fetchCulturePortalEvents({ rows }));
   if (sourceFilter.has("tour")) jobs.push(fetchTourFestivalEvents({ rows }));
   if (sourceFilter.has("youth")) jobs.push(fetchYouthPrograms({ rows }));
+  if (sourceFilter.has("youth-vacation")) jobs.push(fetchYouthVacationPrograms({ rows }));
   if (sourceFilter.has("seoul")) jobs.push(fetchSeoulReservations({ rows }));
   if (sourceFilter.has("forest")) jobs.push(fetchForestEducation({ rows }));
 
