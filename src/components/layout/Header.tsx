@@ -60,12 +60,10 @@ export default function Header({
           <span className="hidden text-xs text-muted sm:inline">문화생활 비서</span>
         </a>
 
-        <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
-          <a href="/#show-search" className="hover:text-paper">공연</a>
-          <a href="/#show-search" className="hover:text-paper">전시</a>
-          <a href="/#show-search" className="hover:text-paper">체험·교육</a>
-          <a href="/#show-search" className="hover:text-paper">축제·행사</a>
+        <nav className="hidden items-center gap-5 text-sm text-muted lg:flex xl:gap-7">
+          <a href="/#show-search" className="font-bold hover:text-paper">찾기</a>
           <a href="/#my-area" className="hover:text-paper">내 주변</a>
+          <a href="/#showday-now" className="hover:text-paper">공연 소식</a>
           <a href="/#artists" className="hover:text-paper">아티스트</a>
         </nav>
 
