@@ -851,6 +851,7 @@ function FreeOpenAlertButton({event:e}:{event:ShowdayEvent}){
   const [msg,setMsg]=useState("");
   useEffect(()=>{setSaved(loadFreeAlerts().some(v=>v.key===key))},[key]);
   if(!state)return null;
+  const actionState=state;
 
   async function saveAlert(ev:React.MouseEvent<HTMLButtonElement>){
     ev.preventDefault();ev.stopPropagation();
@@ -863,7 +864,7 @@ function FreeOpenAlertButton({event:e}:{event:ShowdayEvent}){
     }
     const current=loadFreeAlerts().filter(v=>v.key!==key);
     if(saved){saveFreeAlerts(current);setSaved(false);setMsg("알림 저장 취소");return;}
-    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl||undefined,imageUrl:e.imageUrl||undefined,venue:e.venue||e.address||e.region||undefined,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")||undefined,applyStartDate:e.applyStartDate||undefined,applyEndDate:e.applyEndDate||undefined,status:state.state,savedReason:state.action,savedAt:new Date().toISOString()});
+    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl||undefined,imageUrl:e.imageUrl||undefined,venue:e.venue||e.address||e.region||undefined,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")||undefined,applyStartDate:e.applyStartDate||undefined,applyEndDate:e.applyEndDate||undefined,status:actionState.state,savedReason:actionState.action,savedAt:new Date().toISOString()});
     saveFreeAlerts(current.slice(0,100));setSaved(true);setMsg("MY에 저장됨");
   }
   const href=e.bookingUrl||e.officialUrl;
