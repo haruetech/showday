@@ -5,6 +5,8 @@ import type { ReactNode, TouchEvent } from "react";
 import { ArrowIcon, CalendarIcon, HeartIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
 import type { ShowdayEvent } from "@/lib/events/eventTypes";
+import { createClient } from "@/lib/supabase/client";
+import { isAuthConfigured, signInWithKakao } from "@/lib/auth";
 
 type Timing = "오늘" | "이번 주말" | "이번 주" | "이번 달" | "날짜 선택";
 type Region = "내 주변" | "서울" | "경기" | "인천" | "부산" | "전국";
@@ -668,9 +670,23 @@ function SocialActions({itemKey,title,url,imageUrl,kind,meta}:{itemKey:string;ti
   const [shareMsg,setShareMsg]=useState("");
   useEffect(()=>{setLiked(loadSavedItems().has(itemKey))},[itemKey]);
 
-  function toggleLiked(e:React.MouseEvent<HTMLButtonElement>){
+  async function toggleLiked(e:React.MouseEvent<HTMLButtonElement>){
     e.preventDefault();
     e.stopPropagation();
+
+    // MY SHOWDAY의 좋아요는 로그인 사용자 기능입니다.
+    // 비로그인 상태에서 하트를 누르면 저장하지 않고 카카오 로그인을 먼저 요청합니다.
+    if(isAuthConfigured){
+      const supabase=createClient();
+      if(supabase){
+        const {data}=await supabase.auth.getUser();
+        if(!data.user){
+          await signInWithKakao();
+          return;
+        }
+      }
+    }
+
     const items=loadSavedItems();
     const details=loadSavedItemDetails();
     if(items.has(itemKey)){
@@ -737,7 +753,7 @@ function SocialActions({itemKey,title,url,imageUrl,kind,meta}:{itemKey:string;ti
       className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-black shadow-sm transition active:scale-[0.98] ${liked?"border-gold bg-[#fff1e3] text-gold":"border-line bg-white/95 text-paper hover:border-gold hover:bg-[#fffaf4]"}`}
     >
       <HeartIcon filled={liked} className="h-4 w-4"/>
-      <span>{liked?"좋아요됨":"좋아요"}</span>
+      <span>{liked?"MY 저장됨":"좋아요"}</span>
     </button>
     <button
       type="button"

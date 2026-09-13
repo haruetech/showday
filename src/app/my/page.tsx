@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { getFollowedArtistIds } from "@/lib/favorites";
+import { createClient } from "@/lib/supabase/client";
+import { isAuthConfigured, signInWithKakao } from "@/lib/auth";
 
 const SAVED_ITEMS_KEY="showday:saved-items:v1";
 const SAVED_ITEM_DETAILS_KEY="showday:saved-item-details:v1";
@@ -18,17 +21,41 @@ function formatDate(value?:string){if(!value)return "";try{return new Intl.DateT
 
 export default function MyShowdayPage(){
   const [tab,setTab]=useState<Tab>("likes");
+  const [user,setUser]=useState<User|null>(null);
+  const [authReady,setAuthReady]=useState(false);
   const [likedKeys,setLikedKeys]=useState<string[]>([]);
   const [details,setDetails]=useState<Record<string,SavedItemDetail>>({});
   const [artists,setArtists]=useState<string[]>([]);
   const [searches,setSearches]=useState<SavedSearch[]>([]);
 
   useEffect(()=>{
+    if(!isAuthConfigured){
+      setAuthReady(true);
+      return;
+    }
+    const supabase=createClient();
+    if(!supabase){
+      setAuthReady(true);
+      return;
+    }
+    supabase.auth.getUser().then(({data})=>{
+      setUser(data.user??null);
+      setAuthReady(true);
+    });
+    const {data:sub}=supabase.auth.onAuthStateChange((_event,session)=>{
+      setUser(session?.user??null);
+      setAuthReady(true);
+    });
+    return ()=>sub.subscription.unsubscribe();
+  },[]);
+
+  useEffect(()=>{
+    if(!user)return;
     setLikedKeys(safeJson<string[]>(localStorage.getItem(SAVED_ITEMS_KEY),[]));
     setDetails(safeJson<Record<string,SavedItemDetail>>(localStorage.getItem(SAVED_ITEM_DETAILS_KEY),{}));
     setSearches(safeJson<SavedSearch[]>(localStorage.getItem(SAVED_SEARCHES_KEY),[]));
     getFollowedArtistIds().then(ids=>setArtists(Array.from(ids).map(artistNameFromId).filter(Boolean))).catch(()=>setArtists([]));
-  },[]);
+  },[user]);
 
   const likedItems=useMemo(()=>likedKeys.map(key=>details[key]||{key,title:"좋아요한 콘텐츠",savedAt:""}).sort((a,b)=>(b.savedAt||"").localeCompare(a.savedAt||"")),[likedKeys,details]);
 
@@ -44,11 +71,23 @@ export default function MyShowdayPage(){
     ["alerts","알림 설정","놓치고 싶지 않은 소식 관리"],
   ];
 
+  if(!authReady){
+    return <MyGate title="MY SHOWDAY 확인 중" desc="로그인 상태를 확인하고 있습니다." loading/>;
+  }
+
+  if(!user){
+    return <MyGate
+      title="MY SHOWDAY는 로그인 후 이용할 수 있어요"
+      desc="좋아요한 공연·전시·체험, 관심 아티스트, 저장한 검색조건과 알림을 한곳에서 관리합니다."
+      onLogin={()=>signInWithKakao()}
+    />;
+  }
+
   return <main className="min-h-screen bg-[#f8f6f2] text-[#251b16]">
     <div className="border-b border-[#e8dfd7] bg-white/95">
       <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="font-black tracking-tight text-xl">SHOWDAY</Link>
-        <Link href="/" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-xs font-black hover:border-[#c77b46]">← 공연 찾기로</Link>
+        <Link href="/" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-xs font-black hover:border-[#c77b46]">← SHOWDAY 홈</Link>
       </div>
     </div>
 
@@ -99,6 +138,35 @@ export default function MyShowdayPage(){
           </div>
           <div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4 text-xs leading-5 text-[#715a4a]">알림은 현재 단계적으로 연결 중입니다. 실제 발송이 연결되기 전까지는 ‘알림 설정 완료’처럼 오해할 수 있는 표현을 사용하지 않습니다.</div>
         </section>}
+      </div>
+    </section>
+  </main>
+}
+
+function MyGate({title,desc,onLogin,loading=false}:{title:string;desc:string;onLogin?:()=>void;loading?:boolean}){
+  return <main className="min-h-screen bg-[#f8f6f2] text-[#251b16]">
+    <div className="border-b border-[#e8dfd7] bg-white/95">
+      <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
+        <Link href="/" className="font-black tracking-tight text-xl">SHOWDAY</Link>
+        <Link href="/" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-xs font-black hover:border-[#c77b46]">SHOWDAY 홈</Link>
+      </div>
+    </div>
+    <section className="mx-auto grid min-h-[72vh] max-w-[760px] place-items-center px-4 py-12 sm:px-6">
+      <div className="w-full rounded-[30px] border border-[#eadfd6] bg-white p-6 text-center shadow-sm sm:p-10">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fff3e7] text-xl font-black text-[#c77b46]">MY</div>
+        <p className="mt-5 text-[11px] font-black tracking-[.18em] text-[#c77b46]">MY SHOWDAY</p>
+        <h1 className="mt-2 text-xl font-black tracking-tight sm:text-3xl">{title}</h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#82746a]">{desc}</p>
+        {loading?<div className="mx-auto mt-6 h-7 w-7 animate-spin rounded-full border-2 border-[#eadfd6] border-t-[#c77b46]" aria-label="로그인 상태 확인 중"/>:<>
+          <div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-2 text-left text-[11px] text-[#725f52] sm:grid-cols-4">
+            <span className="rounded-xl bg-[#faf6f2] px-3 py-2.5">♡ 좋아요</span>
+            <span className="rounded-xl bg-[#faf6f2] px-3 py-2.5">★ 관심 아티스트</span>
+            <span className="rounded-xl bg-[#faf6f2] px-3 py-2.5">⌕ 저장 검색</span>
+            <span className="rounded-xl bg-[#faf6f2] px-3 py-2.5">● 알림 설정</span>
+          </div>
+          {onLogin&&<button onClick={onLogin} className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#FEE500] px-6 py-3 text-sm font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#191600] text-[10px] text-[#FEE500]">K</span>카카오로 로그인</button>}
+          <p className="mt-4 text-[11px] leading-5 text-[#9a8b80]">로그인하면 좋아요한 콘텐츠를 MY SHOWDAY에서 바로 확인할 수 있습니다.</p>
+        </>}
       </div>
     </section>
   </main>
