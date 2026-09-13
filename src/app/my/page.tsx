@@ -11,11 +11,13 @@ const SAVED_ITEMS_KEY="showday:saved-items:v1";
 const SAVED_ITEM_DETAILS_KEY="showday:saved-item-details:v1";
 const SAVED_SEARCHES_KEY="showday:saved-searches:v1";
 const ALERT_PREFS_KEY="showday:alert-prefs:v1";
+const FREE_ALERTS_KEY="showday:free-open-alerts:v1";
 
 type Tab="likes"|"artists"|"searches"|"alerts";
 type SavedItemDetail={key:string;title:string;url?:string;imageUrl?:string;kind?:string;meta?:string;savedAt:string};
 type SavedSearch={id:string;label:string;summary?:string;href?:string;createdAt?:string};
 type AlertPrefs={artistNewShow:boolean;ticketOpen:boolean;freeNearby:boolean;savedSearch:boolean;ticketLead:"1d"|"1h"|"10m"};
+type FreeOpenAlert={key:string;title:string;url?:string;imageUrl?:string;venue?:string;dateText?:string;applyStartDate?:string;applyEndDate?:string;status?:"open"|"soon"|"unknown"|"closed";savedReason?:string;savedAt:string};
 const DEFAULT_ALERT_PREFS:AlertPrefs={artistNewShow:true,ticketOpen:true,freeNearby:false,savedSearch:false,ticketLead:"1h"};
 
 function safeJson<T>(value:string|null,fallback:T):T{try{return value?JSON.parse(value) as T:fallback}catch{return fallback}}
@@ -31,6 +33,7 @@ export default function MyShowdayPage(){
   const [artists,setArtists]=useState<string[]>([]);
   const [searches,setSearches]=useState<SavedSearch[]>([]);
   const [alertPrefs,setAlertPrefs]=useState<AlertPrefs>(DEFAULT_ALERT_PREFS);
+  const [freeAlerts,setFreeAlerts]=useState<FreeOpenAlert[]>([]);
   const [alertNotice,setAlertNotice]=useState("");
 
   useEffect(()=>{
@@ -65,6 +68,7 @@ export default function MyShowdayPage(){
     setDetails(safeJson<Record<string,SavedItemDetail>>(localStorage.getItem(SAVED_ITEM_DETAILS_KEY),{}));
     setSearches(safeJson<SavedSearch[]>(localStorage.getItem(SAVED_SEARCHES_KEY),[]));
     setAlertPrefs({...DEFAULT_ALERT_PREFS,...safeJson<Partial<AlertPrefs>>(localStorage.getItem(ALERT_PREFS_KEY),{})});
+    setFreeAlerts(safeJson<FreeOpenAlert[]>(localStorage.getItem(FREE_ALERTS_KEY),[]));
     getFollowedArtistIds().then(ids=>setArtists(Array.from(ids).map(artistNameFromId).filter(Boolean))).catch(()=>setArtists([]));
   },[user]);
 
@@ -72,6 +76,10 @@ export default function MyShowdayPage(){
 
   function saveAlertPrefs(patch:Partial<AlertPrefs>){
     const next={...alertPrefs,...patch}; setAlertPrefs(next); localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(next)); setAlertNotice("알림 설정을 저장했습니다."); setTimeout(()=>setAlertNotice(""),2000);
+  }
+
+  function removeFreeAlert(key:string){
+    const next=freeAlerts.filter(v=>v.key!==key); setFreeAlerts(next); localStorage.setItem(FREE_ALERTS_KEY,JSON.stringify(next));
   }
 
   function removeLike(key:string){
@@ -153,6 +161,10 @@ export default function MyShowdayPage(){
             <AlertSwitch title="저장한 검색조건 새 소식" desc="저장한 조건과 맞는 신규 콘텐츠가 들어오면 다시 확인할 수 있도록 알림 대상으로 저장합니다." checked={alertPrefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/>
           </div>
           {alertPrefs.ticketOpen&&<div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4"><b className="text-xs text-[#251b16]">티켓 오픈 사전 알림</b><div className="mt-3 flex flex-wrap gap-2">{([["1d","하루 전"],["1h","1시간 전"],["10m","10분 전"]] as const).map(([v,label])=><button key={v} onClick={()=>saveAlertPrefs({ticketLead:v})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketLead===v?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>{label}</button>)}</div></div>}
+          <div className="mt-5">
+            <SectionTitle title="내 무료공연 신청·예매 알림" desc="무료공연 카드에서 저장한 오픈예정·일정미공개·마감 전 알림을 여기서 관리합니다." count={freeAlerts.length}/>
+            {freeAlerts.length?<div className="space-y-3">{freeAlerts.map(item=>{const label=item.status==="open"?"지금 신청 가능":item.status==="soon"?"곧 신청 오픈":item.status==="closed"?"신청마감":"일정 미공개";return <div key={item.key} className="rounded-2xl border border-[#e7ddd4] bg-white p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#fff3e7] px-2 py-1 text-[10px] font-black text-[#a65f31]">{label}</span>{item.applyStartDate&&<span className="text-[10px] font-bold text-[#8f8177]">오픈 {item.applyStartDate}</span>}{item.applyEndDate&&<span className="text-[10px] font-bold text-[#8f8177]">마감 {item.applyEndDate}</span>}</div><b className="mt-2 block truncate text-sm text-[#251b16]">{item.title}</b><p className="mt-1 text-[11px] leading-5 text-[#8f8177]">{[item.venue,item.dateText].filter(Boolean).join(" · ")||"공식 일정 확인 대기"}</p></div><div className="mt-3 flex shrink-0 flex-wrap gap-2 sm:mt-0">{item.status==="open"&&item.url&&<a href={item.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#251b16] px-4 py-2 text-[11px] font-black text-white">지금 신청하기 ↗</a>}{item.url&&item.status!=="open"&&<a href={item.url} target="_blank" rel="noopener noreferrer" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-[11px] font-black text-[#6f5949]">공식 페이지 ↗</a>}<button onClick={()=>removeFreeAlert(item.key)} className="rounded-full border border-[#dfd4ca] px-3 py-2 text-[11px] font-black text-[#8a6d59]">알림 삭제</button></div></div>})}</div>:<Empty title="저장한 무료공연 알림이 없어요" desc="무료공연 검색에서 오픈 알림받기 또는 예매일정 알림받기를 누르면 여기에 자동 저장됩니다." action="무료공연 찾기" href="/#show-search"/>}
+          </div>
           <div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4 text-xs leading-5 text-[#715a4a]">설정값은 저장되어 관심 아티스트 화면과 공유됩니다. 실제 웹푸시·카카오 발송은 발송 서버와 해당 채널이 연결된 항목부터 동작합니다. 공식 예매 오픈 시간이 없는 공연은 임의 시간을 만들지 않고 ‘미확인’으로 표시합니다.</div>
         </section>}
       </div>

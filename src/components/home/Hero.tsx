@@ -337,7 +337,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         .sort((a:Show,b:Show)=>showPurposeScore(b,companion)-showPurposeScore(a,companion));
 
       let unified:ShowdayEvent[]=(eventData?.events??[])
-        .filter((e:ShowdayEvent)=>!eventIsUnavailable(e))
+        .filter((e:ShowdayEvent)=>discovery==="무료 공연·행사" ? !eventPerformanceEnded(e) : !eventIsUnavailable(e))
         .filter((e:ShowdayEvent)=>eventTimingMatches(e,timing,customDate))
         .filter((e:ShowdayEvent)=>eventGenreMatches(e,genre))
         .filter((e:ShowdayEvent)=>eventDiscoveryMatches(e,discovery,price))
@@ -475,6 +475,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         companion={companion}
         summary={summary}
         locationMsg={locationMsg}
+        freeMode={discovery==="무료 공연·행사"}
         onClose={()=>{setSearched(false);onSearchStateChange?.(false)}}
       />}
     </div>
@@ -652,7 +653,7 @@ function showSubLabel(show:Show){
 
 const FREE_ALERTS_KEY="showday:free-open-alerts:v1";
 type FreeOpenAlert={
-  key:string; title:string; url?:string; imageUrl?:string; venue?:string; dateText?:string; applyStartDate?:string; applyEndDate?:string; savedAt:string;
+  key:string; title:string; url?:string; imageUrl?:string; venue?:string; dateText?:string; applyStartDate?:string; applyEndDate?:string; status?:FreeApplyState; savedReason?:string; savedAt:string;
 };
 function parseLooseDate(value?:string|null){
   if(!value)return null;
@@ -670,31 +671,53 @@ function startOfToday(){const d=new Date();return new Date(d.getFullYear(),d.get
 function dayDiffFromToday(value?:string|null){const d=parseLooseDate(value);if(!d)return null;return Math.ceil((d.getTime()-startOfToday().getTime())/86400000)}
 function isFreeEvent(e:ShowdayEvent){return Boolean(e.isFree)||/무료/.test(e.priceText||"")}
 function eventStatusText(e:ShowdayEvent){return String(e.status||"")}
-function eventIsUnavailable(e:ShowdayEvent){
+type FreeApplyState="open"|"soon"|"unknown"|"closed";
+function eventPerformanceEnded(e:ShowdayEvent){
   const status=eventStatusText(e);
-  if(/종료|완료|취소|마감/.test(status))return true;
+  if(/취소|행사종료|공연종료|운영종료|완료/.test(status))return true;
   const end=parseLooseDate(e.endDate);
-  if(end&&end.getTime()<startOfToday().getTime())return true;
+  return Boolean(end&&end.getTime()<startOfToday().getTime());
+}
+function eventIsUnavailable(e:ShowdayEvent){
+  if(eventPerformanceEnded(e))return true;
+  const status=eventStatusText(e);
+  if(/마감|접수종료|신청종료|예약종료/.test(status))return true;
   if(isFreeEvent(e)){
     const applyEnd=parseLooseDate(e.applyEndDate);
     if(applyEnd&&applyEnd.getTime()<startOfToday().getTime())return true;
   }
   return false;
 }
-function freeEventActionState(e:ShowdayEvent){
-  if(!isFreeEvent(e))return null;
+function freeApplyState(e:ShowdayEvent):FreeApplyState{
+  const status=eventStatusText(e);
   const startDiff=dayDiffFromToday(e.applyStartDate);
   const endDiff=dayDiffFromToday(e.applyEndDate);
-  if(startDiff!==null&&startDiff>0){
-    return {tone:"soon" as const,label:`오픈 D-${startDiff}`,detail:e.applyStartDate?`신청 ${e.applyStartDate} 시작`:"신청 예정",action:"알림받기"};
+  if(/마감|접수종료|신청종료|예약종료/.test(status))return "closed";
+  if(endDiff!==null&&endDiff<0)return "closed";
+  if(startDiff!==null&&startDiff>0)return "soon";
+  if(/접수중|신청중|예약중/.test(status))return "open";
+  if(startDiff!==null&&startDiff<=0&&endDiff!==null&&endDiff>=0)return "open";
+  return "unknown";
+}
+function showFreeApplyState(show:Show):FreeApplyState{
+  if(show.tags?.some(t=>/티켓오픈임박|오픈예정/.test(t)))return "soon";
+  return "unknown";
+}
+function freeEventActionState(e:ShowdayEvent){
+  if(!isFreeEvent(e))return null;
+  const state=freeApplyState(e);
+  const startDiff=dayDiffFromToday(e.applyStartDate);
+  const endDiff=dayDiffFromToday(e.applyEndDate);
+  if(state==="soon"){
+    return {state,tone:"soon" as const,label:startDiff!==null?`신청예정 D-${startDiff}`:"신청예정",detail:e.applyStartDate?`신청 ${e.applyStartDate} 오픈`:"공식 신청 일정 확인 중",action:"오픈 알림받기"};
   }
-  if(endDiff!==null&&endDiff>=0){
-    return {tone:endDiff<=1?"urgent" as const:"open" as const,label:endDiff===0?"오늘 마감":endDiff===1?"내일 마감":"지금 신청 가능",detail:e.applyEndDate?`신청 마감 ${e.applyEndDate}`:"신청 가능",action:"빠른예매"};
+  if(state==="open"){
+    return {state,tone:endDiff!==null&&endDiff<=1?"urgent" as const:"open" as const,label:endDiff===0?"오늘 신청마감":endDiff===1?"내일 신청마감":"지금 신청 가능",detail:e.applyEndDate?`신청마감 ${e.applyEndDate}`:"현재 신청 가능",action:"지금 신청하기"};
   }
-  if(e.bookingUrl||e.officialUrl){
-    return {tone:"open" as const,label:"무료 신청 가능",detail:"신청 페이지에서 마감 여부를 확인하세요",action:"빠른예매"};
+  if(state==="closed"){
+    return {state,tone:"closed" as const,label:"신청마감",detail:e.applyEndDate?`신청 ${e.applyEndDate} 마감`:"현재 신청이 종료된 공연입니다",action:"다음 무료공연 알림받기"};
   }
-  return {tone:"info" as const,label:"무료",detail:"신청 일정 확인 필요",action:"알림받기"};
+  return {state,tone:"info" as const,label:"신청일정 미공개",detail:"공식 예매·신청 일정이 확인되면 알려드려요",action:"예매일정 알림받기"};
 }
 function loadFreeAlerts(){
   if(typeof window==="undefined")return [] as FreeOpenAlert[];
@@ -840,29 +863,51 @@ function FreeOpenAlertButton({event:e}:{event:ShowdayEvent}){
     }
     const current=loadFreeAlerts().filter(v=>v.key!==key);
     if(saved){saveFreeAlerts(current);setSaved(false);setMsg("알림 저장 취소");return;}
-    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl||undefined,imageUrl:e.imageUrl||undefined,venue:e.venue||e.address||e.region||undefined,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")||undefined,applyStartDate:e.applyStartDate||undefined,applyEndDate:e.applyEndDate||undefined,savedAt:new Date().toISOString()});
+    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl||undefined,imageUrl:e.imageUrl||undefined,venue:e.venue||e.address||e.region||undefined,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")||undefined,applyStartDate:e.applyStartDate||undefined,applyEndDate:e.applyEndDate||undefined,status:state.state,savedReason:state.action,savedAt:new Date().toISOString()});
     saveFreeAlerts(current.slice(0,100));setSaved(true);setMsg("MY에 저장됨");
   }
   const href=e.bookingUrl||e.officialUrl;
-  const openNow=state.action==="빠른예매"&&Boolean(href);
+  const openNow=state.state==="open"&&Boolean(href);
   return <div className="relative z-10 col-span-2 mt-1 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-2.5">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-1.5"><span className={`rounded-full px-2 py-1 text-[10px] font-black ${state.tone==="urgent"?"bg-[#ffe5df] text-[#a33b25]":state.tone==="soon"?"bg-[#fff0cf] text-[#8a5a00]":"bg-white text-[#8b5b3d]"}`}>{state.label}</span><span className="text-[10px] font-bold text-[#8f8177]">{state.detail}</span></div>
+        <div className="flex flex-wrap items-center gap-1.5"><span className={`rounded-full px-2 py-1 text-[10px] font-black ${state.tone==="urgent"?"bg-[#ffe5df] text-[#a33b25]":state.tone==="soon"?"bg-[#fff0cf] text-[#8a5a00]":state.tone==="closed"?"bg-[#eee9e4] text-[#76685e]":"bg-white text-[#8b5b3d]"}`}>{state.label}</span><span className="text-[10px] font-bold text-[#8f8177]">{state.detail}</span></div>
         {msg&&<p className="mt-1 text-[10px] font-black text-[#9b5d32]">{msg}</p>}
       </div>
       <div className="flex items-center gap-1.5">
-        {!openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"알림 저장됨":"오픈 알림 저장"}</button>}
-        {openNow&&href&&<a href={href} target="_blank" rel="noopener noreferrer" onClick={ev=>ev.stopPropagation()} className="inline-flex min-h-[36px] items-center rounded-full bg-[#251b16] px-3 py-1.5 text-[10px] font-black text-white">빠른예매 ↗</a>}
-        {openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"MY 저장됨":"마감 알림 저장"}</button>}
+        {!openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"MY 알림 저장됨":state.action}</button>}
+        {openNow&&href&&<a href={href} target="_blank" rel="noopener noreferrer" onClick={ev=>ev.stopPropagation()} className="inline-flex min-h-[36px] items-center rounded-full bg-[#251b16] px-3 py-1.5 text-[10px] font-black text-white">지금 신청하기 ↗</a>}
+        {openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"MY 알림 저장됨":"마감 전 알림받기"}</button>}
       </div>
     </div>
     <p className="mt-1.5 text-[9px] leading-4 text-[#9a897d]">SHOWDAY는 신청 가능 시점을 안내하고 공식 신청·예매 페이지로 연결합니다. 실제 좌석·마감 여부는 해당 기관 페이지에서 최종 확인하세요.</p>
   </div>;
 }
 
-function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
+function FreeShowAlertButton({show}:{show:Show}){
+  if(!/무료/.test(show.priceLabel||""))return null;
+  const state=showFreeApplyState(show);
+  const key=`free:kopis:${show.id}`;
+  const [saved,setSaved]=useState(false);
+  const [msg,setMsg]=useState("");
+  useEffect(()=>{setSaved(loadFreeAlerts().some(v=>v.key===key))},[key]);
+  async function saveAlert(ev:React.MouseEvent<HTMLButtonElement>){
+    ev.preventDefault();ev.stopPropagation();
+    if(isAuthConfigured){const supabase=createClient();if(supabase){const {data}=await supabase.auth.getUser();if(!data.user){await signInWithKakao();return;}}}
+    const current=loadFreeAlerts().filter(v=>v.key!==key);
+    if(saved){saveFreeAlerts(current);setSaved(false);setMsg("알림 저장 취소");return;}
+    current.unshift({key,title:show.title,url:`/show/${encodeURIComponent(show.id)}`,imageUrl:show.posterUrl||undefined,venue:show.venue||undefined,dateText:show.dateLabel||undefined,status:state,savedReason:state==="soon"?"오픈 알림받기":"예매일정 알림받기",savedAt:new Date().toISOString()});
+    saveFreeAlerts(current.slice(0,100));setSaved(true);setMsg("MY에 저장됨");
+  }
+  return <div className="relative z-10 mt-2 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-2.5 sm:mx-0">
+    <div className="flex flex-wrap items-center justify-between gap-2"><div><span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-[#8b5b3d]">{state==="soon"?"곧 신청 오픈":"신청일정 미공개"}</span><p className="mt-1 text-[9px] leading-4 text-[#8f8177]">{state==="soon"?"공식 오픈예정 표시가 확인되었습니다.":"KOPIS 공연정보에는 신청 시작일·시간이 없어 임의로 예매 가능으로 표시하지 않습니다."}</p>{msg&&<p className="mt-1 text-[9px] font-black text-[#9b5d32]">{msg}</p>}</div><button type="button" onClick={saveAlert} className={`min-h-[34px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"MY 알림 저장됨":state==="soon"?"오픈 알림받기":"예매일정 알림받기"}</button></div>
+  </div>;
+}
+
+type FreeApplyTab="전체 무료"|"지금 신청 가능"|"곧 신청 오픈"|"일정 미공개"|"신청마감";
+function SearchResults({shows,events,loading,companion,summary,locationMsg,freeMode,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;freeMode:boolean;onClose:()=>void}){
   const [tab,setTab]=useState<ResultTab>("전체");
+  const [freeApplyTab,setFreeApplyTab]=useState<FreeApplyTab>("지금 신청 가능");
   const [subTab,setSubTab]=useState("전체");
   const [resultJumpSeq,setResultJumpSeq]=useState(0);
   const [sortMode,setSortMode]=useState<"추천순"|"가까운순"|"날짜순">("추천순");
@@ -874,11 +919,23 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     "축제·행사":events.filter(e=>groupLabel(e)==="축제·행사").length,
   };
 
-  const baseEvents=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
+  const freeTabState=(label:FreeApplyTab):FreeApplyState|null=>label==="지금 신청 가능"?"open":label==="곧 신청 오픈"?"soon":label==="일정 미공개"?"unknown":label==="신청마감"?"closed":null;
+  const freeCounts={
+    "전체 무료":events.filter(isFreeEvent).length+shows.filter(s=>/무료/.test(s.priceLabel||"")).length,
+    "지금 신청 가능":events.filter(e=>isFreeEvent(e)&&freeApplyState(e)==="open").length,
+    "곧 신청 오픈":events.filter(e=>isFreeEvent(e)&&freeApplyState(e)==="soon").length+shows.filter(s=>/무료/.test(s.priceLabel||"")&&showFreeApplyState(s)==="soon").length,
+    "일정 미공개":events.filter(e=>isFreeEvent(e)&&freeApplyState(e)==="unknown").length+shows.filter(s=>/무료/.test(s.priceLabel||"")&&showFreeApplyState(s)==="unknown").length,
+    "신청마감":events.filter(e=>isFreeEvent(e)&&freeApplyState(e)==="closed").length,
+  } satisfies Record<FreeApplyTab,number>;
+  const selectedFreeState=freeMode?freeTabState(freeApplyTab):null;
+  const freeFilteredEvents=!freeMode||selectedFreeState===null?events:events.filter(e=>!isFreeEvent(e)||freeApplyState(e)===selectedFreeState);
+  const freeFilteredShows=!freeMode||selectedFreeState===null?shows:shows.filter(show=>/무료/.test(show.priceLabel||"")&&showFreeApplyState(show)===selectedFreeState);
+
+  const baseEvents=tab==="전체"?freeFilteredEvents:freeFilteredEvents.filter(e=>groupLabel(e)===tab);
   const rawEventFiltered=tab==="전체"||subTab==="전체"||subTab===`전체 ${tab}`
     ?baseEvents
     :baseEvents.filter(e=>eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===subTab);
-  const rawShowFiltered=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?shows.filter(s=>showSubLabel(s)===subTab):shows;
+  const rawShowFiltered=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?freeFilteredShows.filter(s=>showSubLabel(s)===subTab):freeFilteredShows;
   const eventFiltered=[...rawEventFiltered].sort((a,b)=>{
     if(sortMode==="가까운순") return eventDistanceKm(a)-eventDistanceKm(b);
     if(sortMode==="날짜순") return String(a.startDate||"99999999").localeCompare(String(b.startDate||"99999999"));
@@ -892,7 +949,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
   const order=tab==="전체"?resultGroupOrder(companion):[tab];
   const visibleTotal=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"
     ?eventFiltered.length+showFiltered.length
-    :tab==="전체"?counts["전체"]:eventFiltered.length+(tab==="공연"?shows.length:0);
+    :tab==="전체"?eventFiltered.length+showFiltered.length:eventFiltered.length+(tab==="공연"?showFiltered.length:0);
   const subTabs=tab==="전체"?[]:SUB_TABS[tab];
   const preferred=tab==="전체"?resultGroupOrder(companion)[0]:tab;
 
@@ -989,6 +1046,15 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="검색 결과 대분류">
         {RESULT_TABS.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`min-h-[40px] rounded-full border px-3 py-2 text-[11px] font-black sm:text-xs ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-1.5 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
       </div>
+
+      {freeMode&&<div className="mt-3 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-black text-paper">무료공연 신청·예매 상태</p><p className="mt-0.5 text-[10px] leading-4 text-muted">공연일이 아니라 실제 신청 가능 여부를 먼저 확인합니다. 신청마감 공연은 기본 화면에서 제외됩니다.</p></div><a href="/my?tab=alerts" className="text-[10px] font-black text-[#a65f31]">MY 알림 관리 →</a></div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{(["지금 신청 가능","곧 신청 오픈","일정 미공개","신청마감","전체 무료"] as FreeApplyTab[]).map(item=><button type="button" key={item} onClick={()=>{setFreeApplyTab(item);setResultJumpSeq(v=>v+1)}} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black sm:text-[11px] ${freeApplyTab===item?"border-[#251b16] bg-[#251b16] text-white":"border-[#dfc8b7] bg-white text-[#755f50]"}`}>{item}<span className="ml-1.5 opacity-70">{freeCounts[item]}</span></button>)}</div>
+        {freeApplyTab==="지금 신청 가능"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">⚡ 공식 신청기간이 확인되어 현재 신청할 수 있는 무료공연만 보여드립니다.</p>}
+        {freeApplyTab==="곧 신청 오픈"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">🔔 신청 시작일이 확인된 공연입니다. 카드에서 오픈 알림을 MY SHOWDAY에 저장하세요.</p>}
+        {freeApplyTab==="일정 미공개"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">📅 공식 신청일정이 아직 데이터에 없습니다. 임의 시간을 만들지 않고 일정 확인 알림으로 저장합니다.</p>}
+        {freeApplyTab==="신청마감"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">마감된 무료공연입니다. 일반 결과에서는 숨기고, 다음 신청 기회를 위한 알림만 받을 수 있습니다.</p>}
+      </div>}
 
       {subTabs.length>0&&<div className="mt-2 rounded-xl bg-surface-raised/65 p-2.5">
         <div className="mb-2 flex items-center justify-between gap-3"><p className="text-[10px] font-black tracking-[.08em] text-muted">세부 분류</p><span className="text-[10px] text-muted">원하는 항목만 바로 보기</span></div>
@@ -1112,6 +1178,7 @@ function ResultCard({show}:{show:Show}){
     <a href={href} className="absolute inset-0 z-0" aria-label={`${show.title} 상세 보기`}/>
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div>
     <div className="pointer-events-none relative z-[1] sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div>
+    {/무료/.test(show.priceLabel||"")&&<div className="relative z-10 col-span-2 sm:mt-1"><FreeShowAlertButton show={show}/></div>}
     <div className="relative z-10 col-span-2 mt-2 flex justify-end sm:absolute sm:right-2 sm:top-2 sm:mt-0"><SocialActions itemKey={`show:${show.id}`} title={show.title} url={typeof window!=="undefined"?`${window.location.origin}${href}`:href} imageUrl={show.posterUrl} kind="공연" meta={[show.venue,show.dateLabel].filter(Boolean).join(" · ")}/></div>
   </article>;
 }
