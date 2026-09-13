@@ -569,9 +569,63 @@ function resultTitle(companion:Companion){
   if(companion==="혼자") return "혼자 즐기기 좋은 순서로 찾았어요";
   return "선택한 조건에 맞는 결과예요";
 }
+
+type ResultTab="전체"|"공연"|"전시"|"체험·교육"|"축제·행사";
+const RESULT_TABS:ResultTab[]=["전체","공연","전시","체험·교육","축제·행사"];
+const SUB_TABS:Record<Exclude<ResultTab,"전체">,string[]>={
+  "공연":["전체 공연","콘서트","뮤지컬","연극","클래식","무용","국악·전통","기타"],
+  "전시":["전체 전시","미술관·갤러리","박물관","사진·미디어","특별전·기획전","기타"],
+  "체험·교육":["전체","전시·관람","문화행사","교육·체험","공원·탐방","산림·여가","기타"],
+  "축제·행사":["전체","지역축제","문화행사","계절·야외","마켓·지역행사","기타"],
+};
+function eventSearchText(e:ShowdayEvent){
+  return `${e.category||""} ${e.subcategory||""} ${e.title||""} ${e.description||""} ${e.venue||""} ${e.address||""} ${e.organizer||""}`.toLowerCase();
+}
+function eventSubLabel(e:ShowdayEvent,tab:Exclude<ResultTab,"전체">){
+  const text=eventSearchText(e);
+  if(tab==="공연"){
+    if(/콘서트|대중음악|가요|밴드|재즈/.test(text)) return "콘서트";
+    if(/뮤지컬/.test(text)) return "뮤지컬";
+    if(/연극|연희/.test(text)) return "연극";
+    if(/클래식|오페라|관현악|실내악|리사이틀|독주|독창/.test(text)) return "클래식";
+    if(/무용|발레|댄스/.test(text)) return "무용";
+    if(/국악|전통|판소리|사물놀이|풍물/.test(text)) return "국악·전통";
+    return "기타";
+  }
+  if(tab==="전시"){
+    if(/사진|미디어아트|미디어\s*아트|영상전|디지털아트/.test(text)) return "사진·미디어";
+    if(/특별전|기획전|비엔날레|회고전/.test(text)) return "특별전·기획전";
+    if(/박물관|museum/.test(text)) return "박물관";
+    if(/미술관|갤러리|아트뮤지엄|gallery/.test(text)) return "미술관·갤러리";
+    return "기타";
+  }
+  if(tab==="체험·교육"){
+    if(/산림|숲|휴양림|수목원|산림교육|숲체험/.test(text)) return "산림·여가";
+    if(/공원|탐방|생태|둘레길|걷기|해설투어|도보투어/.test(text)) return "공원·탐방";
+    if(/전시관람|관람|도슨트|해설|투어/.test(text) && !/교육|강좌|워크숍|체험/.test(text)) return "전시·관람";
+    if(/문화행사|문화프로그램|공연관람|예술행사/.test(text)) return "문화행사";
+    if(/교육|체험|강좌|워크숍|클래스|교실|아카데미|만들기|공예/.test(text)) return "교육·체험";
+    return "기타";
+  }
+  if(/플리마켓|마켓|장터|지역행사|시민행사|거리행사/.test(text)) return "마켓·지역행사";
+  if(/봄|여름|가을|겨울|야외|공원|벚꽃|단풍|빛축제|불꽃/.test(text)) return "계절·야외";
+  if(/문화행사|문화제|예술제|공연행사/.test(text)) return "문화행사";
+  if(/축제|페스티벌|festival/.test(text)) return "지역축제";
+  return "기타";
+}
+function showSubLabel(show:Show){
+  const text=`${show.genre||""} ${show.title||""} ${(show.tags||[]).join(" ")}`.toLowerCase();
+  if(/콘서트|대중음악|가요|밴드|재즈/.test(text)) return "콘서트";
+  if(/뮤지컬/.test(text)) return "뮤지컬";
+  if(/연극|연희/.test(text)) return "연극";
+  if(/클래식|오페라|관현악|실내악|리사이틀|독주|독창/.test(text)) return "클래식";
+  if(/무용|발레|댄스/.test(text)) return "무용";
+  if(/국악|전통|판소리|사물놀이|풍물/.test(text)) return "국악·전통";
+  return "기타";
+}
 function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
-  const [tab,setTab]=useState("전체");
-  const tabs=["전체","공연","전시","체험·교육","축제·행사"] as const;
+  const [tab,setTab]=useState<ResultTab>("전체");
+  const [subTab,setSubTab]=useState("전체");
   const counts={
     "전체":events.length+shows.length,
     "공연":events.filter(e=>groupLabel(e)==="공연").length+shows.length,
@@ -579,45 +633,58 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     "체험·교육":events.filter(e=>groupLabel(e)==="체험·교육").length,
     "축제·행사":events.filter(e=>groupLabel(e)==="축제·행사").length,
   };
-  const filtered=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
+  const baseEvents=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
+  const eventFiltered=tab==="전체"||subTab==="전체"||subTab===`전체 ${tab}`
+    ?baseEvents
+    :baseEvents.filter(e=>eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===subTab);
+  const showFiltered=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?shows.filter(s=>showSubLabel(s)===subTab):shows;
   const order=tab==="전체"?resultGroupOrder(companion):[tab];
-  const groups=order.map(label=>({label,items:filtered.filter(e=>groupLabel(e)===label)})).filter(g=>g.items.length);
+  const groups=order.map(label=>({label,items:eventFiltered.filter(e=>groupLabel(e)===label)})).filter(g=>g.items.length);
   const showKopis=tab==="전체"||tab==="공연";
-  const visibleTotal=counts[tab as keyof typeof counts];
-  function chooseTab(next:(typeof tabs)[number]){
+  const visibleTotal=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?eventFiltered.length+showFiltered.length:tab==="전체"?counts["전체"]:eventFiltered.length+(tab==="공연"?shows.length:0);
+  const subTabs=tab==="전체"?[]:SUB_TABS[tab];
+  const subCounts=(label:string)=>{
+    if(tab==="공연"){
+      if(label==="전체 공연") return counts["공연"];
+      return events.filter(e=>groupLabel(e)==="공연"&&eventSubLabel(e,"공연")===label).length+shows.filter(s=>showSubLabel(s)===label).length;
+    }
+    if(tab==="전체")return counts["전체"];
+    if(label==="전체")return counts[tab];
+    return events.filter(e=>groupLabel(e)===tab&&eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===label).length;
+  };
+  function chooseTab(next:ResultTab){
     setTab(next);
+    setSubTab(next==="공연"?"전체 공연":"전체");
     window.setTimeout(()=>document.getElementById("search-results-list")?.scrollIntoView({behavior:"smooth",block:"start"}),0);
   }
-  const tabsUi=(compact=false)=><>{tabs.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`${compact?"w-full justify-between rounded-xl":"min-h-[44px] rounded-xl sm:min-h-0 sm:rounded-full"} inline-flex items-center border px-3 py-2.5 text-[11px] font-black sm:text-xs ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-2 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}</>;
-
   return <div id="search-results" className="mt-7 scroll-mt-20 rounded-2xl border border-line bg-white/60 p-4 sm:p-6">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p><h3 className="mt-1 text-lg font-black text-paper">{resultTitle(companion)}</h3><p className="mt-1 text-xs leading-5 text-muted">{summary} · {loading?"검색 중":`총 ${visibleTotal}건`}</p></div><button type="button" onClick={onClose} className="self-start rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted">검색 결과 접기</button></div>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p><h3 className="mt-1 text-lg font-black text-paper">{resultTitle(companion)}</h3><p className="mt-1 text-xs leading-5 text-muted">{summary} · {loading?"검색 중":`현재 ${visibleTotal}건`}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-paper">↑ 검색조건</button><button type="button" onClick={onClose} className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted">검색 결과 접기</button></div></div>
     {locationMsg&&<p className="mt-4 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold text-muted">{locationMsg}</p>}
 
-    <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:hidden" role="tablist" aria-label="검색 결과 종류">{tabsUi()}</div>
-
-    <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_170px] lg:gap-7">
-      <div id="search-results-list" className="scroll-mt-24 min-w-0">
-        {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:visibleTotal===0?<Empty/>:<div className="space-y-9">
-          {groups.map(g=><ResultGroup key={g.label} title={companion==="아이와"&&g.label==="체험·교육"?"아이와 하기 좋은 체험·교육":companion==="연인과"&&g.label==="전시"?"연인과 보기 좋은 전시·미술관":g.label} items={g.items}/>) }
-          {showKopis&&shows.length>0&&<div id="result-kopis"><div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold tracking-[.12em] text-gold">KOPIS</p><h4 className="mt-1 text-base font-black text-paper">관람 가능한 공연</h4></div><span className="text-[11px] text-muted">{shows.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{shows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}
-        </div>}
-      </div>
-
-      <aside className="hidden lg:block">
-        <div className="sticky top-24 rounded-2xl border border-line bg-white p-3 shadow-sm">
-          <p className="px-2 pb-2 text-[10px] font-black tracking-[.12em] text-gold">결과 바로가기</p>
-          <div className="grid gap-1.5" role="tablist" aria-label="검색 결과 바로가기">{tabsUi(true)}</div>
-          <p className="mt-3 border-t border-line px-2 pt-3 text-[10px] leading-4 text-muted">누구와 함께하는지에 따라 적합한 카테고리와 콘텐츠가 먼저 보입니다.</p>
-        </div>
-      </aside>
+    <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="검색 결과 종류">
+      {RESULT_TABS.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`min-h-[42px] rounded-full border px-3.5 py-2 text-xs font-black ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-2 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
     </div>
 
-    <div className="mt-8 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
+    {subTabs.length>0&&<div className="mt-3 rounded-2xl bg-surface-raised/55 p-3"><p className="mb-2 text-[10px] font-black tracking-[.1em] text-muted">세부 분류</p><div className="flex flex-wrap gap-2">{subTabs.map(st=><button type="button" key={st} onClick={()=>setSubTab(st)} className={`min-h-[38px] rounded-full border px-3 py-2 text-[11px] font-bold ${subTab===st?"border-gold bg-[#fff4e7] text-paper":"border-line bg-white text-muted"}`}>{st}<span className="ml-1.5 text-[10px] opacity-70">{subCounts(st)}</span></button>)}</div></div>}
+
+    <div id="search-results-list" className="mt-6 scroll-mt-24 min-w-0">
+      {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:visibleTotal===0?<Empty/>:<div className="space-y-9">
+        {groups.map(g=><ResultGroup key={g.label} title={companion==="아이와"&&g.label==="체험·교육"?"아이와 하기 좋은 체험·교육":companion==="연인과"&&g.label==="전시"?"연인과 보기 좋은 전시·미술관":g.label} items={g.items}/>) }
+        {showKopis&&showFiltered.length>0&&<div id="result-kopis"><div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold tracking-[.12em] text-gold">KOPIS</p><h4 className="mt-1 text-base font-black text-paper">관람 가능한 공연</h4></div><span className="text-[11px] text-muted">{showFiltered.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{showFiltered.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}
+      </div>}
+    </div>
+
+    <div className="mt-8 flex justify-center"><button type="button" onClick={()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-full border border-line bg-white px-4 py-2 text-xs font-black text-paper hover:border-gold">↑ 상단 검색으로</button></div>
+    <div className="mt-5 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
   </div>
 }
 function ResultGroup({title,items}:{title:string;items:ShowdayEvent[]}){return <div><div className="mb-4 flex items-end justify-between"><h4 className="text-base font-black text-paper">{title}</h4><span className="text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
-function EventCard({event:e}:{event:ShowdayEvent}){const href=e.bookingUrl||e.officialUrl;return <article className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 sm:grid-cols-[92px_minmax(0,1fr)]"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div><div className="min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<a href={href} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex text-[11px] font-bold text-paper hover:text-gold">상세 확인 →</a>}</div></article>}
+function EventCard({event:e}:{event:ShowdayEvent}){
+  const href=e.bookingUrl||e.officialUrl;
+  const body=<><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised"><>{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</></div><div className="min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div></>;
+  const cls="group grid min-w-0 grid-cols-[82px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-[#fffaf4] hover:shadow-md sm:grid-cols-[96px_minmax(0,1fr)]";
+  return href?<a href={href} target="_blank" rel="noopener noreferrer" className={cls} aria-label={`${e.title} 상세 보기`}>{body}</a>:<article className={cls}>{body}</article>;
+}
 
 type SpeechRecognitionLike = {
   lang:string;
