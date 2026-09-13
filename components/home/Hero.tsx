@@ -655,26 +655,86 @@ function saveSavedItems(items:Set<string>){
   try{localStorage.setItem(SAVED_ITEMS_KEY,JSON.stringify([...items]))}catch{}
 }
 function SocialActions({itemKey,title,url}:{itemKey:string;title:string;url?:string}){
-  const [saved,setSaved]=useState(false);
+  const [liked,setLiked]=useState(false);
   const [shareMsg,setShareMsg]=useState("");
-  useEffect(()=>{setSaved(loadSavedItems().has(itemKey))},[itemKey]);
-  function toggleSaved(e:React.MouseEvent<HTMLButtonElement>){
-    e.preventDefault();e.stopPropagation();
+  useEffect(()=>{setLiked(loadSavedItems().has(itemKey))},[itemKey]);
+
+  function toggleLiked(e:React.MouseEvent<HTMLButtonElement>){
+    e.preventDefault();
+    e.stopPropagation();
     const items=loadSavedItems();
-    if(items.has(itemKey)){items.delete(itemKey);setSaved(false)}else{items.add(itemKey);setSaved(true)}
+    if(items.has(itemKey)){
+      items.delete(itemKey);
+      setLiked(false);
+    }else{
+      items.add(itemKey);
+      setLiked(true);
+    }
     saveSavedItems(items);
   }
+
+  async function copyShareUrl(target:string){
+    if(!target)return false;
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(target);
+        return true;
+      }
+    }catch{}
+    try{
+      const input=document.createElement("textarea");
+      input.value=target;
+      input.setAttribute("readonly","");
+      input.style.position="fixed";
+      input.style.opacity="0";
+      document.body.appendChild(input);
+      input.select();
+      const ok=document.execCommand("copy");
+      document.body.removeChild(input);
+      return ok;
+    }catch{return false}
+  }
+
   async function share(e:React.MouseEvent<HTMLButtonElement>){
-    e.preventDefault();e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     const target=url || (typeof window!=="undefined"?window.location.href:"");
     try{
-      if(navigator.share){await navigator.share({title,text:title,url:target});return}
-      if(navigator.clipboard&&target){await navigator.clipboard.writeText(target);setShareMsg("복사됨");window.setTimeout(()=>setShareMsg(""),1400);return}
-    }catch{}
+      if(typeof navigator!=="undefined"&&navigator.share){
+        await navigator.share({title,text:title,url:target});
+        setShareMsg("공유됨");
+        window.setTimeout(()=>setShareMsg(""),1200);
+        return;
+      }
+    }catch(err){
+      if((err as {name?:string})?.name==="AbortError")return;
+    }
+    const copied=await copyShareUrl(target);
+    setShareMsg(copied?"링크 복사":"공유 실패");
+    window.setTimeout(()=>setShareMsg(""),1500);
   }
-  return <div className="flex items-center gap-1.5" aria-label="관심·공유">
-    <button type="button" onClick={toggleSaved} aria-pressed={saved} aria-label={saved?`${title} 관심 해제`:`${title} 관심 저장`} className={`inline-flex min-h-[34px] items-center gap-1 rounded-full border px-2.5 py-1.5 text-[10px] font-black shadow-sm transition ${saved?"border-gold bg-[#fff4e7] text-gold":"border-line bg-white/95 text-paper hover:border-gold"}`}><HeartIcon filled={saved} className="h-3.5 w-3.5"/><span>{saved?"관심됨":"관심"}</span></button>
-    <button type="button" onClick={share} aria-label={`${title} 공유`} className="inline-flex min-h-[34px] items-center rounded-full border border-line bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-paper shadow-sm transition hover:border-gold">{shareMsg||"공유"}</button>
+
+  return <div className="flex items-center gap-1.5" aria-label="좋아요·공유">
+    <button
+      type="button"
+      onClick={toggleLiked}
+      aria-pressed={liked}
+      aria-label={liked?`${title} 좋아요 취소`:`${title} 좋아요`}
+      title={liked?"좋아요 취소":"좋아요"}
+      className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-black shadow-sm transition active:scale-[0.98] ${liked?"border-gold bg-[#fff1e3] text-gold":"border-line bg-white/95 text-paper hover:border-gold hover:bg-[#fffaf4]"}`}
+    >
+      <HeartIcon filled={liked} className="h-4 w-4"/>
+      <span>{liked?"좋아요됨":"좋아요"}</span>
+    </button>
+    <button
+      type="button"
+      onClick={share}
+      aria-label={`${title} 공유하기`}
+      title="공유하기"
+      className="inline-flex min-h-[38px] items-center gap-1 rounded-full border border-line bg-white/95 px-3 py-1.5 text-[11px] font-black text-paper shadow-sm transition hover:border-gold hover:bg-[#fffaf4] active:scale-[0.98]"
+    >
+      <span aria-hidden="true">↗</span><span>{shareMsg||"공유"}</span>
+    </button>
   </div>
 }
 
