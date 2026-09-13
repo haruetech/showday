@@ -1,19 +1,17 @@
-SHOWDAY Ticket Open Engine 1차
+SHOWDAY Ticket Open Engine 2차 보완
 
-덮어쓰기/추가:
-1) src/app/artists/page.tsx
-2) src/components/home/InterestArtistsSection.tsx
-3) src/app/my/page.tsx
-4) src/app/api/ticket-info/route.ts (새 파일)
+덮어쓰기/추가 파일 3개
+1) src/components/home/InterestArtistsSection.tsx
+2) src/app/my/page.tsx
+3) src/app/api/ticket-info/route.ts
 
-기능:
-- 관심 아티스트 예정공연 + 공연일정
-- 공식 예매처 URL이 있으면 서버에서 공지 본문을 확인해 선예매/일반예매/휠체어석 날짜·시간 추출 시도
-- 확인된 값만 표시, 추출 실패 시 '예매일정 확인'으로 안내
-- 티켓 알림: 일정 발표 / 7일 전 / 하루 전 / 1시간 전 / 10분 전 / 오픈 즉시
-- MY SHOWDAY와 동일 localStorage 알림설정 공유
+보완 내용
+- 관심 아티스트 링크 /artists?artist=아티스트명 자동 선택
+- 티켓 알림을 단일 시점이 아니라 복수 시점 동시 선택으로 변경
+- 일정 발표 즉시 / 7일 전 / 3일 전 / 하루 전 / 3시간 전 / 1시간 전 / 10분 전 / 오픈 즉시
+- 기존 ticketLead 저장값 자동 호환
+- NOL/인터파크 등 예매 공지의 AM/PM 시간을 24시간 형태로 정규화
+- 예매처 redirect가 허용된 도메인 안에서만 이동하도록 보안 강화
+- 예매처 본문에서 일정 추출 실패 시 임의 시간을 생성하지 않음
 
-주의:
-- 예매처가 봇 접근을 막거나 JS로만 공지를 렌더링하면 자동 추출되지 않을 수 있음.
-- 실제 푸시/카카오 자동 발송은 별도 스케줄러/발송 서버 연결이 필요함.
-- Hero.tsx는 포함하지 않았으므로 현재 무료공연 수정본을 그대로 유지함.
+이번 ZIP은 Hero.tsx를 포함하지 않습니다. 현재 무료공연 검색/신청상태 수정본을 덮어쓰지 않습니다.

@@ -19,18 +19,23 @@ type AlertPrefs = {
   ticketOpen: boolean;
   freeNearby: boolean;
   savedSearch: boolean;
-  ticketLead: "7d" | "1d" | "1h" | "10m";
+  ticketLead?: "7d" | "1d" | "1h" | "10m";
+  ticketLeadTimes: Array<"7d" | "3d" | "1d" | "3h" | "1h" | "10m">;
   ticketAnnouncement?: boolean;
   ticketAtOpen?: boolean;
 };
 
 const ALERT_PREFS_KEY = "showday:alert-prefs:v1";
-const DEFAULT_PREFS: AlertPrefs = { artistNewShow:true, ticketOpen:true, freeNearby:false, savedSearch:false, ticketLead:"7d", ticketAnnouncement:true, ticketAtOpen:true };
+const DEFAULT_PREFS: AlertPrefs = { artistNewShow:true, ticketOpen:true, freeNearby:false, savedSearch:false, ticketLeadTimes:["7d","1d","1h","10m"], ticketAnnouncement:true, ticketAtOpen:true };
 
 function safePrefs(): AlertPrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
-  try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(ALERT_PREFS_KEY) || "{}") }; }
-  catch { return DEFAULT_PREFS; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(ALERT_PREFS_KEY) || "{}");
+    const legacy = raw?.ticketLead ? [raw.ticketLead] : [];
+    const leadTimes = Array.isArray(raw?.ticketLeadTimes) ? raw.ticketLeadTimes : legacy;
+    return { ...DEFAULT_PREFS, ...raw, ticketLeadTimes: leadTimes.length ? leadTimes : DEFAULT_PREFS.ticketLeadTimes };
+  } catch { return DEFAULT_PREFS; }
 }
 function cleanArtistName(value?: string) {
   if (!value) return "";
@@ -70,7 +75,14 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
   const [notice, setNotice] = useState("");
   const [ticketInfo,setTicketInfo]=useState<Record<string,{loading:boolean;windows:Array<{kind:string;label:string;startText:string;sourceText:string}>;checked:boolean}>>({});
 
-  useEffect(() => { getFollowedArtistIds().then(setFollows); setPrefs(safePrefs()); }, [mode]);
+  useEffect(() => {
+    getFollowedArtistIds().then(setFollows);
+    setPrefs(safePrefs());
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get("artist")?.trim() || "";
+      if (fromUrl) { setQuery(fromUrl); setSearched(fromUrl); setSelectedArtist(fromUrl); }
+    } catch {}
+  }, [mode]);
   useEffect(() => { if (!notice) return; const t=setTimeout(()=>setNotice(""),2200); return()=>clearTimeout(t); }, [notice]);
 
   const allShows = useMemo(() => Array.from(new Map([...shows,...popularShows].map(s=>[s.id,s])).values()), [shows,popularShows]);
@@ -121,6 +133,11 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
     if(mode==="guest"){void signInWithKakao();return;}
     const next={...prefs,...patch};setPrefs(next);localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(next));setNotice("알림 설정을 MY SHOWDAY에 저장했습니다.");
   }
+  function toggleLeadTime(value: AlertPrefs["ticketLeadTimes"][number]) {
+    const has=prefs.ticketLeadTimes.includes(value);
+    const next=has?prefs.ticketLeadTimes.filter(v=>v!==value):[...prefs.ticketLeadTimes,value];
+    saveAlertPrefs({ticketLeadTimes:next});
+  }
 
   return <section id="interest-artists" className="scroll-mt-24 border-t border-line px-4 py-10 sm:px-6 sm:py-14">
     <div className="mx-auto w-full max-w-[1180px]">
@@ -153,7 +170,7 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-line bg-white/[.03] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] text-gold">ALERT SETTINGS</p><h2 className="mt-1 text-lg font-black text-paper">관심 아티스트 알림 연결</h2><p className="mt-1 text-xs leading-5 text-muted">설정값은 MY SHOWDAY와 공유됩니다. 실제 푸시·카카오 발송은 발송 서버가 연결된 항목부터 동작하도록 분리합니다.</p></div><a href="/my?tab=alerts" className="text-xs font-black text-gold">전체 알림 관리 →</a></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><AlertToggle label="새 공연" desc="등록 아티스트 새 공연" checked={prefs.artistNewShow} onChange={v=>saveAlertPrefs({artistNewShow:v})}/><AlertToggle label="티켓 오픈" desc="예매 시작 시점" checked={prefs.ticketOpen} onChange={v=>saveAlertPrefs({ticketOpen:v})}/><AlertToggle label="무료 행사" desc="내 주변 무료 소식" checked={prefs.freeNearby} onChange={v=>saveAlertPrefs({freeNearby:v})}/><AlertToggle label="저장 조건" desc="조건에 맞는 새 소식" checked={prefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/></div>{prefs.ticketOpen&&<div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted"><b className="mr-1 text-paper">티켓 오픈 사전알림</b>{([['7d','7일 전'],['1d','하루 전'],['1h','1시간 전'],['10m','10분 전']] as const).map(([v,label])=><button key={v} onClick={()=>saveAlertPrefs({ticketLead:v})} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketLead===v?"border-gold bg-gold/10 text-gold":"border-line"}`}>{label}</button>)}</div>}</div>
+      <div className="mt-6 rounded-3xl border border-line bg-white/[.03] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] text-gold">ALERT SETTINGS</p><h2 className="mt-1 text-lg font-black text-paper">관심 아티스트 알림 연결</h2><p className="mt-1 text-xs leading-5 text-muted">설정값은 MY SHOWDAY와 공유됩니다. 실제 푸시·카카오 발송은 발송 서버가 연결된 항목부터 동작하도록 분리합니다.</p></div><a href="/my?tab=alerts" className="text-xs font-black text-gold">전체 알림 관리 →</a></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><AlertToggle label="새 공연" desc="등록 아티스트 새 공연" checked={prefs.artistNewShow} onChange={v=>saveAlertPrefs({artistNewShow:v})}/><AlertToggle label="티켓 오픈" desc="예매 시작 시점" checked={prefs.ticketOpen} onChange={v=>saveAlertPrefs({ticketOpen:v})}/><AlertToggle label="무료 행사" desc="내 주변 무료 소식" checked={prefs.freeNearby} onChange={v=>saveAlertPrefs({freeNearby:v})}/><AlertToggle label="저장 조건" desc="조건에 맞는 새 소식" checked={prefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/></div>{prefs.ticketOpen&&<div className="mt-4 rounded-2xl border border-line bg-white/[.025] p-4"><div className="flex flex-wrap items-center gap-2 text-xs text-muted"><b className="mr-1 text-paper">티켓 오픈 알림 시점</b><button onClick={()=>saveAlertPrefs({ticketAnnouncement:!prefs.ticketAnnouncement})} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketAnnouncement?"border-gold bg-gold/10 text-gold":"border-line"}`}>일정 발표 즉시</button>{([['7d','7일 전'],['3d','3일 전'],['1d','하루 전'],['3h','3시간 전'],['1h','1시간 전'],['10m','10분 전']] as const).map(([v,label])=><button key={v} onClick={()=>toggleLeadTime(v)} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketLeadTimes.includes(v)?"border-gold bg-gold/10 text-gold":"border-line"}`}>{label}</button>)}<button onClick={()=>saveAlertPrefs({ticketAtOpen:!prefs.ticketAtOpen})} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketAtOpen?"border-gold bg-gold/10 text-gold":"border-line"}`}>오픈 즉시</button></div><p className="mt-2 text-[10px] leading-5 text-muted">여러 시점을 동시에 선택할 수 있습니다. 인기 공연은 ‘일정 발표 즉시 + 7일 전 + 1일 전 + 1시간 전 + 오픈 즉시’를 권장합니다.</p></div>}</div>
     </div>
   </section>;
 }

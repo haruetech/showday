@@ -15,8 +15,8 @@ const ALERT_PREFS_KEY="showday:alert-prefs:v1";
 type Tab="likes"|"artists"|"searches"|"alerts";
 type SavedItemDetail={key:string;title:string;url?:string;imageUrl?:string;kind?:string;meta?:string;savedAt:string};
 type SavedSearch={id:string;label:string;summary?:string;href?:string;createdAt?:string};
-type AlertPrefs={artistNewShow:boolean;ticketOpen:boolean;freeNearby:boolean;savedSearch:boolean;ticketLead:"7d"|"1d"|"1h"|"10m";ticketAnnouncement?:boolean;ticketAtOpen?:boolean};
-const DEFAULT_ALERT_PREFS:AlertPrefs={artistNewShow:true,ticketOpen:true,freeNearby:false,savedSearch:false,ticketLead:"7d",ticketAnnouncement:true,ticketAtOpen:true};
+type AlertPrefs={artistNewShow:boolean;ticketOpen:boolean;freeNearby:boolean;savedSearch:boolean;ticketLead?:"7d"|"1d"|"1h"|"10m";ticketLeadTimes:Array<"7d"|"3d"|"1d"|"3h"|"1h"|"10m">;ticketAnnouncement?:boolean;ticketAtOpen?:boolean};
+const DEFAULT_ALERT_PREFS:AlertPrefs={artistNewShow:true,ticketOpen:true,freeNearby:false,savedSearch:false,ticketLeadTimes:["7d","1d","1h","10m"],ticketAnnouncement:true,ticketAtOpen:true};
 
 function safeJson<T>(value:string|null,fallback:T):T{try{return value?JSON.parse(value) as T:fallback}catch{return fallback}}
 function artistNameFromId(id:string){if(!id.startsWith("artist-name:"))return "";try{return decodeURIComponent(id.slice("artist-name:".length))}catch{return ""}}
@@ -64,7 +64,7 @@ export default function MyShowdayPage(){
     setLikedKeys(safeJson<string[]>(localStorage.getItem(SAVED_ITEMS_KEY),[]));
     setDetails(safeJson<Record<string,SavedItemDetail>>(localStorage.getItem(SAVED_ITEM_DETAILS_KEY),{}));
     setSearches(safeJson<SavedSearch[]>(localStorage.getItem(SAVED_SEARCHES_KEY),[]));
-    setAlertPrefs({...DEFAULT_ALERT_PREFS,...safeJson<Partial<AlertPrefs>>(localStorage.getItem(ALERT_PREFS_KEY),{})});
+    {const raw=safeJson<any>(localStorage.getItem(ALERT_PREFS_KEY),{});const legacy=raw?.ticketLead?[raw.ticketLead]:[];const leadTimes=Array.isArray(raw?.ticketLeadTimes)?raw.ticketLeadTimes:legacy;setAlertPrefs({...DEFAULT_ALERT_PREFS,...raw,ticketLeadTimes:leadTimes.length?leadTimes:DEFAULT_ALERT_PREFS.ticketLeadTimes});}
     getFollowedArtistIds().then(ids=>setArtists(Array.from(ids).map(artistNameFromId).filter(Boolean))).catch(()=>setArtists([]));
   },[user]);
 
@@ -72,6 +72,11 @@ export default function MyShowdayPage(){
 
   function saveAlertPrefs(patch:Partial<AlertPrefs>){
     const next={...alertPrefs,...patch}; setAlertPrefs(next); localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(next)); setAlertNotice("알림 설정을 저장했습니다."); setTimeout(()=>setAlertNotice(""),2000);
+  }
+
+  function toggleLeadTime(value:AlertPrefs["ticketLeadTimes"][number]){
+    const has=alertPrefs.ticketLeadTimes.includes(value);
+    saveAlertPrefs({ticketLeadTimes:has?alertPrefs.ticketLeadTimes.filter(v=>v!==value):[...alertPrefs.ticketLeadTimes,value]});
   }
 
   function removeLike(key:string){
@@ -152,7 +157,7 @@ export default function MyShowdayPage(){
             <AlertSwitch title="내 주변 무료 행사" desc="저장한 지역 기준으로 새 무료 공연·전시·행사가 확인되면 알림 대상으로 저장합니다." checked={alertPrefs.freeNearby} onChange={v=>saveAlertPrefs({freeNearby:v})}/>
             <AlertSwitch title="저장한 검색조건 새 소식" desc="저장한 조건과 맞는 신규 콘텐츠가 들어오면 다시 확인할 수 있도록 알림 대상으로 저장합니다." checked={alertPrefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/>
           </div>
-          {alertPrefs.ticketOpen&&<div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4"><b className="text-xs text-[#251b16]">티켓 오픈 사전 알림</b><p className="mt-1 text-[11px] leading-5 text-[#8f8177]">하루 전 한 번만이 아니라 일정 발표부터 오픈 순간까지 단계적으로 준비합니다.</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={()=>saveAlertPrefs({ticketAnnouncement:!alertPrefs.ticketAnnouncement})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAnnouncement?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>일정 발표</button>{([["7d","7일 전"],["1d","하루 전"],["1h","1시간 전"],["10m","10분 전"]] as const).map(([v,label])=><button key={v} onClick={()=>saveAlertPrefs({ticketLead:v})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketLead===v?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>{label}</button>)}<button onClick={()=>saveAlertPrefs({ticketAtOpen:!alertPrefs.ticketAtOpen})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAtOpen?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>오픈 즉시</button></div></div>}
+          {alertPrefs.ticketOpen&&<div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4"><b className="text-xs text-[#251b16]">티켓 오픈 사전 알림</b><p className="mt-1 text-[11px] leading-5 text-[#8f8177]">한 번만 알리는 방식이 아니라 필요한 시점을 여러 개 선택할 수 있습니다.</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={()=>saveAlertPrefs({ticketAnnouncement:!alertPrefs.ticketAnnouncement})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAnnouncement?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>일정 발표 즉시</button>{([["7d","7일 전"],["3d","3일 전"],["1d","하루 전"],["3h","3시간 전"],["1h","1시간 전"],["10m","10분 전"]] as const).map(([v,label])=><button key={v} onClick={()=>toggleLeadTime(v)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketLeadTimes.includes(v)?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>{label}</button>)}<button onClick={()=>saveAlertPrefs({ticketAtOpen:!alertPrefs.ticketAtOpen})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAtOpen?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>오픈 즉시</button></div><p className="mt-3 text-[10px] leading-5 text-[#9a8b80]">추천: 일정 발표 즉시 · 7일 전 · 하루 전 · 1시간 전 · 오픈 즉시. 무료공연/인기공연처럼 빠르게 마감되는 콘텐츠에 유리합니다.</p></div>}
           <div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4 text-xs leading-5 text-[#715a4a]">설정값은 저장되어 관심 아티스트 화면과 공유됩니다. 실제 웹푸시·카카오 발송은 발송 서버와 해당 채널이 연결된 항목부터 동작합니다. 공식 예매 오픈 시간이 없는 공연은 임의 시간을 만들지 않고 ‘미확인’으로 표시합니다.</div>
         </section>}
       </div>
