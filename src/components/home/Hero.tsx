@@ -656,10 +656,21 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     return events.filter(e=>groupLabel(e)===tab&&eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===label).length;
   };
 
+  function scrollToResultsStart(){
+    window.setTimeout(()=>{
+      document.getElementById("search-results-list")?.scrollIntoView({behavior:"smooth",block:"start"});
+    },0);
+  }
+
   function chooseTab(next:ResultTab){
     setTab(next);
     setSubTab(next==="공연"?"전체 공연":"전체");
-    window.setTimeout(()=>document.getElementById("search-results-list")?.scrollIntoView({behavior:"smooth",block:"start"}),0);
+    scrollToResultsStart();
+  }
+
+  function chooseSubTab(next:string){
+    setSubTab(next);
+    scrollToResultsStart();
   }
 
   function groupTitle(label:string){
@@ -696,7 +707,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
 
       {subTabs.length>0&&<div className="mt-2 rounded-xl bg-surface-raised/65 p-2.5">
         <div className="mb-2 flex items-center justify-between gap-3"><p className="text-[10px] font-black tracking-[.08em] text-muted">세부 분류</p><span className="text-[10px] text-muted">원하는 항목만 바로 보기</span></div>
-        <div className="flex flex-wrap gap-1.5">{subTabs.map(st=><button type="button" key={st} onClick={()=>setSubTab(st)} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-bold sm:text-[11px] ${subTab===st?"border-gold bg-[#fff4e7] text-paper":"border-line bg-white text-muted"}`}>{st}<span className="ml-1.5 text-[10px] opacity-70">{subCounts(st)}</span></button>)}</div>
+        <div className="flex flex-wrap gap-1.5">{subTabs.map(st=><button type="button" key={st} onClick={()=>chooseSubTab(st)} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-bold sm:text-[11px] ${subTab===st?"border-gold bg-[#fff4e7] text-paper":"border-line bg-white text-muted"}`}>{st}<span className="ml-1.5 text-[10px] opacity-70">{subCounts(st)}</span></button>)}</div>
       </div>}
     </div>
 
