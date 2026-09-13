@@ -337,6 +337,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         .sort((a:Show,b:Show)=>showPurposeScore(b,companion)-showPurposeScore(a,companion));
 
       let unified:ShowdayEvent[]=(eventData?.events??[])
+        .filter((e:ShowdayEvent)=>!eventIsUnavailable(e))
         .filter((e:ShowdayEvent)=>eventTimingMatches(e,timing,customDate))
         .filter((e:ShowdayEvent)=>eventGenreMatches(e,genre))
         .filter((e:ShowdayEvent)=>eventDiscoveryMatches(e,discovery,price))
@@ -648,6 +649,59 @@ function showSubLabel(show:Show){
   return "기타";
 }
 
+
+const FREE_ALERTS_KEY="showday:free-open-alerts:v1";
+type FreeOpenAlert={
+  key:string; title:string; url?:string; imageUrl?:string; venue?:string; dateText?:string; applyStartDate?:string; applyEndDate?:string; savedAt:string;
+};
+function parseLooseDate(value?:string){
+  if(!value)return null;
+  const raw=String(value).trim();
+  const digits=raw.replace(/[^0-9]/g,"");
+  if(digits.length>=8){
+    const y=Number(digits.slice(0,4)),m=Number(digits.slice(4,6)),d=Number(digits.slice(6,8));
+    const dt=new Date(y,m-1,d);
+    return Number.isNaN(dt.getTime())?null:dt;
+  }
+  const dt=new Date(raw);
+  return Number.isNaN(dt.getTime())?null:dt;
+}
+function startOfToday(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function dayDiffFromToday(value?:string){const d=parseLooseDate(value);if(!d)return null;return Math.ceil((d.getTime()-startOfToday().getTime())/86400000)}
+function isFreeEvent(e:ShowdayEvent){return Boolean(e.isFree)||/무료/.test(e.priceText||"")}
+function eventStatusText(e:ShowdayEvent){return String(e.status||"")}
+function eventIsUnavailable(e:ShowdayEvent){
+  const status=eventStatusText(e);
+  if(/종료|완료|취소|마감/.test(status))return true;
+  const end=parseLooseDate(e.endDate);
+  if(end&&end.getTime()<startOfToday().getTime())return true;
+  if(isFreeEvent(e)){
+    const applyEnd=parseLooseDate(e.applyEndDate);
+    if(applyEnd&&applyEnd.getTime()<startOfToday().getTime())return true;
+  }
+  return false;
+}
+function freeEventActionState(e:ShowdayEvent){
+  if(!isFreeEvent(e))return null;
+  const startDiff=dayDiffFromToday(e.applyStartDate);
+  const endDiff=dayDiffFromToday(e.applyEndDate);
+  if(startDiff!==null&&startDiff>0){
+    return {tone:"soon" as const,label:`오픈 D-${startDiff}`,detail:e.applyStartDate?`신청 ${e.applyStartDate} 시작`:"신청 예정",action:"알림받기"};
+  }
+  if(endDiff!==null&&endDiff>=0){
+    return {tone:endDiff<=1?"urgent" as const:"open" as const,label:endDiff===0?"오늘 마감":endDiff===1?"내일 마감":"지금 신청 가능",detail:e.applyEndDate?`신청 마감 ${e.applyEndDate}`:"신청 가능",action:"빠른예매"};
+  }
+  if(e.bookingUrl||e.officialUrl){
+    return {tone:"open" as const,label:"무료 신청 가능",detail:"신청 페이지에서 마감 여부를 확인하세요",action:"빠른예매"};
+  }
+  return {tone:"info" as const,label:"무료",detail:"신청 일정 확인 필요",action:"알림받기"};
+}
+function loadFreeAlerts(){
+  if(typeof window==="undefined")return [] as FreeOpenAlert[];
+  try{return JSON.parse(localStorage.getItem(FREE_ALERTS_KEY)||"[]") as FreeOpenAlert[]}catch{return []}
+}
+function saveFreeAlerts(items:FreeOpenAlert[]){try{localStorage.setItem(FREE_ALERTS_KEY,JSON.stringify(items))}catch{}}
+
 const SAVED_ITEMS_KEY="showday:saved-items:v1";
 const SAVED_ITEM_DETAILS_KEY="showday:saved-item-details:v1";
 type SavedItemDetail={key:string;title:string;url?:string;imageUrl?:string;kind?:string;meta?:string;savedAt:string};
@@ -765,6 +819,46 @@ function SocialActions({itemKey,title,url,imageUrl,kind,meta}:{itemKey:string;ti
       <span aria-hidden="true">↗</span><span>{shareMsg||"공유"}</span>
     </button>
   </div>
+}
+
+function FreeOpenAlertButton({event:e}:{event:ShowdayEvent}){
+  const state=freeEventActionState(e);
+  const key=`free:${e.source||"source"}:${e.sourceId||e.id}`;
+  const [saved,setSaved]=useState(false);
+  const [msg,setMsg]=useState("");
+  useEffect(()=>{setSaved(loadFreeAlerts().some(v=>v.key===key))},[key]);
+  if(!state)return null;
+
+  async function saveAlert(ev:React.MouseEvent<HTMLButtonElement>){
+    ev.preventDefault();ev.stopPropagation();
+    if(isAuthConfigured){
+      const supabase=createClient();
+      if(supabase){
+        const {data}=await supabase.auth.getUser();
+        if(!data.user){await signInWithKakao();return;}
+      }
+    }
+    const current=loadFreeAlerts().filter(v=>v.key!==key);
+    if(saved){saveFreeAlerts(current);setSaved(false);setMsg("알림 저장 취소");return;}
+    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl,imageUrl:e.imageUrl,venue:e.venue||e.address||e.region,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ "),applyStartDate:e.applyStartDate,applyEndDate:e.applyEndDate,savedAt:new Date().toISOString()});
+    saveFreeAlerts(current.slice(0,100));setSaved(true);setMsg("MY에 저장됨");
+  }
+  const href=e.bookingUrl||e.officialUrl;
+  const openNow=state.action==="빠른예매"&&Boolean(href);
+  return <div className="relative z-10 col-span-2 mt-1 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-2.5">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5"><span className={`rounded-full px-2 py-1 text-[10px] font-black ${state.tone==="urgent"?"bg-[#ffe5df] text-[#a33b25]":state.tone==="soon"?"bg-[#fff0cf] text-[#8a5a00]":"bg-white text-[#8b5b3d]"}`}>{state.label}</span><span className="text-[10px] font-bold text-[#8f8177]">{state.detail}</span></div>
+        {msg&&<p className="mt-1 text-[10px] font-black text-[#9b5d32]">{msg}</p>}
+      </div>
+      <div className="flex items-center gap-1.5">
+        {!openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"알림 저장됨":"오픈 알림 저장"}</button>}
+        {openNow&&href&&<a href={href} target="_blank" rel="noopener noreferrer" onClick={ev=>ev.stopPropagation()} className="inline-flex min-h-[36px] items-center rounded-full bg-[#251b16] px-3 py-1.5 text-[10px] font-black text-white">빠른예매 ↗</a>}
+        {openNow&&<button type="button" onClick={saveAlert} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black ${saved?"border-[#c77b46] bg-[#fff1e3] text-[#9b5d32]":"border-[#dfc8b7] bg-white text-paper"}`}>{saved?"MY 저장됨":"마감 알림 저장"}</button>}
+      </div>
+    </div>
+    <p className="mt-1.5 text-[9px] leading-4 text-[#9a897d]">SHOWDAY는 신청 가능 시점을 안내하고 공식 신청·예매 페이지로 연결합니다. 실제 좌석·마감 여부는 해당 기관 페이지에서 최종 확인하세요.</p>
+  </div>;
 }
 
 function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
@@ -932,6 +1026,7 @@ function EventCard({event:e}:{event:ShowdayEvent}){
     {href&&<a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0 rounded-xl" aria-label={`${e.title} 상세 보기`}/>} 
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div>
     <div className="pointer-events-none relative z-[1] min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div>
+    {isFreeEvent(e)&&<FreeOpenAlertButton event={e}/>}
     <div className="relative z-10 col-span-2 mt-1 flex items-center justify-end"><SocialActions itemKey={itemKey} title={e.title} url={cardUrl} imageUrl={e.imageUrl} kind={e.category||e.subcategory||"문화행사"} meta={[e.venue||e.address||e.region,e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")].filter(Boolean).join(" · ")}/></div>
   </article>;
 }
