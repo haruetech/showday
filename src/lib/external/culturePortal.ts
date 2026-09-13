@@ -56,7 +56,7 @@ export async function fetchCulturePortalEvents(
 
   const base =
     process.env.CULTURE_PORTAL_PERIOD_URL ||
-    "https://apis.data.go.kr/B553457/nopenapi/rest/publicperformancedisplays/period2";
+    "https://apis.data.go.kr/B553457/cultureinfo/period2";
 
   const url = buildUrl(base, {
     serviceKey: key,
