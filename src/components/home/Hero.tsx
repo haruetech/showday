@@ -126,6 +126,11 @@ function eventDistanceKm(e:ShowdayEvent){
   const value=(e as SearchResultEvent).distanceKm;
   return typeof value==="number" && Number.isFinite(value) ? value : 9999;
 }
+function formatDistanceKm(value:number){
+  if(!Number.isFinite(value) || value>=9999) return "";
+  if(value<1) return `${Math.round(value*1000)}m`;
+  return `${value.toFixed(1)}km`;
+}
 function showDateSortKey(show:Show){
   const text=String(show.dateLabel||"");
   const match=text.match(/(\d{1,2})\.(\d{1,2})/);
@@ -343,24 +348,31 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         .filter((e:ShowdayEvent)=>eventDiscoveryMatches(e,discovery,price))
         .filter((e:ShowdayEvent)=>eventCompanionMatches(e,companion));
 
-      if(region==="내 주변"){
-        try{
-          const current=await requestCurrentLocation();
-          if(!current){
-            setResults([]); setEventResults([]);
-            setLocationMsg("위치 권한을 허용하면 현재 위치 기준 30km 이내 결과만 정확하게 보여드릴 수 있습니다.");
-            return;
-          }
+      // 모든 검색결과에 현재 위치 기준 거리를 붙인다.
+      // 위치 권한을 거부한 경우 검색은 계속되며 거리만 표시하지 않는다.
+      let current=userLocation;
+      if(!current) current=await requestCurrentLocation();
 
+      if(current){
+        try{
           if(list.length){
             const candidates=list.slice(0,60);
-            const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:current,distanceOnly:true,venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))})}).then(r=>r.json());
+            const tt=await fetch("/api/travel-times",{
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({
+                origin:current,
+                distanceOnly:true,
+                venues:candidates.map(s=>({id:s.id,name:s.venue,region:s.region}))
+              })
+            }).then(r=>r.json()).catch(()=>({times:{}}));
             const times=tt?.times||{};
-            list=candidates
-              .map(s=>({show:s,distanceKm:times[s.id]?.distanceKm as number|null|undefined}))
-              .filter(x=>typeof x.distanceKm==="number" && (x.distanceKm??999)<=30)
-              .sort((a,b)=>(a.distanceKm??999)-(b.distanceKm??999))
-              .map(x=>({...x.show,distanceFromDobongKm:x.distanceKm??x.show.distanceFromDobongKm}));
+            list=candidates.map(s=>{
+              const distanceKm=times[s.id]?.distanceKm as number|null|undefined;
+              return typeof distanceKm==="number" && Number.isFinite(distanceKm)
+                ? {...s,distanceFromDobongKm:distanceKm}
+                : s;
+            });
           }
 
           const direct:ShowdayEvent[]=[];
@@ -369,25 +381,66 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
             const point=eventPoint(e);
             if(point){
               const distanceKm=haversineKm(current,point);
-              if(distanceKm<=30) direct.push({...e,distanceKm} as SearchResultEvent);
+              direct.push({...e,distanceKm} as SearchResultEvent);
+            }else{
+              needsGeo.push(e);
             }
-            else needsGeo.push(e);
           }
-          let geocoded:ShowdayEvent[]=[];
-          if(needsGeo.length){
-            const batch=needsGeo.slice(0,80);
-            const tt=await fetch("/api/travel-times",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({origin:current,distanceOnly:true,venues:batch.map(e=>({id:e.id,name:e.venue||e.address||e.title,address:e.address,region:e.region}))})}).then(r=>r.json()).catch(()=>({times:{}}));
+
+          const geocoded:ShowdayEvent[]=[];
+          for(let i=0;i<needsGeo.length;i+=80){
+            const batch=needsGeo.slice(i,i+80);
+            const tt=await fetch("/api/travel-times",{
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({
+                origin:current,
+                distanceOnly:true,
+                venues:batch.map(e=>({
+                  id:e.id,
+                  name:e.venue||e.address||e.title,
+                  address:e.address,
+                  region:e.region
+                }))
+              })
+            }).then(r=>r.json()).catch(()=>({times:{}}));
             const times=tt?.times||{};
-            geocoded=batch
-              .filter(e=>typeof times[e.id]?.distanceKm==="number" && times[e.id].distanceKm<=30)
-              .map(e=>({...e,distanceKm:times[e.id].distanceKm} as SearchResultEvent));
+            for(const e of batch){
+              const distanceKm=times[e.id]?.distanceKm;
+              geocoded.push(
+                typeof distanceKm==="number" && Number.isFinite(distanceKm)
+                  ? ({...e,distanceKm} as SearchResultEvent)
+                  : e
+              );
+            }
           }
           unified=[...direct,...geocoded];
-          setLocationMsg(`현재 위치 기준 30km 이내 공연·전시·체험·행사 ${list.length+unified.length}건을 조건에 맞는 순서로 보여드립니다.`);
+
+          if(region==="내 주변"){
+            list=list
+              .filter(s=>Number.isFinite(s.distanceFromDobongKm) && (s.distanceFromDobongKm??9999)<=30)
+              .sort((a,b)=>(a.distanceFromDobongKm??9999)-(b.distanceFromDobongKm??9999));
+            unified=unified
+              .filter(e=>eventDistanceKm(e)<=30)
+              .sort((a,b)=>eventDistanceKm(a)-eventDistanceKm(b));
+            setLocationMsg(`현재 위치 기준 30km 이내 공연·전시·체험·행사 ${list.length+unified.length}건을 조건에 맞는 순서로 보여드립니다.`);
+          }else{
+            setLocationMsg("현재 위치 기준 거리(km)를 각 공연·전시·체험·행사에 함께 표시합니다.");
+          }
         }catch{
-          list=[]; unified=[];
-          setLocationMsg("현재 위치 기준 검색 중 문제가 발생했습니다. 위치 권한을 확인한 뒤 다시 시도해주세요.");
+          if(region==="내 주변"){
+            list=[]; unified=[];
+            setLocationMsg("현재 위치 기준 검색 중 문제가 발생했습니다. 위치 권한을 확인한 뒤 다시 시도해주세요.");
+          }else{
+            setLocationMsg("검색결과는 표시하지만 일부 항목의 거리 계산을 완료하지 못했습니다.");
+          }
         }
+      }else if(region==="내 주변"){
+        setResults([]); setEventResults([]);
+        setLocationMsg("위치 권한을 허용하면 현재 위치 기준 30km 이내 결과만 정확하게 보여드릴 수 있습니다.");
+        return;
+      }else{
+        setLocationMsg("위치 권한을 허용하면 모든 검색결과에 현재 위치에서의 거리(km)를 표시할 수 있습니다.");
       }
 
       unified=unified.sort((a:ShowdayEvent,b:ShowdayEvent)=>eventPurposeScore(b,companion)-eventPurposeScore(a,companion) || String(a.startDate||"9999").localeCompare(String(b.startDate||"9999")));
@@ -1092,7 +1145,7 @@ function EventCard({event:e}:{event:ShowdayEvent}){
   return <article className="group relative grid min-w-0 grid-cols-[82px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-[#fffaf4] hover:shadow-md sm:grid-cols-[96px_minmax(0,1fr)]">
     {href&&<a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0 rounded-xl" aria-label={`${e.title} 상세 보기`}/>} 
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div>
-    <div className="pointer-events-none relative z-[1] min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div>
+    <div className="pointer-events-none relative z-[1] min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}{eventDistanceKm(e)<9999&&<span className="rounded-md bg-[#eef6ff] px-2 py-1 text-[10px] font-black text-[#315f91]">내 위치에서 {formatDistanceKm(eventDistanceKm(e))}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div>
     {isFreeEvent(e)&&<FreeOpenAlertButton event={e}/>}
     <div className="relative z-10 col-span-2 mt-1 flex items-center justify-end"><SocialActions itemKey={itemKey} title={e.title} url={cardUrl} imageUrl={e.imageUrl} kind={e.category||e.subcategory||"문화행사"} meta={[e.venue||e.address||e.region,e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")].filter(Boolean).join(" · ")}/></div>
   </article>;
@@ -1178,7 +1231,7 @@ function ResultCard({show}:{show:Show}){
   return <article className="group relative grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block">
     <a href={href} className="absolute inset-0 z-0" aria-label={`${show.title} 상세 보기`}/>
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div>
-    <div className="pointer-events-none relative z-[1] sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div>
+    <div className="pointer-events-none relative z-[1] sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-[#eef6ff] px-2 py-1 text-[11px] font-black text-[#315f91]">내 위치에서 {formatDistanceKm(show.distanceFromDobongKm)}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div>
     {/무료/.test(show.priceLabel||"")&&<div className="relative z-10 col-span-2 sm:mt-1"><FreeShowAlertButton show={show}/></div>}
     <div className="relative z-10 col-span-2 mt-2 flex justify-end sm:absolute sm:right-2 sm:top-2 sm:mt-0"><SocialActions itemKey={`show:${show.id}`} title={show.title} url={typeof window!=="undefined"?`${window.location.origin}${href}`:href} imageUrl={show.posterUrl} kind="공연" meta={[show.venue,show.dateLabel].filter(Boolean).join(" · ")}/></div>
   </article>;
