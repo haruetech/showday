@@ -445,28 +445,52 @@ function eventPurposeScore(e:ShowdayEvent,c:Companion){
   return score;
 }
 function groupLabel(e:ShowdayEvent){
-  if(e.category==="체험·교육") return "체험·교육";
-  if(e.category==="전시") return "전시";
-  if(e.category==="축제·지역행사"||e.category==="무료행사") return "축제·행사";
-  if(e.category==="공연") return "공연";
+  const text=`${e.category||""} ${e.subcategory||""} ${e.title||""} ${e.venue||""} ${e.address||""} ${e.organizer||""} ${e.description||""}`.toLowerCase();
+  // 전시는 제목뿐 아니라 장소/주최/주소까지 함께 판별합니다.
+  if(
+    e.category==="전시" ||
+    /전시|전람|미술관|박물관|갤러리|아트뮤지엄|뮤지엄|미디어아트|특별전|기획전|사진전|회고전|비엔날레/.test(text)
+  ) return "전시";
+  if(
+    e.category==="체험·교육" ||
+    /체험|교육|강좌|워크숍|클래스|프로그램|교실|아카데미|숲체험|문화체험/.test(text)
+  ) return "체험·교육";
+  if(
+    e.category==="축제·지역행사" || e.category==="무료행사" ||
+    /축제|페스티벌|지역행사|문화행사|거리축제|마켓|플리마켓/.test(text)
+  ) return "축제·행사";
+  if(
+    e.category==="공연" ||
+    /공연|콘서트|뮤지컬|연극|클래식|오페라|무용|발레|국악|전통예술|음악회|리사이틀/.test(text)
+  ) return "공연";
   return "기타";
 }
 function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
   const [tab,setTab]=useState("전체");
-  const tabs=["전체","체험·교육","공연","전시","축제·행사"];
+  const tabs=["전체","공연","전시","체험·교육","축제·행사"] as const;
+  const counts={
+    "전체":events.length+shows.length,
+    "공연":events.filter(e=>groupLabel(e)==="공연").length+shows.length,
+    "전시":events.filter(e=>groupLabel(e)==="전시").length,
+    "체험·교육":events.filter(e=>groupLabel(e)==="체험·교육").length,
+    "축제·행사":events.filter(e=>groupLabel(e)==="축제·행사").length,
+  };
   const filtered=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
-  const groups=(["체험·교육","공연","전시","축제·행사","기타"] as const).map(label=>({label,items:filtered.filter(e=>groupLabel(e)===label)})).filter(g=>g.items.length);
+  const groupOrder=tab==="전체"?["공연","전시","체험·교육","축제·행사","기타"]:[tab];
+  const groups=groupOrder.map(label=>({label,items:filtered.filter(e=>groupLabel(e)===label)})).filter(g=>g.items.length);
   const showKopis=tab==="전체"||tab==="공연";
-  const total=events.length+shows.length;
+  const visibleTotal=counts[tab as keyof typeof counts];
   return <div className="mt-7 overflow-hidden rounded-2xl border border-line bg-white/60 p-4 sm:p-6">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p><h3 className="mt-1 text-lg font-black text-paper">{companion==="아이와"?"아이와 즐기기 좋은 순서로 찾았어요":companion==="부모님과"?"부모님과 함께하기 좋은 순서로 찾았어요":"선택한 목적에 맞는 결과예요"}</h3><p className="mt-1 text-xs leading-5 text-muted">{summary} · 총 {loading?"검색 중":`${total}건`}</p></div><button onClick={onClose} className="self-start rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted">검색 결과 접기</button></div>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p><h3 className="mt-1 text-lg font-black text-paper">{companion==="아이와"?"아이와 즐기기 좋은 순서로 찾았어요":companion==="부모님과"?"부모님과 함께하기 좋은 순서로 찾았어요":"선택한 목적에 맞는 결과예요"}</h3><p className="mt-1 text-xs leading-5 text-muted">{summary} · {loading?"검색 중":`총 ${visibleTotal}건`}</p></div><button type="button" onClick={onClose} className="self-start rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted">검색 결과 접기</button></div>
     {locationMsg&&<p className="mt-4 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold text-muted">{locationMsg}</p>}
-    <div className="mt-5 flex flex-wrap gap-2">{tabs.map(t=><button key={t} onClick={()=>setTab(t)} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}>{t}</button>)}</div>
-    {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:total===0?<Empty/>:<div className="mt-7 space-y-9">
+    <div className="mt-5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap" role="tablist" aria-label="검색 결과 종류">
+      {tabs.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>setTab(t)} className={`min-h-[44px] rounded-xl border px-2 py-2.5 text-[11px] font-black sm:min-h-0 sm:rounded-full sm:px-3.5 sm:py-2 sm:text-xs ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-1 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
+    </div>
+    {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:visibleTotal===0?<Empty/>:<div className="mt-7 space-y-9">
       {groups.map(g=><ResultGroup key={g.label} title={companion==="아이와"&&g.label==="체험·교육"?"아이와 하기 좋은 체험·교육":g.label} items={g.items}/>) }
       {showKopis&&shows.length>0&&<div><div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold tracking-[.12em] text-gold">KOPIS</p><h4 className="mt-1 text-base font-black text-paper">관람 가능한 공연</h4></div><span className="text-[11px] text-muted">{shows.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{shows.slice(0,12).map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}
     </div>}
-    <div className="mt-8 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건의 새 공연·행사를 미리 받아보세요</b><p className="mt-1 text-xs leading-5 text-muted">카카오 로그인 후 관심조건을 저장하면 새 일정·무료행사·티켓오픈 알림으로 연결할 수 있습니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장하기</a></div>
+    <div className="mt-8 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
   </div>
 }
 function ResultGroup({title,items}:{title:string;items:ShowdayEvent[]}){return <div><div className="mb-4 flex items-end justify-between"><h4 className="text-base font-black text-paper">{title}</h4><span className="text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.slice(0,9).map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
