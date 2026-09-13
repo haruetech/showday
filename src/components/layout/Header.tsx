@@ -64,7 +64,7 @@ export default function Header({
           <a href="/#show-search" className="font-bold hover:text-paper">찾기</a>
           <a href="/#my-area" className="hover:text-paper">내 주변</a>
           <a href="/#showday-now" className="hover:text-paper">공연 소식</a>
-          <a href="/#artists" className="hover:text-paper">아티스트</a>
+          <a href="/#interest-artists" className="hover:text-paper">관심 아티스트</a>
         </nav>
 
         {user ? (
