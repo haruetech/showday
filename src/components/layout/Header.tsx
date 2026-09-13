@@ -62,7 +62,7 @@ export default function Header({
 
         <nav className="hidden items-center gap-5 text-sm text-muted lg:flex xl:gap-7">
           <a href="/#showday-now" className="hover:text-paper">공연 소식</a>
-          <a href="/#interest-artists" className="hover:text-paper">관심 아티스트</a>
+          <a href="/artists" className="hover:text-paper">관심 아티스트</a>
           <a href="/my" className="font-bold text-paper hover:text-gold">MY SHOWDAY</a>
         </nav>
 
