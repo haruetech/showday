@@ -665,12 +665,15 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
       const list=document.getElementById("search-results-list");
       const sticky=document.getElementById("search-results-sticky");
       if(!list)return;
-      const stickyStyle=sticky?window.getComputedStyle(sticky):null;
-      const stickyTop=stickyStyle?Number.parseFloat(stickyStyle.top||"0")||0:0;
-      const stickyHeight=sticky?.getBoundingClientRect().height||0;
-      const listTop=window.pageYOffset+list.getBoundingClientRect().top;
-      const targetTop=Math.max(0,Math.round(listTop-stickyTop-stickyHeight-10));
-      window.scrollTo(0,targetTop);
+      // 세부분류가 바뀐 뒤 실제로 렌더링된 첫 결과 그룹의 제목을 기준으로 맞춥니다.
+      // list 자체를 기준으로 이동하면 sticky 높이/scroll anchoring 때문에 카드 중간부터 보일 수 있습니다.
+      const firstGroup=list.querySelector<HTMLElement>("[data-result-group]");
+      const target=firstGroup||list;
+      const targetRect=target.getBoundingClientRect();
+      const stickyRect=sticky?.getBoundingClientRect();
+      const safeTop=stickyRect ? stickyRect.bottom + 14 : 86;
+      const delta=Math.round(targetRect.top-safeTop);
+      if(Math.abs(delta)>1) window.scrollBy(0,delta);
     };
     // 필터링된 카드가 실제 DOM에 반영된 뒤 이동합니다.
     // 두 프레임을 기다려 Safari/Chrome의 scroll anchoring 영향을 피합니다.
@@ -740,7 +743,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
             const performanceShows=(tab==="전체"||tab==="공연")?showFiltered:[];
             const total=performanceEvents.length+performanceShows.length;
             if(total===0)return null;
-            return <div key="공연" id="result-performance"><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연 DB와 SHOWDAY 공연을 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">KOPIS 공연</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
+            return <div key="공연" id="result-performance" data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연 DB와 SHOWDAY 공연을 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">KOPIS 공연</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
           }
           const items=eventFiltered.filter(e=>groupLabel(e)===label);
           if(!items.length)return null;
@@ -753,7 +756,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     <div className="mt-5 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
   </div>
 }
-function ResultGroup({title,items,preferred=false}:{title:string;items:ShowdayEvent[];preferred?:boolean}){return <div><div className="mb-4 flex items-end justify-between gap-3"><div className="flex flex-wrap items-center gap-2">{preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{title}</h4></div><span className="shrink-0 text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
+function ResultGroup({title,items,preferred=false}:{title:string;items:ShowdayEvent[];preferred?:boolean}){return <div data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div className="flex flex-wrap items-center gap-2">{preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{title}</h4></div><span className="shrink-0 text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
 function EventCard({event:e}:{event:ShowdayEvent}){
   const href=e.bookingUrl||e.officialUrl;
   const body=<><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised"><>{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</></div><div className="min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div></>;
