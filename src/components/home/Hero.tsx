@@ -654,7 +654,7 @@ const FREE_ALERTS_KEY="showday:free-open-alerts:v1";
 type FreeOpenAlert={
   key:string; title:string; url?:string; imageUrl?:string; venue?:string; dateText?:string; applyStartDate?:string; applyEndDate?:string; savedAt:string;
 };
-function parseLooseDate(value?:string){
+function parseLooseDate(value?:string|null){
   if(!value)return null;
   const raw=String(value).trim();
   const digits=raw.replace(/[^0-9]/g,"");
@@ -667,7 +667,7 @@ function parseLooseDate(value?:string){
   return Number.isNaN(dt.getTime())?null:dt;
 }
 function startOfToday(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
-function dayDiffFromToday(value?:string){const d=parseLooseDate(value);if(!d)return null;return Math.ceil((d.getTime()-startOfToday().getTime())/86400000)}
+function dayDiffFromToday(value?:string|null){const d=parseLooseDate(value);if(!d)return null;return Math.ceil((d.getTime()-startOfToday().getTime())/86400000)}
 function isFreeEvent(e:ShowdayEvent){return Boolean(e.isFree)||/무료/.test(e.priceText||"")}
 function eventStatusText(e:ShowdayEvent){return String(e.status||"")}
 function eventIsUnavailable(e:ShowdayEvent){
@@ -840,7 +840,7 @@ function FreeOpenAlertButton({event:e}:{event:ShowdayEvent}){
     }
     const current=loadFreeAlerts().filter(v=>v.key!==key);
     if(saved){saveFreeAlerts(current);setSaved(false);setMsg("알림 저장 취소");return;}
-    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl,imageUrl:e.imageUrl,venue:e.venue||e.address||e.region,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ "),applyStartDate:e.applyStartDate,applyEndDate:e.applyEndDate,savedAt:new Date().toISOString()});
+    current.unshift({key,title:e.title,url:e.bookingUrl||e.officialUrl||undefined,imageUrl:e.imageUrl||undefined,venue:e.venue||e.address||e.region||undefined,dateText:e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")||undefined,applyStartDate:e.applyStartDate||undefined,applyEndDate:e.applyEndDate||undefined,savedAt:new Date().toISOString()});
     saveFreeAlerts(current.slice(0,100));setSaved(true);setMsg("MY에 저장됨");
   }
   const href=e.bookingUrl||e.officialUrl;
