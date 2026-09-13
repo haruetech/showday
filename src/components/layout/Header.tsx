@@ -57,15 +57,16 @@ export default function Header({
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
         <a href="/" className="flex items-baseline gap-1" aria-label="SHOWDAY 홈">
           <span className="font-display font-bold text-[21px] tracking-tight text-paper sm:text-2xl">SHOWDAY</span>
-          <span className="hidden text-xs text-muted sm:inline">공연비서</span>
+          <span className="hidden text-xs text-muted sm:inline">문화생활 비서</span>
         </a>
 
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex xl:gap-6">
-          <a href="/#show-search" className="hover:text-paper">공연 찾기</a>
+          <a href="/#show-search" className="hover:text-paper">공연</a>
+          <a href="/#show-search" className="hover:text-paper">전시</a>
+          <a href="/#show-search" className="hover:text-paper">체험·교육</a>
+          <a href="/#show-search" className="hover:text-paper">축제·행사</a>
           <a href="/#my-area" className="hover:text-paper">내 주변</a>
-          <a href="/#popular-now" className="hover:text-paper">인기 공연</a>
           <a href="/#artists" className="hover:text-paper">아티스트</a>
-          <a href="/#genre-discovery" className="hover:text-paper">장르별 공연</a>
         </nav>
 
         {user ? (
