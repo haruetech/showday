@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type { ReactNode, TouchEvent } from "react";
 import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
@@ -626,6 +626,7 @@ function showSubLabel(show:Show){
 function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
   const [tab,setTab]=useState<ResultTab>("전체");
   const [subTab,setSubTab]=useState("전체");
+  const [resultJumpSeq,setResultJumpSeq]=useState(0);
   const counts={
     "전체":events.length+shows.length,
     "공연":events.filter(e=>groupLabel(e)==="공연").length+shows.length,
@@ -656,21 +657,41 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     return events.filter(e=>groupLabel(e)===tab&&eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===label).length;
   };
 
-  function scrollToResultsStart(){
-    window.setTimeout(()=>{
-      document.getElementById("search-results-list")?.scrollIntoView({behavior:"smooth",block:"start"});
-    },0);
-  }
+  useLayoutEffect(()=>{
+    if(resultJumpSeq===0)return;
+    let frame1=0;
+    let frame2=0;
+    const jump=()=>{
+      const list=document.getElementById("search-results-list");
+      const sticky=document.getElementById("search-results-sticky");
+      if(!list)return;
+      const stickyStyle=sticky?window.getComputedStyle(sticky):null;
+      const stickyTop=stickyStyle?Number.parseFloat(stickyStyle.top||"0")||0:0;
+      const stickyHeight=sticky?.getBoundingClientRect().height||0;
+      const listTop=window.pageYOffset+list.getBoundingClientRect().top;
+      const targetTop=Math.max(0,Math.round(listTop-stickyTop-stickyHeight-10));
+      window.scrollTo(0,targetTop);
+    };
+    // 필터링된 카드가 실제 DOM에 반영된 뒤 이동합니다.
+    // 두 프레임을 기다려 Safari/Chrome의 scroll anchoring 영향을 피합니다.
+    frame1=requestAnimationFrame(()=>{
+      frame2=requestAnimationFrame(jump);
+    });
+    return ()=>{
+      cancelAnimationFrame(frame1);
+      cancelAnimationFrame(frame2);
+    };
+  },[resultJumpSeq,tab,subTab,eventFiltered.length,showFiltered.length]);
 
   function chooseTab(next:ResultTab){
     setTab(next);
     setSubTab(next==="공연"?"전체 공연":"전체");
-    scrollToResultsStart();
+    setResultJumpSeq(v=>v+1);
   }
 
   function chooseSubTab(next:string){
     setSubTab(next);
-    scrollToResultsStart();
+    setResultJumpSeq(v=>v+1);
   }
 
   function groupTitle(label:string){
@@ -683,7 +704,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
   }
 
   return <div id="search-results" className="mt-7 scroll-mt-20 rounded-2xl border border-line bg-white/60 p-3 sm:p-5">
-    <div className="sticky top-[64px] z-20 -mx-3 border-b border-line bg-white/95 px-3 pb-3 pt-2 shadow-[0_8px_18px_rgba(0,0,0,0.04)] backdrop-blur-md sm:top-[72px] sm:-mx-5 sm:px-5">
+    <div id="search-results-sticky" className="sticky top-[64px] z-20 -mx-3 border-b border-line bg-white/95 px-3 pb-3 pt-2 shadow-[0_8px_18px_rgba(0,0,0,0.04)] backdrop-blur-md sm:top-[72px] sm:-mx-5 sm:px-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -711,7 +732,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
       </div>}
     </div>
 
-    <div id="search-results-list" className="mt-5 scroll-mt-[230px] min-w-0">
+    <div id="search-results-list" className="mt-5 scroll-mt-[230px] min-w-0" style={{overflowAnchor:"none"}}>
       {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:visibleTotal===0?<Empty/>:<div className="space-y-10">
         {order.map((label,index)=>{
           if(label==="공연"){
