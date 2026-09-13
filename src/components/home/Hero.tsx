@@ -647,6 +647,15 @@ function showSubLabel(show:Show){
 }
 
 const SAVED_ITEMS_KEY="showday:saved-items:v1";
+const SAVED_ITEM_DETAILS_KEY="showday:saved-item-details:v1";
+type SavedItemDetail={key:string;title:string;url?:string;imageUrl?:string;kind?:string;meta?:string;savedAt:string};
+function loadSavedItemDetails(){
+  if(typeof window==="undefined") return {} as Record<string,SavedItemDetail>;
+  try{return JSON.parse(localStorage.getItem(SAVED_ITEM_DETAILS_KEY)||"{}") as Record<string,SavedItemDetail>}catch{return {}}
+}
+function saveSavedItemDetails(items:Record<string,SavedItemDetail>){
+  try{localStorage.setItem(SAVED_ITEM_DETAILS_KEY,JSON.stringify(items))}catch{}
+}
 function loadSavedItems(){
   if(typeof window==="undefined") return new Set<string>();
   try{return new Set<string>(JSON.parse(localStorage.getItem(SAVED_ITEMS_KEY)||"[]"))}catch{return new Set<string>()}
@@ -654,7 +663,7 @@ function loadSavedItems(){
 function saveSavedItems(items:Set<string>){
   try{localStorage.setItem(SAVED_ITEMS_KEY,JSON.stringify([...items]))}catch{}
 }
-function SocialActions({itemKey,title,url}:{itemKey:string;title:string;url?:string}){
+function SocialActions({itemKey,title,url,imageUrl,kind,meta}:{itemKey:string;title:string;url?:string;imageUrl?:string;kind?:string;meta?:string}){
   const [liked,setLiked]=useState(false);
   const [shareMsg,setShareMsg]=useState("");
   useEffect(()=>{setLiked(loadSavedItems().has(itemKey))},[itemKey]);
@@ -663,14 +672,18 @@ function SocialActions({itemKey,title,url}:{itemKey:string;title:string;url?:str
     e.preventDefault();
     e.stopPropagation();
     const items=loadSavedItems();
+    const details=loadSavedItemDetails();
     if(items.has(itemKey)){
       items.delete(itemKey);
+      delete details[itemKey];
       setLiked(false);
     }else{
       items.add(itemKey);
+      details[itemKey]={key:itemKey,title,url,imageUrl,kind,meta,savedAt:new Date().toISOString()};
       setLiked(true);
     }
     saveSavedItems(items);
+    saveSavedItemDetails(details);
   }
 
   async function copyShareUrl(target:string){
@@ -903,7 +916,7 @@ function EventCard({event:e}:{event:ShowdayEvent}){
     {href&&<a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0 rounded-xl" aria-label={`${e.title} 상세 보기`}/>} 
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div>
     <div className="pointer-events-none relative z-[1] min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div>
-    <div className="relative z-10 col-span-2 mt-1 flex items-center justify-end"><SocialActions itemKey={itemKey} title={e.title} url={cardUrl}/></div>
+    <div className="relative z-10 col-span-2 mt-1 flex items-center justify-end"><SocialActions itemKey={itemKey} title={e.title} url={cardUrl} imageUrl={e.imageUrl} kind={e.category||e.subcategory||"문화행사"} meta={[e.venue||e.address||e.region,e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")].filter(Boolean).join(" · ")}/></div>
   </article>;
 }
 
@@ -988,7 +1001,7 @@ function ResultCard({show}:{show:Show}){
     <a href={href} className="absolute inset-0 z-0" aria-label={`${show.title} 상세 보기`}/>
     <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div>
     <div className="pointer-events-none relative z-[1] sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div>
-    <div className="relative z-10 col-span-2 mt-2 flex justify-end sm:absolute sm:right-2 sm:top-2 sm:mt-0"><SocialActions itemKey={`show:${show.id}`} title={show.title} url={typeof window!=="undefined"?`${window.location.origin}${href}`:href}/></div>
+    <div className="relative z-10 col-span-2 mt-2 flex justify-end sm:absolute sm:right-2 sm:top-2 sm:mt-0"><SocialActions itemKey={`show:${show.id}`} title={show.title} url={typeof window!=="undefined"?`${window.location.origin}${href}`:href} imageUrl={show.posterUrl} kind="공연" meta={[show.venue,show.dateLabel].filter(Boolean).join(" · ")}/></div>
   </article>;
 }
 

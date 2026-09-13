@@ -6,7 +6,7 @@ const items = [
   { href: "/#show-search", label: "찾기", icon: SearchIcon },
   { href: "/#my-area", label: "내 주변", icon: PinIcon },
   { href: "/#showday-now", label: "공연 소식", icon: CalendarIcon },
-  { href: "/#interest-artists", label: "관심 아티스트", icon: SparkIcon },
+  { href: "/my", label: "MY", icon: SparkIcon },
 ];
 
 export default function ResponsiveDock(){
