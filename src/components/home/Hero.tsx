@@ -340,7 +340,10 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
-          <Choice label="1. 누구와" options={companions} value={companion} setValue={chooseCompanion}/>
+          <div>
+            <Choice label="1. 누구와" options={companions} value={companion} setValue={chooseCompanion}/>
+            {companion==="아이와"&&<ChildAgeChoice value={childAge} setValue={setChildAge}/>}
+          </div>
           <div>
             <Choice label="2. 언제" options={timings} value={timing} setValue={setTiming}/>
             {timing==="날짜 선택"&&<label className="mt-3 flex max-w-[280px] items-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5"><CalendarIcon className="h-4 w-4 shrink-0 text-gold"/><input type="date" value={customDate} min={toIsoDate(new Date())} onChange={e=>setCustomDate(e.target.value)} className="min-w-0 w-full bg-transparent text-sm font-semibold text-paper outline-none"/></label>}
@@ -354,7 +357,6 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           </div>
         </div>
 
-        {companion==="아이와"&&<div id="child-age-filter" className="mt-5 rounded-2xl border border-[#d9b89f] bg-[#fff8f0] p-4 sm:p-5"><Choice label="아이 나이는 몇 살인가요?" options={childAges} value={childAge} setValue={setChildAge}/><p className="mt-2 text-[11px] font-semibold leading-5 text-[#7b5a45]">선택한 나이에 실제 관람 가능한 것으로 확인된 공연만 보여드립니다. 관람연령 정보가 없는 공연은 아이와 검색에서 제외합니다.</p></div>}
 
         <div className="mt-6 border-t border-line pt-5">
           <div className="grid gap-2 lg:grid-cols-[1fr_auto_auto]">
@@ -480,6 +482,7 @@ type SpeechRecognitionLike = {
 
 function MicIcon({className=""}:{className?:string}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>}
 
+function ChildAgeChoice({value,setValue}:{value:ChildAge|null;setValue:(v:ChildAge)=>void}){return <div id="child-age-filter" className="mt-3 rounded-2xl border border-[#d9b89f] bg-[#fff8f0] p-3.5 sm:p-4"><div className="flex items-end justify-between gap-3"><div><p className="text-sm font-black text-paper">아이 나이가 어떻게 되나요?</p><p className="mt-1 text-[11px] font-semibold leading-5 text-[#7b5a45]">관람 가능한 공연을 정확하게 찾기 위해 선택해주세요.</p></div>{value&&<span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-paper shadow-sm">{value}</span>}</div><div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">{childAges.map(age=><button type="button" key={age} onClick={()=>setValue(age)} aria-pressed={age===value} className={`min-h-11 rounded-xl border px-2 py-2 text-xs font-black transition ${age===value?"border-paper bg-paper text-white shadow-sm":"border-[#e7cdb9] bg-white text-[#6f5949] hover:border-gold/60 hover:text-paper"}`}>{age}</button>)}</div><p className="mt-3 text-[10px] font-semibold leading-4 text-[#8b6a53]">선택한 나이에 관람 가능한 것으로 확인된 공연을 우선 보여드립니다.</p></div>}
 function Choice<T extends string>({label,options,value,setValue}:{label:string;options:readonly T[];value:T|null;setValue:(v:T)=>void}){return <div><p className="mb-2 text-xs font-black text-paper">{label}</p><div className="flex flex-wrap gap-2 pb-1">{options.map(o=><button type="button" key={o} onClick={()=>setValue(o)} className={`min-h-10 shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-bold transition sm:min-h-0 ${o===value?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/70 text-muted hover:border-gold/50 hover:text-paper"}`}>{o}</button>)}</div></div>}
 function Quick({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="shrink-0 rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted transition hover:border-gold/60 hover:text-paper">{label}</button>}
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/80 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
