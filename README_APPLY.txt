@@ -1,17 +1,17 @@
-SHOWDAY Ticket Open Engine 2차 보완
+SHOWDAY 관심 아티스트 페이지 통합 네비게이션 FIX
 
-덮어쓰기/추가 파일 3개
-1) src/components/home/InterestArtistsSection.tsx
-2) src/app/my/page.tsx
-3) src/app/api/ticket-info/route.ts
+덮어쓰기 파일
+1. src/app/artists/page.tsx
+2. src/components/layout/Header.tsx
+3. src/components/navigation/ResponsiveDock.tsx
+4. src/components/home/InterestArtistsSection.tsx
 
-보완 내용
-- 관심 아티스트 링크 /artists?artist=아티스트명 자동 선택
-- 티켓 알림을 단일 시점이 아니라 복수 시점 동시 선택으로 변경
-- 일정 발표 즉시 / 7일 전 / 3일 전 / 하루 전 / 3시간 전 / 1시간 전 / 10분 전 / 오픈 즉시
-- 기존 ticketLead 저장값 자동 호환
-- NOL/인터파크 등 예매 공지의 AM/PM 시간을 24시간 형태로 정규화
-- 예매처 redirect가 허용된 도메인 안에서만 이동하도록 보안 강화
-- 예매처 본문에서 일정 추출 실패 시 임의 시간을 생성하지 않음
-
-이번 ZIP은 Hero.tsx를 포함하지 않습니다. 현재 무료공연 검색/신청상태 수정본을 덮어쓰지 않습니다.
+수정 내용
+- /artists 전용 관심 아티스트 페이지 유지
+- PC 우측 바로가기: 상단으로 / 메인 / 관심 아티스트 / 공연 소식 / ARENA NOW / MY SHOWDAY
+- 관심 아티스트 페이지 하단에 SHOWDAY NOW 공연 소식 추가
+- 관심 아티스트 페이지 하단에 ARENA NOW 배너 추가
+- 모바일 하단 메뉴: 찾기 / 내 주변 / 공연 소식 / MY / ARENA
+- Header의 관심 아티스트 링크를 /artists로 수정하고 현재 페이지 활성 표시
+- 비로그인 상태에서 관심 아티스트 등록/알림 설정 시 카카오 간편 시작 유도 유지
+- 기존 Ticket Open Engine / 복수 알림 설정이 들어간 InterestArtistsSection 유지

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { isAuthConfigured, signInWithKakao, signOut } from "@/lib/auth";
@@ -18,6 +18,7 @@ export default function Header({
 } = {}) {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isAuthConfigured) return;
@@ -52,23 +53,32 @@ export default function Header({
     (user?.user_metadata?.full_name as string | undefined) ??
     "회원님";
 
+  const navClass = (active: boolean) =>
+    active ? "font-black text-paper" : "text-muted hover:text-paper";
+
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
         <a href="/" className="flex items-baseline gap-1" aria-label="SHOWDAY 홈">
-          <span className="font-display font-bold text-[21px] tracking-tight text-paper sm:text-2xl">SHOWDAY</span>
+          <span className="font-display text-[21px] font-bold tracking-tight text-paper sm:text-2xl">SHOWDAY</span>
           <span className="hidden text-xs text-muted sm:inline">문화생활 비서</span>
         </a>
 
-        <nav className="hidden items-center gap-5 text-sm text-muted lg:flex xl:gap-7">
-          <a href="/#showday-now" className="hover:text-paper">공연 소식</a>
-          <a href="/artists" className="hover:text-paper">관심 아티스트</a>
-          <a href="/my" className="font-bold text-paper hover:text-gold">MY SHOWDAY</a>
+        <nav className="hidden items-center gap-5 text-sm lg:flex xl:gap-7">
+          <a href="/#showday-now" className={navClass(false)}>
+            공연 소식
+          </a>
+          <a href="/artists" className={navClass(pathname === "/artists")} aria-current={pathname === "/artists" ? "page" : undefined}>
+            관심 아티스트
+          </a>
+          <a href="/my" className={navClass(pathname === "/my")} aria-current={pathname === "/my" ? "page" : undefined}>
+            MY SHOWDAY
+          </a>
         </nav>
 
         {user ? (
           <div className="flex items-center gap-3 text-xs">
-            <span className="text-muted">{nickname}님</span>
+            <span className="hidden text-muted sm:inline">{nickname}님</span>
             <button
               onClick={signOut}
               className="rounded-full border border-line px-3 py-1.5 text-muted transition-colors hover:border-gold hover:text-paper"
@@ -79,12 +89,12 @@ export default function Header({
         ) : (
           <button
             onClick={() => signInWithKakao()}
-            aria-label="카카오로 로그인"
+            aria-label="카카오로 간편 시작"
             className="flex min-h-10 items-center gap-2 rounded-full bg-[#FEE500] px-3.5 py-2 text-[11px] font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:px-4 sm:text-xs"
           >
             <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-[#191600] text-[10px] font-black text-[#FEE500]">K</span>
-            <span className="sm:hidden">카카오 로그인</span>
-            <span className="hidden sm:inline">카카오로 로그인</span>
+            <span className="sm:hidden">간편 시작</span>
+            <span className="hidden sm:inline">카카오로 간편 시작</span>
           </button>
         )}
       </div>
