@@ -19,11 +19,13 @@ type AlertPrefs = {
   ticketOpen: boolean;
   freeNearby: boolean;
   savedSearch: boolean;
-  ticketLead: "1d" | "1h" | "10m";
+  ticketLead: "7d" | "1d" | "1h" | "10m";
+  ticketAnnouncement?: boolean;
+  ticketAtOpen?: boolean;
 };
 
 const ALERT_PREFS_KEY = "showday:alert-prefs:v1";
-const DEFAULT_PREFS: AlertPrefs = { artistNewShow:true, ticketOpen:true, freeNearby:false, savedSearch:false, ticketLead:"1h" };
+const DEFAULT_PREFS: AlertPrefs = { artistNewShow:true, ticketOpen:true, freeNearby:false, savedSearch:false, ticketLead:"7d", ticketAnnouncement:true, ticketAtOpen:true };
 
 function safePrefs(): AlertPrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
@@ -66,6 +68,7 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
   const [selectedArtist, setSelectedArtist] = useState("");
   const [prefs, setPrefs] = useState<AlertPrefs>(DEFAULT_PREFS);
   const [notice, setNotice] = useState("");
+  const [ticketInfo,setTicketInfo]=useState<Record<string,{loading:boolean;windows:Array<{kind:string;label:string;startText:string;sourceText:string}>;checked:boolean}>>({});
 
   useEffect(() => { getFollowedArtistIds().then(setFollows); setPrefs(safePrefs()); }, [mode]);
   useEffect(() => { if (!notice) return; const t=setTimeout(()=>setNotice(""),2200); return()=>clearTimeout(t); }, [notice]);
@@ -94,6 +97,17 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
   const savedNames = useMemo(() => Array.from(follows).map(artistNameFromId).filter(Boolean), [follows]);
   const activeArtist = selectedArtist || searched || savedNames[0] || rankings[0]?.name || "";
   const activeShows = useMemo(() => activeArtist ? allShows.filter(s=>cleanArtistName(s.artist)===activeArtist).slice(0,12) : [], [allShows,activeArtist]);
+
+  useEffect(()=>{
+    const targets=activeShows.filter(s=>bookingUrl(s)).slice(0,6);
+    let cancelled=false;
+    for(const show of targets){
+      const url=bookingUrl(show); if(!url||ticketInfo[show.id]?.checked||ticketInfo[show.id]?.loading)continue;
+      setTicketInfo(prev=>({...prev,[show.id]:{loading:true,windows:prev[show.id]?.windows||[],checked:false}}));
+      fetch(`/api/ticket-info?url=${encodeURIComponent(url)}`,{cache:"no-store"}).then(r=>r.json()).then(data=>{if(cancelled)return;setTicketInfo(prev=>({...prev,[show.id]:{loading:false,windows:Array.isArray(data?.windows)?data.windows:[],checked:true}}))}).catch(()=>{if(!cancelled)setTicketInfo(prev=>({...prev,[show.id]:{loading:false,windows:[],checked:true}}))});
+    }
+    return()=>{cancelled=true};
+  },[activeShows]);
 
   function submit(e: FormEvent) { e.preventDefault(); const q=query.trim(); if(q){setSearched(q);setSelectedArtist(q);} }
   async function toggle(name: string) {
@@ -125,14 +139,26 @@ export default function InterestArtistsSection({ shows, mode, popularShows=[] }:
 
         <div className="rounded-3xl border border-line bg-white/[.03] p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] text-gold">UPCOMING & TICKET</p><h2 className="mt-1 text-xl font-black text-paper">{activeArtist?`${activeArtist} 공연·예매 일정`:"아티스트를 선택하세요"}</h2></div>{activeArtist&&<button onClick={()=>toggle(activeArtist)} className={`rounded-full px-4 py-2 text-xs font-black ${follows.has(artistId(activeArtist))?"border border-gold text-gold":"bg-paper text-white"}`}>{follows.has(artistId(activeArtist))?"♥ 관심 등록됨":"♡ 관심 아티스트 등록"}</button>}</div>
           {searched&&matches.length>0&&<div className="mt-4 flex flex-wrap gap-2">{matches.map(name=><button key={name} onClick={()=>setSelectedArtist(name)} className="rounded-full border border-line px-3 py-1.5 text-[11px] font-bold text-paper hover:border-gold">{name}</button>)}</div>}
-          {activeArtist&&<div className="mt-5 grid gap-3">{activeShows.length?activeShows.map(show=>{const open=ticketOpenValue(show);const book=bookingUrl(show);return <article key={show.id} className="rounded-2xl border border-line bg-ink/30 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><span className="text-[10px] font-black text-gold">공연예정</span><h3 className="mt-1 line-clamp-2 text-sm font-black leading-5 text-paper">{show.title}</h3><p className="mt-2 text-xs text-muted">공연 일정 · <b className="text-paper">{showDateText(show)}</b></p><p className="mt-1 text-xs text-muted">티켓 오픈 · <b className={open?"text-gold":"text-paper"}>{open?toTime(open):"공식 오픈일·시간 미확인"}</b></p></div><div className="flex shrink-0 flex-col gap-2"><a href={showLink(show)} className="rounded-full border border-line px-3 py-2 text-center text-[11px] font-black text-paper">공연 상세</a>{book?<a href={book} target="_blank" rel="noopener noreferrer" className="rounded-full bg-gold px-3 py-2 text-center text-[11px] font-black text-ink">빠른예매 ↗</a>:<span className="rounded-full border border-line px-3 py-2 text-center text-[10px] font-bold text-muted">예매처 확인 중</span>}</div></div></article>}):<div className="rounded-2xl border border-dashed border-line px-4 py-8 text-center"><p className="text-sm font-black text-paper">현재 확인된 예정 공연이 없습니다.</p><p className="mt-2 text-xs leading-5 text-muted">관심 등록을 유지하면 향후 공연 데이터가 들어왔을 때 확인할 수 있도록 준비합니다.</p></div>}</div>}
+          {activeArtist&&<div className="mt-5 grid gap-3">{activeShows.length?activeShows.map(show=>{
+            const open=ticketOpenValue(show); const book=bookingUrl(show); const info=ticketInfo[show.id]; const windows=info?.windows||[];
+            const fan=windows.filter(w=>w.kind==="fan"); const general=windows.filter(w=>w.kind==="general"); const accessible=windows.filter(w=>w.kind==="accessible");
+            const hasNotice=windows.length>0;
+            return <article key={show.id} className="rounded-2xl border border-line bg-ink/30 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><span className="text-[10px] font-black text-gold">공연예정</span><h3 className="mt-1 line-clamp-2 text-sm font-black leading-5 text-paper">{show.title}</h3><p className="mt-2 text-xs text-muted">공연 일정 · <b className="text-paper">{showDateText(show)}</b></p></div><div className="flex shrink-0 flex-col gap-2"><a href={showLink(show)} className="rounded-full border border-line px-3 py-2 text-center text-[11px] font-black text-paper">공연 상세</a>{book?<a href={book} target="_blank" rel="noopener noreferrer" className="rounded-full bg-gold px-3 py-2 text-center text-[11px] font-black text-ink">{hasNotice?"예매처 바로가기 ↗":"예매일정 확인 ↗"}</a>:<span className="rounded-full border border-line px-3 py-2 text-center text-[10px] font-bold text-muted">예매처 확인 중</span>}</div></div>
+              <div className="mt-3 rounded-xl border border-line bg-white/[.03] p-3"><div className="flex items-center justify-between gap-2"><b className="text-[11px] text-paper">티켓 오픈 일정</b>{info?.loading&&<span className="text-[10px] text-muted">예매처 공지 확인 중…</span>}</div>
+                {hasNotice?<div className="mt-2 space-y-2">{fan.map((w,i)=><TicketLine key={`f${i}`} badge="선예매" text={w.startText}/>) }{general.map((w,i)=><TicketLine key={`g${i}`} badge="일반예매" text={w.startText}/>) }{accessible.map((w,i)=><TicketLine key={`a${i}`} badge="휠체어석" text={w.startText}/>) }{!fan.length&&!general.length&&!accessible.length&&windows.slice(0,3).map((w,i)=><TicketLine key={i} badge="예매안내" text={w.startText}/>)}</div>:open?<p className="mt-2 text-xs font-black text-gold">{toTime(open)}</p>:info?.checked?<p className="mt-2 text-xs leading-5 text-muted">공식 예매처는 연결되어 있지만 현재 페이지에서 날짜·시간을 자동 확인하지 못했습니다. <b className="text-paper">예매일정 확인</b>에서 공지를 확인하고 알림을 유지해 주세요.</p>:<p className="mt-2 text-xs text-muted">공식 오픈일·시간을 확인하는 중입니다.</p>}
+              </div>
+            </article>
+          }):<div className="rounded-2xl border border-dashed border-line px-4 py-8 text-center"><p className="text-sm font-black text-paper">현재 확인된 예정 공연이 없습니다.</p><p className="mt-2 text-xs leading-5 text-muted">관심 등록을 유지하면 향후 공연 데이터가 들어왔을 때 확인할 수 있도록 준비합니다.</p></div>}</div>}
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-line bg-white/[.03] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] text-gold">ALERT SETTINGS</p><h2 className="mt-1 text-lg font-black text-paper">관심 아티스트 알림 연결</h2><p className="mt-1 text-xs leading-5 text-muted">설정값은 MY SHOWDAY와 공유됩니다. 실제 푸시·카카오 발송은 발송 서버가 연결된 항목부터 동작하도록 분리합니다.</p></div><a href="/my?tab=alerts" className="text-xs font-black text-gold">전체 알림 관리 →</a></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><AlertToggle label="새 공연" desc="등록 아티스트 새 공연" checked={prefs.artistNewShow} onChange={v=>saveAlertPrefs({artistNewShow:v})}/><AlertToggle label="티켓 오픈" desc="예매 시작 시점" checked={prefs.ticketOpen} onChange={v=>saveAlertPrefs({ticketOpen:v})}/><AlertToggle label="무료 행사" desc="내 주변 무료 소식" checked={prefs.freeNearby} onChange={v=>saveAlertPrefs({freeNearby:v})}/><AlertToggle label="저장 조건" desc="조건에 맞는 새 소식" checked={prefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/></div>{prefs.ticketOpen&&<div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted"><b className="mr-1 text-paper">티켓 오픈 사전알림</b>{([['1d','하루 전'],['1h','1시간 전'],['10m','10분 전']] as const).map(([v,label])=><button key={v} onClick={()=>saveAlertPrefs({ticketLead:v})} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketLead===v?"border-gold bg-gold/10 text-gold":"border-line"}`}>{label}</button>)}</div>}</div>
+      <div className="mt-6 rounded-3xl border border-line bg-white/[.03] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black tracking-[.16em] text-gold">ALERT SETTINGS</p><h2 className="mt-1 text-lg font-black text-paper">관심 아티스트 알림 연결</h2><p className="mt-1 text-xs leading-5 text-muted">설정값은 MY SHOWDAY와 공유됩니다. 실제 푸시·카카오 발송은 발송 서버가 연결된 항목부터 동작하도록 분리합니다.</p></div><a href="/my?tab=alerts" className="text-xs font-black text-gold">전체 알림 관리 →</a></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><AlertToggle label="새 공연" desc="등록 아티스트 새 공연" checked={prefs.artistNewShow} onChange={v=>saveAlertPrefs({artistNewShow:v})}/><AlertToggle label="티켓 오픈" desc="예매 시작 시점" checked={prefs.ticketOpen} onChange={v=>saveAlertPrefs({ticketOpen:v})}/><AlertToggle label="무료 행사" desc="내 주변 무료 소식" checked={prefs.freeNearby} onChange={v=>saveAlertPrefs({freeNearby:v})}/><AlertToggle label="저장 조건" desc="조건에 맞는 새 소식" checked={prefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/></div>{prefs.ticketOpen&&<div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted"><b className="mr-1 text-paper">티켓 오픈 사전알림</b>{([['7d','7일 전'],['1d','하루 전'],['1h','1시간 전'],['10m','10분 전']] as const).map(([v,label])=><button key={v} onClick={()=>saveAlertPrefs({ticketLead:v})} className={`rounded-full border px-3 py-1.5 font-bold ${prefs.ticketLead===v?"border-gold bg-gold/10 text-gold":"border-line"}`}>{label}</button>)}</div>}</div>
     </div>
   </section>;
 }
+
+function TicketLine({badge,text}:{badge:string;text:string}){return <div className="flex flex-wrap items-center gap-2 rounded-lg bg-white/[.04] px-3 py-2"><span className="rounded-full bg-gold/15 px-2 py-1 text-[10px] font-black text-gold">{badge}</span><b className="text-xs text-paper">{text}</b></div>}
 
 function AlertToggle({label,desc,checked,onChange}:{label:string;desc:string;checked:boolean;onChange:(v:boolean)=>void}){
   return <button onClick={()=>onChange(!checked)} className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left ${checked?"border-gold/60 bg-gold/10":"border-line"}`}><div><b className="block text-sm text-paper">{label}</b><span className="mt-1 block text-[10px] text-muted">{desc}</span></div><span className={`relative h-6 w-11 shrink-0 rounded-full ${checked?"bg-gold":"bg-white/15"}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${checked?"left-6":"left-1"}`}/></span></button>;
