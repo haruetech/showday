@@ -46,7 +46,10 @@ function matchesDiscovery(show:Show, value:Discovery, price:Price){
 }
 function matchesCompanion(show:Show, value:Companion){
   if(value==="상관없음") return true;
-  if(value==="아이와") return show.tags?.includes("가족") || /아동|어린이|가족/.test(`${show.genre} ${show.title}`);
+  // 아이와 검색은 장르/제목의 '가족·어린이' 키워드로 공연 자체를 제외하지 않는다.
+  // 실제 관람 가능 여부는 childAgeMatches()에서 연령 기준으로 안전하게 거른 뒤,
+  // 가족 친화 공연은 showPurposeScore()로 위에 정렬한다.
+  if(value==="아이와") return true;
   if(value==="연인과") return show.tags?.includes("데이트") || /뮤지컬|연극|콘서트|대중|전시/.test(show.genre);
   if(value==="부모님과") return show.tags?.includes("부모님") || show.tags?.includes("50+") || /클래식|국악|콘서트/.test(show.genre);
   return true;
@@ -62,9 +65,29 @@ function genreMatches(show:Show, genre:string){
 }
 function minAllowedAge(label?:string){
   if(!label) return null;
-  if(/전체\s*관람|전체관람/.test(label)) return 0;
-  const m=label.match(/(\d+)\s*세/);
-  return m ? Number(m[1]) : null;
+  const text=label.replace(/\s+/g," ").trim();
+  if(/전체\s*관람|전체관람|전 연령|전연령/.test(text)) return 0;
+  const month=text.match(/(\d+)\s*개월/);
+  if(month) return Math.ceil(Number(month[1])/12);
+  const year=text.match(/(?:만\s*)?(\d+)\s*세/);
+  if(year) return Number(year[1]);
+  if(/초등학생\s*이상|초등\s*이상/.test(text)) return 7;
+  if(/중학생\s*이상|중등\s*이상/.test(text)) return 13;
+  return null;
+}
+function showPurposeScore(show:Show,value:Companion){
+  const text=`${show.genre||""} ${show.title||""} ${(show.tags||[]).join(" ")}`;
+  let score=0;
+  if(show.bookingUrl) score+=2;
+  if(show.posterUrl) score+=1;
+  if(value==="아이와"){
+    if(show.tags?.includes("가족")) score+=12;
+    if(/어린이|아동|가족|키즈|동화|인형극|마술/.test(text)) score+=10;
+    if(/뮤지컬|연극|클래식|국악|콘서트/.test(text)) score+=3;
+    const minAge=minAllowedAge(show.ageLabel);
+    if(minAge===0) score+=5;
+  }
+  return score;
 }
 function childAgeMatches(show:Show, value:ChildAge|null){
   if(!value) return false;
@@ -232,7 +255,8 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         .filter((s:Show)=>genreMatches(s,genre))
         .filter((s:Show)=>matchesDiscovery(s,discovery,price))
         .filter((s:Show)=>matchesCompanion(s,companion))
-        .filter((s:Show)=>companion!=="아이와"||childAgeMatches(s,childAge));
+        .filter((s:Show)=>companion!=="아이와"||childAgeMatches(s,childAge))
+        .sort((a:Show,b:Show)=>showPurposeScore(b,companion)-showPurposeScore(a,companion));
 
       if(region==="내 주변"){
         // 이전 버그: list.length가 0이면(=KOPIS_API_KEY 미설정 등으로 검색 결과가 아직 없으면)
