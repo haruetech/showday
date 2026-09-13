@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   const category = sp.get("category")?.trim() || "전체";
   const region = sp.get("region")?.trim() || "전국";
   const rows = Math.min(Math.max(Number(sp.get("rows") || 100), 20), 300);
-  const sourceFilter = new Set((sp.get("sources") || "culture,tour,youth,youth-vacation,seoul,forest").split(",").map(s=>s.trim()).filter(Boolean));
+  const sourceFilter = new Set((sp.get("sources") || "culture,tour,youth-vacation,seoul,forest").split(",").map(s=>s.trim()).filter(Boolean));
 
   const jobs: Promise<EventSourceResult>[] = [];
   if (sourceFilter.has("culture")) jobs.push(fetchCulturePortalEvents({ rows }));
