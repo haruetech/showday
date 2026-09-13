@@ -167,6 +167,16 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   const [listening,setListening]=useState(false);
   const [voiceMsg,setVoiceMsg]=useState("");
   const [restored,setRestored]=useState(false);
+  const [isMember,setIsMember]=useState(false);
+
+  useEffect(()=>{
+    if(!isAuthConfigured) return;
+    const supabase=createClient();
+    if(!supabase) return;
+    supabase.auth.getUser().then(({data})=>setIsMember(Boolean(data.user)));
+    const {data:sub}=supabase.auth.onAuthStateChange((_event,session)=>setIsMember(Boolean(session?.user)));
+    return()=>sub.subscription.unsubscribe();
+  },[]);
 
   useEffect(()=>{
     try{
@@ -472,6 +482,38 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           </div>
         </div>
       </div>
+    </div>
+
+    <div className="relative z-20 mx-auto -mb-2 max-w-[1280px] px-4 pt-4 sm:px-6">
+      {!isMember ? (
+        <div className="rounded-2xl border border-[#ead8c8] bg-[#fffaf4] px-4 py-4 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-5">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black tracking-[.14em] text-[#b46f3d]">MY SHOWDAY</p>
+            <p className="mt-1 text-sm font-black text-paper sm:text-[15px]">로그인하면 내 취향과 놓치기 쉬운 공연 소식을 한곳에서 볼 수 있어요.</p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-[#75665b]">
+              <span>📍 현재 위치 기준 거리</span>
+              <span>♥ 관심 아티스트</span>
+              <span>🔔 티켓·무료공연 오픈 알림</span>
+              <span>★ 좋아요·검색조건 모아보기</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={()=>signInWithKakao()}
+            className="mt-3 inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full bg-[#FEE500] px-5 text-xs font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:mt-0"
+          >
+            카카오로 간편 시작
+          </button>
+        </div>
+      ) : (
+        <a href="/my" className="flex items-center justify-between gap-3 rounded-2xl border border-[#ead8c8] bg-[#fffaf4] px-4 py-3.5 shadow-sm transition hover:border-[#d5b698] sm:px-5">
+          <div>
+            <p className="text-[11px] font-black tracking-[.14em] text-[#b46f3d]">MY SHOWDAY</p>
+            <p className="mt-1 text-sm font-black text-paper">좋아요 · 관심 아티스트 · 티켓오픈 · 무료공연 알림을 확인하세요.</p>
+          </div>
+          <span className="shrink-0 text-xs font-black text-[#9b5d32]">MY 보기 →</span>
+        </a>
+      )}
     </div>
 
     <div id="quick-search" className="relative z-10 mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-10">
