@@ -20,11 +20,24 @@ export function asArray<T>(value: T | T[] | undefined | null): T[] {
 }
 
 export function publicDataKey(...names: string[]) {
+  let value = "";
+
   for (const name of names) {
-    const value = process.env[name];
-    if (value) return value;
+    if (process.env[name]) {
+      value = process.env[name]!;
+      break;
+    }
   }
-  return process.env.DATA_GO_KR_SERVICE_KEY || "";
+
+  if (!value) {
+    value = process.env.DATA_GO_KR_SERVICE_KEY || "";
+  }
+
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 export function buildUrl(base: string, params: Record<string, string | number | undefined | null>) {
