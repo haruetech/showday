@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type VenueReq={id:string;name:string;region?:string};
+type VenueReq={id:string;name:string;region?:string;address?:string};
 type Point={lng:number;lat:number};
 const headers=(key:string)=>({Authorization:`KakaoAK ${key}`});
 
 async function geocodeVenue(key:string, venue:VenueReq):Promise<Point|null>{
   const candidates=[
+    venue.address,
     [venue.name,venue.region].filter(Boolean).join(" "),
     venue.name,
-  ].filter(Boolean);
+  ].filter(Boolean) as string[];
   for(const q of candidates){
     const u=new URL("https://dapi.kakao.com/v2/local/search/keyword.json");
     u.searchParams.set("query",q);u.searchParams.set("size","1");
@@ -42,14 +43,15 @@ export async function POST(req:NextRequest){
   if(!key)return NextResponse.json({configured:false,times:{},message:"KAKAO_REST_API_KEY가 설정되지 않았습니다."});
   const body=await req.json().catch(()=>null);
   const origin=body?.origin as Point;
-  const venues=(body?.venues||[]).slice(0,24) as VenueReq[];
+  const distanceOnly=Boolean(body?.distanceOnly);
+  const venues=(body?.venues||[]).slice(0,distanceOnly?80:24) as VenueReq[];
   if(!origin||!Number.isFinite(origin.lat)||!Number.isFinite(origin.lng))return NextResponse.json({configured:true,times:{},message:"현재 위치가 올바르지 않습니다."},{status:400});
 
   const entries=await Promise.all(venues.map(async v=>{
     const dest=await geocodeVenue(key,v);
     if(!dest)return [v.id,{driveMinutes:null,distanceKm:null}] as const;
     const distanceKm=Number(haversine(origin,dest).toFixed(1));
-    const driveMinutes=await drive(key,origin,dest);
+    const driveMinutes=distanceOnly?null:await drive(key,origin,dest);
     return [v.id,{driveMinutes,distanceKm}] as const;
   }));
   return NextResponse.json({configured:true,times:Object.fromEntries(entries)});

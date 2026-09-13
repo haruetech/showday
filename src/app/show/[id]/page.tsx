@@ -27,6 +27,12 @@ export default function ShowDetail(){
   const requireLogin=()=>{if(isAuthConfigured)signInWithKakao();else alert("관심 공연 저장과 일정 알림은 로그인 후 이용할 수 있습니다.")};
   const toggle=(key:string,current:boolean,setter:(v:boolean)=>void)=>{if(!isMember){requireLogin();return}const set=loadSet(key);current?set.delete(id):set.add(id);saveSet(key,set);setter(!current)};
   const copyShareLink=async()=>{let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(window.location.href);copied=true}}catch{}if(!copied){try{const el=document.createElement("textarea");el.value=window.location.href;el.setAttribute("readonly","");el.style.position="fixed";el.style.left="-9999px";document.body.appendChild(el);el.select();copied=document.execCommand("copy");document.body.removeChild(el)}catch{copied=false}}setShareMsg(copied?"공연 링크를 복사했습니다.":"주소창의 공연 링크를 복사해 공유해 주세요.");setTimeout(()=>setShareMsg(""),3000)};
+  const backToSearch=()=>{
+    try{
+      if(window.history.length>1){ window.history.back(); return; }
+    }catch{}
+    window.location.href="/#show-search";
+  };
   const shareShow=async()=>{
     try{
       const shareData={title:d?.title||"SHOWDAY 공연정보",text:d?`${d.title} · ${d.period} · ${d.venue}`:"SHOWDAY 공연정보",url:window.location.href};
@@ -51,7 +57,7 @@ export default function ShowDetail(){
     }
   };
 
-  return <><Header mode={mode} onModeChange={setMode}/><main className="min-h-screen bg-ink text-paper"><div className="mx-auto max-w-[1180px] px-6 py-8"><a href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-paper"><ArrowIcon className="h-3.5 w-3.5 rotate-180"/>목록으로</a>
+  return <><Header mode={mode} onModeChange={setMode}/><main className="min-h-screen bg-ink text-paper"><div className="mx-auto max-w-[1180px] px-6 py-8"><button type="button" onClick={backToSearch} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-paper"><ArrowIcon className="h-3.5 w-3.5 rotate-180"/>검색 결과로</button>
     {d===undefined?<div className="mt-10 border-y border-line py-10 text-sm text-muted">공연 상세정보를 불러오는 중입니다.</div>:!d?<div className="mt-10 border-y border-line py-10"><h1 className="text-2xl font-black">{ended?"종료된 공연입니다.":"공연 상세정보를 찾지 못했습니다."}</h1><p className="mt-3 text-sm text-muted">{ended?"SHOWDAY는 현재 진행 중이거나 앞으로 예정된 공연만 소개합니다.":"공연정보가 갱신 중이거나 상세정보가 아직 등록되지 않았을 수 있습니다."}</p><a href="/" className="mt-6 inline-flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-xs font-bold text-paper">현재·예정 공연 보기 <ArrowIcon className="h-3.5 w-3.5"/></a></div>:<>
       <section className="mt-9 grid gap-10 border-t border-line pt-9 lg:grid-cols-[330px_1fr]">
         <div className="aspect-[3/4] overflow-hidden bg-surface-raised">{d.posterUrl?<img src={d.posterUrl} alt={`${d.title} 포스터`} className="h-full w-full object-cover"/>:<div className="grid h-full place-items-center text-sm text-muted">포스터 준비중</div>}</div>
