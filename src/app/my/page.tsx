@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { getFollowedArtistIds } from "@/lib/favorites";
 import { createClient } from "@/lib/supabase/client";
@@ -24,7 +23,6 @@ function artistNameFromId(id:string){if(!id.startsWith("artist-name:"))return ""
 function formatDate(value?:string){if(!value)return "";try{return new Intl.DateTimeFormat("ko-KR",{month:"short",day:"numeric"}).format(new Date(value))}catch{return ""}}
 
 export default function MyShowdayPage(){
-  const searchParams=useSearchParams();
   const [tab,setTab]=useState<Tab>("likes");
   const [user,setUser]=useState<User|null>(null);
   const [authReady,setAuthReady]=useState(false);
@@ -35,7 +33,10 @@ export default function MyShowdayPage(){
   const [alertPrefs,setAlertPrefs]=useState<AlertPrefs>(DEFAULT_ALERT_PREFS);
   const [alertNotice,setAlertNotice]=useState("");
 
-  useEffect(()=>{ const requested=searchParams.get("tab"); if(requested==="likes"||requested==="artists"||requested==="searches"||requested==="alerts") setTab(requested); },[searchParams]);
+  useEffect(()=>{
+    const requested=new URLSearchParams(window.location.search).get("tab");
+    if(requested==="likes"||requested==="artists"||requested==="searches"||requested==="alerts") setTab(requested);
+  },[]);
 
   useEffect(()=>{
     if(!isAuthConfigured){
