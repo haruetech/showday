@@ -12,7 +12,7 @@ function rowsFrom(json: any): Record<string,unknown>[] {
 }
 
 export async function fetchYouthPrograms(options: { rows?: number } = {}): Promise<EventSourceResult> {
-  const key = publicDataKey("YOUTH_PROGRAM_API_KEY");
+  const key = process.env.DATA_GO_KR_SERVICE_KEY || "";
   if (!key) return { source:"YOUTH_PROGRAM", configured:false, events:[] };
   const base = process.env.YOUTH_PROGRAM_API_URL || "https://apis.data.go.kr/1383000/yhis/YouthProgramSearchService/getYouthProgramSearchList";
   const url = buildUrl(base,{ serviceKey:key,pageNo:1,numOfRows:Math.min(options.rows || 100,100),type:"json" });
