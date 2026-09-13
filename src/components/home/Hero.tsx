@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState } from "react";
 import type { ReactNode, TouchEvent } from "react";
-import { ArrowIcon, CalendarIcon, HeartIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
+import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
 import type { ShowdayEvent } from "@/lib/events/eventTypes";
 
@@ -623,44 +623,10 @@ function showSubLabel(show:Show){
   if(/국악|전통|판소리|사물놀이|풍물/.test(text)) return "국악·전통";
   return "기타";
 }
-
-const SAVED_ITEMS_KEY="showday:saved-items:v1";
-function loadSavedItems(){
-  if(typeof window==="undefined") return new Set<string>();
-  try{return new Set<string>(JSON.parse(localStorage.getItem(SAVED_ITEMS_KEY)||"[]"))}catch{return new Set<string>()}
-}
-function saveSavedItems(items:Set<string>){
-  try{localStorage.setItem(SAVED_ITEMS_KEY,JSON.stringify([...items]))}catch{}
-}
-function SocialActions({itemKey,title,url}:{itemKey:string;title:string;url?:string}){
-  const [saved,setSaved]=useState(false);
-  const [shareMsg,setShareMsg]=useState("");
-  useEffect(()=>{setSaved(loadSavedItems().has(itemKey))},[itemKey]);
-  function toggleSaved(e:React.MouseEvent<HTMLButtonElement>){
-    e.preventDefault();e.stopPropagation();
-    const items=loadSavedItems();
-    if(items.has(itemKey)){items.delete(itemKey);setSaved(false)}else{items.add(itemKey);setSaved(true)}
-    saveSavedItems(items);
-  }
-  async function share(e:React.MouseEvent<HTMLButtonElement>){
-    e.preventDefault();e.stopPropagation();
-    const target=url || (typeof window!=="undefined"?window.location.href:"");
-    try{
-      if(navigator.share){await navigator.share({title,text:title,url:target});return}
-      if(navigator.clipboard&&target){await navigator.clipboard.writeText(target);setShareMsg("복사됨");window.setTimeout(()=>setShareMsg(""),1400);return}
-    }catch{}
-  }
-  return <div className="flex items-center gap-1.5" aria-label="관심·공유">
-    <button type="button" onClick={toggleSaved} aria-pressed={saved} aria-label={saved?`${title} 관심 해제`:`${title} 관심 저장`} className={`inline-flex min-h-[34px] items-center gap-1 rounded-full border px-2.5 py-1.5 text-[10px] font-black shadow-sm transition ${saved?"border-gold bg-[#fff4e7] text-gold":"border-line bg-white/95 text-paper hover:border-gold"}`}><HeartIcon filled={saved} className="h-3.5 w-3.5"/><span>{saved?"관심됨":"관심"}</span></button>
-    <button type="button" onClick={share} aria-label={`${title} 공유`} className="inline-flex min-h-[34px] items-center rounded-full border border-line bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-paper shadow-sm transition hover:border-gold">{shareMsg||"공유"}</button>
-  </div>
-}
-
 function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
   const [tab,setTab]=useState<ResultTab>("전체");
   const [subTab,setSubTab]=useState("전체");
   const [resultJumpSeq,setResultJumpSeq]=useState(0);
-  const [sortMode,setSortMode]=useState<"추천순"|"가까운순"|"날짜순">("추천순");
   const counts={
     "전체":events.length+shows.length,
     "공연":events.filter(e=>groupLabel(e)==="공연").length+shows.length,
@@ -670,20 +636,10 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
   };
 
   const baseEvents=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
-  const rawEventFiltered=tab==="전체"||subTab==="전체"||subTab===`전체 ${tab}`
+  const eventFiltered=tab==="전체"||subTab==="전체"||subTab===`전체 ${tab}`
     ?baseEvents
     :baseEvents.filter(e=>eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===subTab);
-  const rawShowFiltered=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?shows.filter(s=>showSubLabel(s)===subTab):shows;
-  const eventFiltered=[...rawEventFiltered].sort((a,b)=>{
-    if(sortMode==="가까운순") return (a.distanceKm??9999)-(b.distanceKm??9999);
-    if(sortMode==="날짜순") return String(a.startDate||"99999999").localeCompare(String(b.startDate||"99999999"));
-    return 0;
-  });
-  const showFiltered=[...rawShowFiltered].sort((a,b)=>{
-    if(sortMode==="가까운순") return (a.distanceFromDobongKm??9999)-(b.distanceFromDobongKm??9999);
-    if(sortMode==="날짜순") return String(a.startDate||"99999999").localeCompare(String(b.startDate||"99999999"));
-    return 0;
-  });
+  const showFiltered=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"?shows.filter(s=>showSubLabel(s)===subTab):shows;
   const order=tab==="전체"?resultGroupOrder(companion):[tab];
   const visibleTotal=tab==="공연"&&subTab!=="전체"&&subTab!=="전체 공연"
     ?eventFiltered.length+showFiltered.length
@@ -701,18 +657,6 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     return events.filter(e=>groupLabel(e)===tab&&eventSubLabel(e,tab as Exclude<ResultTab,"전체">)===label).length;
   };
 
-  useEffect(()=>{
-    const onSort=(event:Event)=>{
-      const detail=(event as CustomEvent<string>).detail;
-      if(detail==="distance") setSortMode("가까운순");
-      else if(detail==="date") setSortMode("날짜순");
-      else setSortMode("추천순");
-      setResultJumpSeq(v=>v+1);
-    };
-    window.addEventListener("showday:result-sort",onSort);
-    return()=>window.removeEventListener("showday:result-sort",onSort);
-  },[]);
-
   useLayoutEffect(()=>{
     if(resultJumpSeq===0)return;
     let frame1=0;
@@ -721,15 +665,12 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
       const list=document.getElementById("search-results-list");
       const sticky=document.getElementById("search-results-sticky");
       if(!list)return;
-      // 세부분류가 바뀐 뒤 실제로 렌더링된 첫 결과 그룹의 제목을 기준으로 맞춥니다.
-      // list 자체를 기준으로 이동하면 sticky 높이/scroll anchoring 때문에 카드 중간부터 보일 수 있습니다.
-      const firstGroup=list.querySelector<HTMLElement>("[data-result-group]");
-      const target=firstGroup||list;
-      const targetRect=target.getBoundingClientRect();
-      const stickyRect=sticky?.getBoundingClientRect();
-      const safeTop=stickyRect ? stickyRect.bottom + 14 : 86;
-      const delta=Math.round(targetRect.top-safeTop);
-      if(Math.abs(delta)>1) window.scrollBy(0,delta);
+      const stickyStyle=sticky?window.getComputedStyle(sticky):null;
+      const stickyTop=stickyStyle?Number.parseFloat(stickyStyle.top||"0")||0:0;
+      const stickyHeight=sticky?.getBoundingClientRect().height||0;
+      const listTop=window.pageYOffset+list.getBoundingClientRect().top;
+      const targetTop=Math.max(0,Math.round(listTop-stickyTop-stickyHeight-10));
+      window.scrollTo(0,targetTop);
     };
     // 필터링된 카드가 실제 DOM에 반영된 뒤 이동합니다.
     // 두 프레임을 기다려 Safari/Chrome의 scroll anchoring 영향을 피합니다.
@@ -771,7 +712,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
             {tab==="전체"&&preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">{preferred} 우선</span>}
           </div>
           <h3 className="mt-1 text-base font-black text-paper sm:text-lg">{resultTitle(companion)}</h3>
-          <p className="mt-1 text-[11px] leading-5 text-muted sm:text-xs">{summary} · {loading?"검색 중":`현재 ${visibleTotal}건`} · <b>{sortMode}</b></p>
+          <p className="mt-1 text-[11px] leading-5 text-muted sm:text-xs">{summary} · {loading?"검색 중":`현재 ${visibleTotal}건`}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-full border border-line bg-white px-3 py-1.5 text-[11px] font-bold text-paper sm:text-xs">↑ 검색조건</button>
@@ -799,7 +740,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
             const performanceShows=(tab==="전체"||tab==="공연")?showFiltered:[];
             const total=performanceEvents.length+performanceShows.length;
             if(total===0)return null;
-            return <div key="공연" id="result-performance" data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연 DB와 SHOWDAY 공연을 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">KOPIS 공연</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
+            return <div key="공연" id="result-performance"><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연 DB와 SHOWDAY 공연을 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">KOPIS 공연</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
           }
           const items=eventFiltered.filter(e=>groupLabel(e)===label);
           if(!items.length)return null;
@@ -809,20 +750,15 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,onClo
     </div>
 
     <div className="mt-8 flex justify-center"><button type="button" onClick={()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-full border border-line bg-white px-4 py-2 text-xs font-black text-paper hover:border-gold">↑ 상단 검색으로</button></div>
-    <div id="search-condition-save" className="mt-5 scroll-mt-28 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
+    <div className="mt-5 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건 저장하기</b><p className="mt-1 text-xs leading-5 text-muted">관심조건을 저장해두면 새 공연·행사와 티켓오픈 소식을 확인하기 편해집니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장</a></div>
   </div>
 }
-function ResultGroup({title,items,preferred=false}:{title:string;items:ShowdayEvent[];preferred?:boolean}){return <div data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div className="flex flex-wrap items-center gap-2">{preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{title}</h4></div><span className="shrink-0 text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
+function ResultGroup({title,items,preferred=false}:{title:string;items:ShowdayEvent[];preferred?:boolean}){return <div><div className="mb-4 flex items-end justify-between gap-3"><div className="flex flex-wrap items-center gap-2">{preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{title}</h4></div><span className="shrink-0 text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
 function EventCard({event:e}:{event:ShowdayEvent}){
   const href=e.bookingUrl||e.officialUrl;
-  const itemKey=`event:${e.source||"source"}:${e.sourceId||e.id}`;
-  const cardUrl=href||"";
-  return <article className="group relative grid min-w-0 grid-cols-[82px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-[#fffaf4] hover:shadow-md sm:grid-cols-[96px_minmax(0,1fr)]">
-    {href&&<a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0 rounded-xl" aria-label={`${e.title} 상세 보기`}/>} 
-    <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div>
-    <div className="pointer-events-none relative z-[1] min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div>
-    <div className="relative z-10 col-span-2 mt-1 flex items-center justify-end"><SocialActions itemKey={itemKey} title={e.title} url={cardUrl}/></div>
-  </article>;
+  const body=<><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised"><>{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</></div><div className="min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper transition group-hover:text-gold">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<span className="mt-2 inline-flex text-[10px] font-bold text-muted group-hover:text-paper">외부 상세 ↗</span>}</div></>;
+  const cls="group grid min-w-0 grid-cols-[82px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-[#fffaf4] hover:shadow-md sm:grid-cols-[96px_minmax(0,1fr)]";
+  return href?<a href={href} target="_blank" rel="noopener noreferrer" className={cls} aria-label={`${e.title} 상세 보기`}>{body}</a>:<article className={cls}>{body}</article>;
 }
 
 type SpeechRecognitionLike = {
@@ -898,15 +834,4 @@ function Quick({label,onClick}:{label:string;onClick:()=>void}){
 }
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/80 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
 function Empty(){return <div className="border-y border-line py-8 text-center"><p className="text-sm font-semibold text-paper">조건에 맞는 현재·예정 공연을 찾지 못했습니다.</p><p className="mt-2 text-xs text-muted">지역이나 날짜를 조금 넓혀 다시 찾아보세요.</p></div>}
-function ResultCard({show}:{show:Show}){
-  const hasPrice=show.priceLabel&&show.priceLabel!=="가격 정보 없음";
-  const hasDistance=Number.isFinite(show.distanceFromDobongKm)&&show.distanceFromDobongKm<999;
-  const href=`/show/${encodeURIComponent(show.id)}`;
-  return <article className="group relative grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block">
-    <a href={href} className="absolute inset-0 z-0" aria-label={`${show.title} 상세 보기`}/>
-    <div className="pointer-events-none relative z-[1] aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div>
-    <div className="pointer-events-none relative z-[1] sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div>
-    <div className="relative z-10 col-span-2 mt-2 flex justify-end sm:absolute sm:right-2 sm:top-2 sm:mt-0"><SocialActions itemKey={`show:${show.id}`} title={show.title} url={typeof window!=="undefined"?`${window.location.origin}${href}`:href}/></div>
-  </article>;
-}
-
+function ResultCard({show}:{show:Show}){const hasPrice=show.priceLabel&&show.priceLabel!=="가격 정보 없음";const hasDistance=Number.isFinite(show.distanceFromDobongKm)&&show.distanceFromDobongKm<999;return <a href={`/show/${encodeURIComponent(show.id)}`} className="group grid grid-cols-[88px_1fr] gap-3 border-b border-line pb-4 sm:block"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{show.posterUrl?<img src={show.posterUrl} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"/>:<div className="h-full w-full" style={{background:`linear-gradient(135deg,${show.posterFrom},${show.posterTo})`}}/>}</div><div className="sm:pt-3"><p className="text-[10px] font-semibold tracking-[.08em] text-gold">{show.genre}</p><b className="mt-1 line-clamp-2 block text-sm text-paper group-hover:text-gold">{show.title}</b><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{show.venue}<br/>{show.dateLabel}</p><div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[11px] font-black text-paper">{hasPrice?show.priceLabel:"가격 상세 확인"}</span>{hasDistance&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[11px] font-bold text-muted">내 위치에서 {show.distanceFromDobongKm<1?`${Math.round(show.distanceFromDobongKm*1000)}m`:`${show.distanceFromDobongKm.toFixed(1)}km`}</span>}</div>{show.ageLabel&&show.ageLabel!=="관람등급 정보 없음"&&<p className="mt-2 text-[11px] text-muted">{show.ageLabel}</p>}<span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-paper">자세히 <ArrowIcon className="h-3.5 w-3.5"/></span></div></a>}
