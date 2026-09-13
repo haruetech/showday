@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowIcon, CalendarIcon, PinIcon, SearchIcon, SparkIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
+import type { ShowdayEvent } from "@/lib/events/eventTypes";
 
 type Timing = "오늘" | "이번 주말" | "이번 주" | "이번 달" | "날짜 선택";
 type Region = "내 주변" | "서울" | "경기" | "인천" | "부산" | "전국";
@@ -77,7 +78,7 @@ function toIsoDate(d:Date){
   return `${y}-${m}-${day}`;
 }
 
-export default function Hero(){
+export default function Hero({onSearchStateChange}:{onSearchStateChange?:(searched:boolean)=>void}={}){
   const [query,setQuery]=useState("");
   const [companion,setCompanion]=useState<Companion>("상관없음");
   const [region,setRegion]=useState<Region>("내 주변");
@@ -88,6 +89,7 @@ export default function Hero(){
   const [discovery,setDiscovery]=useState<Discovery>("전체");
   const [price,setPrice]=useState<Price>("3만원 이하");
   const [results,setResults]=useState<Show[]>([]);
+  const [eventResults,setEventResults]=useState<ShowdayEvent[]>([]);
   const [loading,setLoading]=useState(false);
   const [searched,setSearched]=useState(false);
   const [locationMsg,setLocationMsg]=useState("");
@@ -207,7 +209,7 @@ export default function Hero(){
       document.getElementById("child-age-filter")?.scrollIntoView({behavior:"smooth",block:"center"});
       return;
     }
-    setLoading(true); setSearched(true); setLocationMsg("");
+    setLoading(true); setSearched(true); onSearchStateChange?.(true); setLocationMsg("");
     try{
       const p=new URLSearchParams({type:"search",rows:"60"});
       if(query.trim()) p.set("q",query.trim());
@@ -218,7 +220,13 @@ export default function Hero(){
       else if(timing==="이번 달") p.set("range","month");
       else { p.set("range","date"); p.set("date",customDate); }
 
-      const data=await fetch(`/api/kopis?${p.toString()}`,{cache:"no-store"}).then(r=>r.json());
+      const eventParams=new URLSearchParams({rows:"120"});
+      if(query.trim()) eventParams.set("q",query.trim());
+      if(region!=="내 주변") eventParams.set("region",region);
+      const [data,eventData]=await Promise.all([
+        fetch(`/api/kopis?${p.toString()}`,{cache:"no-store"}).then(r=>r.json()).catch(()=>({shows:[]})),
+        fetch(`/api/events/search?${eventParams.toString()}`,{cache:"no-store"}).then(r=>r.json()).catch(()=>({events:[]}))
+      ]);
       let list:Show[]=(data?.shows??[])
         .filter((s:Show)=>!isEnded(s))
         .filter((s:Show)=>genreMatches(s,genre))
@@ -265,9 +273,17 @@ export default function Hero(){
           setLocationMsg("위치 권한을 허용하면 내 주변 공연을 더 정확하게 찾을 수 있습니다.");
         }
       }
-      setResults(list.slice(0,12));
+      const unified:ShowdayEvent[]=(eventData?.events??[])
+        .filter((e:ShowdayEvent)=>eventTimingMatches(e,timing,customDate))
+        .filter((e:ShowdayEvent)=>eventGenreMatches(e,genre))
+        .filter((e:ShowdayEvent)=>eventDiscoveryMatches(e,discovery,price))
+        .filter((e:ShowdayEvent)=>eventCompanionMatches(e,companion))
+        .sort((a:ShowdayEvent,b:ShowdayEvent)=>eventPurposeScore(b,companion)-eventPurposeScore(a,companion) || String(a.startDate||"9999").localeCompare(String(b.startDate||"9999")));
+
+      setResults(list.slice(0,16));
+      setEventResults(unified.slice(0,80));
     }catch{
-      setResults([]);
+      setResults([]); setEventResults([]);
     }finally{ setLoading(false); }
   }
 
@@ -328,7 +344,7 @@ export default function Hero(){
           <p className="mt-3 text-[11px] leading-5 text-muted">{summary} 기준으로 검색합니다. 아이와 검색은 관람연령이 확인된 공연만, 내 주변은 위치 권한이 허용된 경우 가까운 공연을 우선합니다.</p>
         </div>
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible">
+        <div className="mt-5 flex flex-wrap gap-2 pb-1">
           <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
           <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
           <Quick label="부모님과 이번 주말" onClick={()=>{chooseCompanion("부모님과");setTiming("이번 주말");setGenre("전체");setDiscovery("전체")}}/>
@@ -336,14 +352,96 @@ export default function Hero(){
         </div>
       </div>
 
-      {searched&&<div className="mt-7 rounded-2xl border border-line bg-white/45 p-4 sm:p-6">
-        <div className="mb-4 flex items-center justify-between"><strong className="text-sm text-paper">검색 결과 {loading?"":`${results.length}건`}</strong><button onClick={()=>setSearched(false)} className="text-xs text-muted hover:text-paper">접기</button></div>
-        {locationMsg&&<p className="mb-4 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold text-muted">{locationMsg}</p>}
-        {loading?<p className="py-7 text-center text-sm text-muted">공연정보를 찾고 있습니다.</p>:results.length?<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{results.map(show=><ResultCard key={show.id} show={show}/>)}</div>:<Empty/>}
-      </div>}
+      {searched&&<SearchResults
+        shows={results}
+        events={eventResults}
+        loading={loading}
+        companion={companion}
+        summary={summary}
+        locationMsg={locationMsg}
+        onClose={()=>{setSearched(false);onSearchStateChange?.(false)}}
+      />}
     </div>
   </section>;
 }
+
+
+function parseEventDate(v?:string|null){
+  if(!v) return null;
+  const digits=v.replace(/\D/g,"").slice(0,8);
+  if(digits.length!==8) return null;
+  return new Date(Number(digits.slice(0,4)),Number(digits.slice(4,6))-1,Number(digits.slice(6,8)));
+}
+function startOfDay(d:Date){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function eventTimingMatches(e:ShowdayEvent,timing:Timing,customDate:string){
+  const now=startOfDay(new Date()); const start=parseEventDate(e.startDate)||now; const end=parseEventDate(e.endDate)||start;
+  let from=now,to=now;
+  if(timing==="오늘") {from=now;to=now;}
+  else if(timing==="이번 주말") {const day=now.getDay(); const sat=new Date(now); sat.setDate(now.getDate()+((6-day+7)%7)); from=sat;to=new Date(sat);to.setDate(sat.getDate()+1);}
+  else if(timing==="이번 주") {from=now;to=new Date(now);to.setDate(now.getDate()+(7-now.getDay()));}
+  else if(timing==="이번 달") {from=now;to=new Date(now.getFullYear(),now.getMonth()+1,0);}
+  else {const d=new Date(`${customDate}T00:00:00`);from=d;to=d;}
+  return start<=to && end>=from;
+}
+function eventGenreMatches(e:ShowdayEvent,genre:string){
+  if(genre==="전체") return true; const text=`${e.category} ${e.subcategory||""} ${e.title}`;
+  if(genre==="전시회") return /전시|미술|박물관|갤러리/.test(text);
+  if(genre==="축제") return /축제|페스티벌|지역행사/.test(text);
+  if(genre==="체험·가족행사") return /체험|교육|가족|어린이|아동|청소년|키즈/.test(text);
+  if(genre==="콘서트") return /콘서트|대중음악|음악/.test(text);
+  if(genre==="클래식") return /클래식|국악|오페라|관현악|실내악/.test(text);
+  return text.includes(genre);
+}
+function eventDiscoveryMatches(e:ShowdayEvent,d:Discovery,price:Price){
+  if(d==="전체") return true;
+  if(d==="지금 예매 가능") return Boolean(e.bookingUrl||e.officialUrl);
+  if(d==="곧 티켓오픈") {const a=parseEventDate(e.applyStartDate);if(!a)return false;const diff=(a.getTime()-Date.now())/86400000;return diff>=0&&diff<=30;}
+  if(d==="무료 공연·행사") return Boolean(e.isFree)||/무료/.test(e.priceText||"");
+  if(e.isFree) return true; return typeof e.priceValue==="number"&&e.priceValue<=priceLimit(price);
+}
+function eventCompanionMatches(e:ShowdayEvent,c:Companion){
+  if(c==="상관없음"||c==="친구·부부"||c==="혼자") return true;
+  const text=`${e.category} ${e.subcategory||""} ${e.title} ${e.target||""} ${e.description||""}`;
+  if(c==="아이와") return e.familyAllowed===true || /체험|교육|어린이|아동|청소년|가족|키즈|박물관|과학|숲/.test(text);
+  if(c==="연인과") return /공연|전시|축제|콘서트|뮤지컬|연극|야간|페스티벌/.test(text);
+  if(c==="부모님과") return /공연|전시|축제|국악|전통|클래식|음악|문화|해설|걷기/.test(text);
+  return true;
+}
+function eventPurposeScore(e:ShowdayEvent,c:Companion){
+  const text=`${e.category} ${e.subcategory||""} ${e.title} ${e.target||""}`; let score=0;
+  if(e.bookingUrl||e.officialUrl) score+=2; if(e.imageUrl) score+=1; if(e.isFree) score+=1;
+  if(c==="아이와"){if(e.category==="체험·교육")score+=12;if(/어린이|아동|가족|키즈|청소년|과학|박물관|숲/.test(text))score+=8;if(e.category==="공연")score+=3;}
+  if(c==="연인과"){if(e.category==="공연"||e.category==="전시")score+=8;if(e.category==="축제·지역행사")score+=5;}
+  if(c==="부모님과"){if(/국악|전통|클래식|문화|해설/.test(text))score+=8;if(e.category==="공연"||e.category==="전시")score+=5;}
+  return score;
+}
+function groupLabel(e:ShowdayEvent){
+  if(e.category==="체험·교육") return "체험·교육";
+  if(e.category==="전시") return "전시";
+  if(e.category==="축제·지역행사"||e.category==="무료행사") return "축제·행사";
+  if(e.category==="공연") return "공연";
+  return "기타";
+}
+function SearchResults({shows,events,loading,companion,summary,locationMsg,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;onClose:()=>void}){
+  const [tab,setTab]=useState("전체");
+  const tabs=["전체","체험·교육","공연","전시","축제·행사"];
+  const filtered=tab==="전체"?events:events.filter(e=>groupLabel(e)===tab);
+  const groups=(["체험·교육","공연","전시","축제·행사","기타"] as const).map(label=>({label,items:filtered.filter(e=>groupLabel(e)===label)})).filter(g=>g.items.length);
+  const showKopis=tab==="전체"||tab==="공연";
+  const total=events.length+shows.length;
+  return <div className="mt-7 overflow-hidden rounded-2xl border border-line bg-white/60 p-4 sm:p-6">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p><h3 className="mt-1 text-lg font-black text-paper">{companion==="아이와"?"아이와 즐기기 좋은 순서로 찾았어요":companion==="부모님과"?"부모님과 함께하기 좋은 순서로 찾았어요":"선택한 목적에 맞는 결과예요"}</h3><p className="mt-1 text-xs leading-5 text-muted">{summary} · 총 {loading?"검색 중":`${total}건`}</p></div><button onClick={onClose} className="self-start rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted">검색 결과 접기</button></div>
+    {locationMsg&&<p className="mt-4 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold text-muted">{locationMsg}</p>}
+    <div className="mt-5 flex flex-wrap gap-2">{tabs.map(t=><button key={t} onClick={()=>setTab(t)} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}>{t}</button>)}</div>
+    {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:total===0?<Empty/>:<div className="mt-7 space-y-9">
+      {groups.map(g=><ResultGroup key={g.label} title={companion==="아이와"&&g.label==="체험·교육"?"아이와 하기 좋은 체험·교육":g.label} items={g.items}/>) }
+      {showKopis&&shows.length>0&&<div><div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold tracking-[.12em] text-gold">KOPIS</p><h4 className="mt-1 text-base font-black text-paper">관람 가능한 공연</h4></div><span className="text-[11px] text-muted">{shows.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{shows.slice(0,12).map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}
+    </div>}
+    <div className="mt-8 rounded-2xl border border-[#e6cdb8] bg-[#fff8f0] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><b className="text-sm text-paper">♡ 이 조건의 새 공연·행사를 미리 받아보세요</b><p className="mt-1 text-xs leading-5 text-muted">카카오 로그인 후 관심조건을 저장하면 새 일정·무료행사·티켓오픈 알림으로 연결할 수 있습니다.</p></div><a href="/onboarding" className="mt-3 inline-flex rounded-full bg-paper px-4 py-2.5 text-xs font-black text-white sm:mt-0">관심조건 저장하기</a></div>
+  </div>
+}
+function ResultGroup({title,items}:{title:string;items:ShowdayEvent[]}){return <div><div className="mb-4 flex items-end justify-between"><h4 className="text-base font-black text-paper">{title}</h4><span className="text-[11px] text-muted">{items.length}건</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.slice(0,9).map(e=><EventCard key={e.id} event={e}/>)}</div></div>}
+function EventCard({event:e}:{event:ShowdayEvent}){const href=e.bookingUrl||e.officialUrl;return <article className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] gap-3 rounded-xl border border-line bg-white p-3 sm:grid-cols-[92px_minmax(0,1fr)]"><div className="aspect-[3/4] overflow-hidden rounded-lg bg-surface-raised">{e.imageUrl?<img src={e.imageUrl} alt="" className="h-full w-full object-cover"/>:<div className="grid h-full place-items-center px-2 text-center text-[10px] font-bold text-muted">SHOWDAY</div>}</div><div className="min-w-0"><p className="truncate text-[10px] font-bold text-gold">{e.subcategory||e.category}</p><b className="mt-1 line-clamp-2 block text-sm leading-5 text-paper">{e.title}</b><p className="mt-1 line-clamp-2 text-[11px] leading-5 text-muted">{e.venue||e.address||e.region||"장소 확인"}<br/>{e.dateText||[e.startDate,e.endDate].filter(Boolean).join(" ~ ")}</p><div className="mt-2 flex flex-wrap gap-1.5">{(e.isFree||/무료/.test(e.priceText||""))&&<span className="rounded-md bg-[#fff5ea] px-2 py-1 text-[10px] font-black text-paper">무료</span>}{e.region&&<span className="rounded-md bg-surface-raised px-2 py-1 text-[10px] font-bold text-muted">{e.region}</span>}</div>{href&&<a href={href} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex text-[11px] font-bold text-paper hover:text-gold">상세 확인 →</a>}</div></article>}
 
 type SpeechRecognitionLike = {
   lang:string;
@@ -358,7 +456,7 @@ type SpeechRecognitionLike = {
 
 function MicIcon({className=""}:{className?:string}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4M9 21h6"/></svg>}
 
-function Choice<T extends string>({label,options,value,setValue}:{label:string;options:readonly T[];value:T|null;setValue:(v:T)=>void}){return <div><p className="mb-2 text-xs font-black text-paper">{label}</p><div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 no-scrollbar sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">{options.map(o=><button type="button" key={o} onClick={()=>setValue(o)} className={`min-h-10 shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-bold transition sm:min-h-0 ${o===value?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/70 text-muted hover:border-gold/50 hover:text-paper"}`}>{o}</button>)}</div></div>}
+function Choice<T extends string>({label,options,value,setValue}:{label:string;options:readonly T[];value:T|null;setValue:(v:T)=>void}){return <div><p className="mb-2 text-xs font-black text-paper">{label}</p><div className="flex flex-wrap gap-2 pb-1">{options.map(o=><button type="button" key={o} onClick={()=>setValue(o)} className={`min-h-10 shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-bold transition sm:min-h-0 ${o===value?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/70 text-muted hover:border-gold/50 hover:text-paper"}`}>{o}</button>)}</div></div>}
 function Quick({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="shrink-0 rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted transition hover:border-gold/60 hover:text-paper">{label}</button>}
 function Chip({icon,children}:{icon?:ReactNode;children:ReactNode}){return <span className="inline-flex items-center gap-1 rounded-full bg-surface-raised/80 px-2.5 py-1 font-semibold text-paper">{icon}{children}</span>}
 function Empty(){return <div className="border-y border-line py-8 text-center"><p className="text-sm font-semibold text-paper">조건에 맞는 현재·예정 공연을 찾지 못했습니다.</p><p className="mt-2 text-xs text-muted">지역이나 날짜를 조금 넓혀 다시 찾아보세요.</p></div>}
