@@ -1242,47 +1242,63 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,freeM
   }
 
   return <div id="search-results" className="mt-2 scroll-mt-3 rounded-2xl border border-line bg-white/75 p-3 sm:mt-7 sm:scroll-mt-20 sm:p-5">
-    <div id="search-results-sticky" className="relative z-10 -mx-3 border-b border-line bg-white/95 px-3 pb-3 pt-2 md:sticky md:top-[72px] md:z-20 md:-mx-5 md:px-5 md:shadow-[0_8px_18px_rgba(0,0,0,0.04)] md:backdrop-blur-md">
-      <div className="flex items-center justify-between gap-3 sm:items-start">
+    <div id="search-results-sticky" className="relative z-10 -mx-3 border-b border-line bg-white/96 px-3 pb-2.5 pt-2 md:sticky md:top-[66px] md:z-20 md:-mx-5 md:px-5 md:shadow-[0_8px_18px_rgba(0,0,0,0.035)] md:backdrop-blur-md">
+      <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[10px] font-bold tracking-[.14em] text-gold sm:text-[11px]">SHOWDAY 추천 결과</p>
-            {tab==="전체"&&preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">{preferred} 우선</span>}
+            {tab==="전체"&&preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-0.5 text-[9px] font-black text-paper sm:text-[10px]">{preferred} 우선</span>}
           </div>
-          <h3 className="mt-0.5 text-[15px] font-black text-paper sm:mt-1 sm:text-lg">{loading?"조건에 맞는 공연을 찾는 중":`${visibleTotal}개의 공연·행사`}</h3>
-          <p className="mt-1 hidden text-xs leading-5 text-muted sm:block">{summary} · {loading?"검색 중":`현재 ${visibleTotal}건`} · <b>{sortMode}</b></p>
+          <div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <h3 className="text-[16px] font-black text-paper sm:text-lg">{loading?"조건에 맞는 공연을 찾는 중":`${visibleTotal}개의 공연·행사`}</h3>
+            <p className="hidden truncate text-[11px] font-semibold text-muted md:block">{summary}</p>
+          </div>
         </div>
-        <div className="flex shrink-0 gap-1.5 sm:flex-wrap sm:gap-2">
-          <button type="button" onClick={onEditSearch} className="hidden rounded-full border border-line bg-white px-3 py-1.5 text-[11px] font-bold text-paper sm:inline-flex sm:text-xs">조건 다시보기</button>
-          <button type="button" onClick={onClose} className="rounded-full border border-line bg-white px-2.5 py-1.5 text-[10px] font-semibold text-muted sm:px-3 sm:text-xs">결과 접기</button>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button type="button" onClick={onEditSearch} className="rounded-full border border-line bg-white px-2.5 py-1.5 text-[10px] font-bold text-paper sm:px-3 sm:text-[11px]">조건 수정</button>
+          <button type="button" onClick={onClose} className="rounded-full border border-line bg-white px-2.5 py-1.5 text-[10px] font-semibold text-muted sm:px-3 sm:text-[11px]">결과 접기</button>
         </div>
       </div>
 
-      {locationMsg&&<p className="mt-3 hidden rounded-lg bg-surface-raised/70 px-3 py-2 text-[11px] font-semibold text-muted sm:block sm:text-xs">{locationMsg}</p>}
-      {companion==="아이와"&&<p className="mt-2 hidden rounded-lg bg-[#fff8f0] px-3 py-2 text-[11px] font-semibold leading-5 text-[#7b5a45] sm:block sm:text-xs">아이와 함께 볼 수 있도록 관람 가능 연령이 확인된 콘텐츠를 우선 보여드려요.</p>}
+      <div className="mt-2.5 flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0" role="tablist" aria-label="검색 결과 대분류">
+            {RESULT_TABS.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`min-h-[34px] shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-black sm:text-[11px] ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted hover:border-gold/60 hover:text-paper"}`}><span>{t}</span>{!loading&&<span className={`ml-1.5 text-[9px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
+          </div>
+        </div>
 
-      <div className="mt-3 flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible" role="tablist" aria-label="검색 결과 대분류">
-        {RESULT_TABS.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`min-h-[40px] shrink-0 rounded-full border px-3 py-2 text-[11px] font-black sm:text-xs ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-1.5 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
+        <div className="hidden shrink-0 items-center gap-1 rounded-full border border-line bg-[#faf7f3] p-1 lg:flex" aria-label="결과 정렬">
+          {(["추천순","가까운순","날짜순"] as const).map(mode=><button type="button" key={mode} onClick={()=>{setSortMode(mode);setResultJumpSeq(v=>v+1)}} className={`rounded-full px-2.5 py-1 text-[10px] font-black transition ${sortMode===mode?"bg-paper text-white":"text-muted hover:bg-white hover:text-paper"}`}>{mode}</button>)}
+        </div>
       </div>
 
-      {(freeMode||subTabs.length>0)&&<button type="button" onClick={()=>setMobileFiltersOpen(v=>!v)} className="mt-2 flex w-full items-center justify-between rounded-xl border border-line bg-[#faf7f3] px-3 py-2.5 text-[11px] font-black text-paper sm:hidden"><span>세부 필터</span><span className="text-gold">{mobileFiltersOpen?"접기 ↑":"필요할 때 보기 ↓"}</span></button>}
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 lg:hidden">
+        {(["추천순","가까운순","날짜순"] as const).map(mode=><button type="button" key={mode} onClick={()=>{setSortMode(mode);setResultJumpSeq(v=>v+1)}} className={`rounded-full border px-2.5 py-1 text-[9px] font-black transition ${sortMode===mode?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}>{mode}</button>)}
+      </div>
 
-      {freeMode&&<div className={`${mobileFiltersOpen?"block":"hidden"} mt-3 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-3 sm:block`}>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-black text-paper">무료공연 신청·예매 상태</p><p className="mt-0.5 text-[10px] leading-4 text-muted">공연 날짜보다 지금 신청할 수 있는지를 먼저 확인해 보여드려요.</p></div><a href="/my?tab=alerts" className="text-[10px] font-black text-[#a65f31]">MY 알림 관리 →</a></div>
-        <div className="mt-2 flex flex-nowrap gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">{(["지금 신청 가능","곧 신청 오픈","일정 미공개","신청마감","전체 무료"] as FreeApplyTab[]).map(item=><button type="button" key={item} onClick={()=>{setFreeApplyTab(item);setResultJumpSeq(v=>v+1)}} className={`min-h-[36px] shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-black sm:text-[11px] ${freeApplyTab===item?"border-[#251b16] bg-[#251b16] text-white":"border-[#dfc8b7] bg-white text-[#755f50]"}`}>{item}<span className="ml-1.5 opacity-70">{freeCounts[item]}</span></button>)}</div>
-        {freeApplyTab==="지금 신청 가능"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">⚡ 공식 신청기간이 확인되어 현재 신청할 수 있는 무료공연만 보여드립니다.</p>}
-        {freeApplyTab==="곧 신청 오픈"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">🔔 신청 시작일이 확인된 공연입니다. 카드에서 오픈 알림을 MY SHOWDAY에 저장하세요.</p>}
-        {freeApplyTab==="일정 미공개"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">📅 신청 일정이 아직 공개되지 않았어요. 일정이 확인되면 알림으로 챙길 수 있습니다.</p>}
-        {freeApplyTab==="신청마감"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">현재 신청이 끝난 무료공연입니다. 다음 신청 기회를 위한 알림을 받을 수 있습니다.</p>}
+      {(freeMode||subTabs.length>0)&&<button type="button" onClick={()=>setMobileFiltersOpen(v=>!v)} className="mt-1.5 inline-flex min-h-[32px] items-center gap-2 rounded-full border border-line bg-[#faf7f3] px-3 py-1.5 text-[10px] font-black text-paper"><span>세부 필터</span><span className="text-gold">{mobileFiltersOpen?"접기 ↑":"펼치기 ↓"}</span></button>}
+
+      {(locationMsg||companion==="아이와")&&<details className="mt-1.5">
+        <summary className="cursor-pointer select-none text-[9px] font-bold text-muted hover:text-paper">검색 기준 보기</summary>
+        <div className="mt-1.5 space-y-1">
+          {locationMsg&&<p className="rounded-lg bg-surface-raised/70 px-3 py-1.5 text-[10px] font-semibold leading-4 text-muted">{locationMsg}</p>}
+          {companion==="아이와"&&<p className="rounded-lg bg-[#fff8f0] px-3 py-1.5 text-[10px] font-semibold leading-4 text-[#7b5a45]">아이와 함께 볼 수 있도록 관람 가능 연령이 확인된 콘텐츠를 우선 보여드려요.</p>}
+        </div>
+      </details>}
+
+      {freeMode&&<div className={`${mobileFiltersOpen?"block":"hidden"} mt-2 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-3`}>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-black text-paper">무료공연 신청·예매 상태</p><p className="mt-0.5 text-[10px] leading-4 text-muted">신청 가능 여부가 확인된 순서로 볼 수 있어요.</p></div><a href="/my?tab=alerts" className="text-[10px] font-black text-[#a65f31]">MY 알림 관리 →</a></div>
+        <div className="mt-2 flex flex-wrap gap-1.5">{(["지금 신청 가능","곧 신청 오픈","일정 미공개","신청마감","전체 무료"] as FreeApplyTab[]).map(item=><button type="button" key={item} onClick={()=>{setFreeApplyTab(item);setResultJumpSeq(v=>v+1)}} className={`min-h-[34px] rounded-full border px-3 py-1.5 text-[10px] font-black ${freeApplyTab===item?"border-[#251b16] bg-[#251b16] text-white":"border-[#dfc8b7] bg-white text-[#755f50]"}`}>{item}<span className="ml-1.5 opacity-70">{freeCounts[item]}</span></button>)}</div>
       </div>}
 
-      {subTabs.length>0&&<div className={`${mobileFiltersOpen?"block":"hidden"} mt-2 rounded-xl bg-surface-raised/65 p-2.5 sm:block`}>
-        <div className="mb-2 flex items-center justify-between gap-3"><p className="text-[10px] font-black tracking-[.08em] text-muted">세부 분류</p><span className="text-[10px] text-muted">원하는 항목만 바로 보기</span></div>
-        <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">{subTabs.map(st=><button type="button" key={st} onClick={()=>chooseSubTab(st)} className={`min-h-[36px] shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-bold sm:text-[11px] ${subTab===st?"border-gold bg-[#fff4e7] text-paper":"border-line bg-white text-muted"}`}>{st}<span className="ml-1.5 text-[10px] opacity-70">{subCounts(st)}</span></button>)}</div>
+      {subTabs.length>0&&<div className={`${mobileFiltersOpen?"block":"hidden"} mt-2 rounded-xl bg-surface-raised/65 p-2.5`}>
+        <div className="mb-2 flex items-center justify-between gap-3"><p className="text-[10px] font-black tracking-[.08em] text-muted">세부 분류</p><span className="text-[9px] text-muted">원하는 항목만 선택</span></div>
+        <div className="flex flex-wrap gap-1.5">{subTabs.map(st=><button type="button" key={st} onClick={()=>chooseSubTab(st)} className={`min-h-[34px] rounded-full border px-3 py-1.5 text-[10px] font-bold ${subTab===st?"border-gold bg-[#fff4e7] text-paper":"border-line bg-white text-muted hover:border-gold/60"}`}>{st}<span className="ml-1.5 text-[9px] opacity-70">{subCounts(st)}</span></button>)}</div>
       </div>}
     </div>
 
-    <div id="search-results-list" className="mt-3 scroll-mt-20 min-w-0 sm:mt-5 sm:scroll-mt-[230px]" style={{overflowAnchor:"none"}}>
+    <div id="search-results-list" className="mt-2.5 scroll-mt-20 min-w-0 sm:mt-4 sm:scroll-mt-[150px]" style={{overflowAnchor:"none"}}>
       {loading?<p className="py-10 text-center text-sm text-muted">공연·전시·체험·문화행사를 함께 찾고 있습니다.</p>:visibleTotal===0?<Empty/>:<div className="space-y-10">
         {order.map((label,index)=>{
           if(label==="공연"){

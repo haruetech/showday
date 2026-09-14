@@ -93,16 +93,7 @@ export default function Footer() {
             </p>
           )}
           <p className="mt-3 text-[11px] text-muted/70">공연 데이터 제공: 공연예술통합전산망(KOPIS)</p>
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted/70">
-            <p>© {new Date().getFullYear()} 하루애. All rights reserved.</p>
-            <a
-              href="/admin"
-              className="rounded-full border border-line/70 px-2.5 py-1 text-[10px] font-bold text-muted/55 transition hover:border-gold/40 hover:text-gold"
-              aria-label="SHOWDAY 관리자 화면"
-            >
-              관리자
-            </a>
-          </div>
+          <p className="mt-1 text-[11px] text-muted/70">© {new Date().getFullYear()} 하루애. All rights reserved.</p>
         </div>
       </div>
     </footer>

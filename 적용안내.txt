@@ -1,36 +1,33 @@
-SHOWDAY 판매상품 + 관리자 하단 링크 보완 패치
+SHOWDAY 검색결과 + PC 캐러셀 드래그 통합 패치
 
-이번 패치는 기존 최신 프로젝트와 이미 GitHub에 올린 상품관리 패치를 안전하게 보완합니다.
+이번에 주신 showday-fixes (1).zip의 useDragScroll 아이디어를 선별 반영했습니다.
 
-핵심 보완
-1. 기존에 노출되던 SHOWDAY PICK 상품을 유지합니다.
-2. Supabase 상품 테이블에 기존 상품을 중복 없이 1회 이관합니다.
-3. 관리자에서 추가한 상품이 있으면 관리자 상품을 우선 노출합니다.
-4. DB/API 오류 또는 등록상품이 0개인 경우에도 기존 상품이 사라지지 않습니다.
-5. 고객 화면 Footer 맨 아래에 작고 눈에 띄지 않는 '관리자' 링크를 추가합니다.
-   클릭 시 /admin 으로 이동합니다. 로그인 상태면 관리자 화면, 아니면 관리자 로그인 화면이 표시됩니다.
+반영 원칙
+- 검색결과 상단 필터: 드래그 방식 사용하지 않음. 클릭 중심 결과우선 UI 유지
+- 공연 카드 캐러셀: PC 마우스 클릭+드래그 지원
+- 모바일/터치: 브라우저 기본 스와이프 그대로 유지
+- 드래그 후 실수로 카드가 클릭되는 문제 방지
+- 드래그 중 cursor를 grabbing으로 변경해 조작감을 명확하게 표시
 
 교체/추가 파일
-- src/app/admin/AdminNav.tsx
-- src/app/admin/products/page.tsx
-- src/app/api/admin/products/route.ts
-- src/app/api/admin/products/[id]/route.ts
-- src/app/api/products/route.ts
-- src/components/promotion/FloatingProductPromo.tsx
+- src/components/home/Hero.tsx
 - src/components/layout/Footer.tsx
-- supabase/migrations/0012_shop_products.sql
+- src/components/home/ShowdayTrends.tsx
+- src/components/show/SectionRow.tsx
+- src/lib/useDragScroll.ts
 
-적용 순서
-1. ZIP의 파일을 같은 경로에 덮어쓰기
-2. Supabase SQL Editor에서 0012_shop_products.sql 전체 실행
-   - 예전에 같은 SQL을 실행했어도 다시 실행해도 됩니다.
-   - create table if not exists + where not exists 구조라 기존 데이터는 삭제하지 않습니다.
-3. GitHub commit/push
-4. Vercel 배포 완료 후 /admin/products 확인
-5. 기존 '하루에 렌야...' 상품이 목록에 보이는지 확인
-6. 홈페이지 하단 '관리자' 링크와 고객 화면 상품 노출 확인
+검색결과 개선
+- 결과 상단 높이 축소
+- 전체/공연/전시/체험·교육/축제·행사 클릭 방식
+- 추천순/가까운순/날짜순 직접 노출
+- 세부 분류 기본 접힘
+- 검색 기준 안내 기본 접힘
+- 결과 카드가 더 위에서 시작
+- Footer 관리자 링크 제거
 
-주의
-- 기존 shop_products 데이터는 삭제하지 않습니다.
-- 이미 등록한 새 상품도 유지됩니다.
-- 기존 하드코딩 상품도 안전장치로 남아 있어, DB 문제 시에도 고객 화면에서 사라지지 않습니다.
+캐러셀 개선
+- 이번 주말/장르별 공연 등 가로 공연카드를 마우스로 잡아 좌우 드래그 가능
+- 공용 SectionRow 기반 가로 공연 섹션에도 동일 적용
+- 기존 이전/다음 버튼은 그대로 유지
+
+상품관리/Supabase 데이터는 건드리지 않습니다.

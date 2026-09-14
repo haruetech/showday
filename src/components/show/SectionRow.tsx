@@ -1,9 +1,10 @@
 "use client";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { ArrowIcon } from "@/components/common/Icons";
+import { useDragScroll } from "@/lib/useDragScroll";
 
 export default function SectionRow({eyebrow,title,action,children,id}:{eyebrow?:string;title:string;action?:ReactNode;children:ReactNode;id?:string}){
-  const trackRef=useRef<HTMLDivElement>(null);const [left,setLeft]=useState(false);const [right,setRight]=useState(false);
+  const trackRef=useRef<HTMLDivElement>(null);useDragScroll(trackRef);const [left,setLeft]=useState(false);const [right,setRight]=useState(false);
   const update=()=>{const el=trackRef.current;if(!el)return;setLeft(el.scrollLeft>4);setRight(el.scrollLeft+el.clientWidth<el.scrollWidth-4)};
   useEffect(()=>{update();const el=trackRef.current;if(!el)return;const on=()=>update();window.addEventListener("resize",on);const ro=new ResizeObserver(update);ro.observe(el);return()=>{window.removeEventListener("resize",on);ro.disconnect()}},[children]);
   const move=(d:1|-1)=>{const el=trackRef.current;if(el)el.scrollBy({left:d*Math.max(320,el.clientWidth*.82),behavior:"smooth"})};

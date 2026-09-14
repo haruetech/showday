@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 import ShowCard from "@/components/show/ShowCard";
 import { ArrowIcon, CalendarIcon, PinIcon } from "@/components/common/Icons";
 import type { Show } from "@/types/show";
+import { useDragScroll } from "@/lib/useDragScroll";
 
 export default function ShowdayTrends({ shows, loading }: { shows: Show[]; loading?: boolean }){
   const unique=(list:Show[])=>Array.from(new Map(list.map(s=>[s.id,s])).values()).slice(0,10);
@@ -24,7 +25,7 @@ export default function ShowdayTrends({ shows, loading }: { shows: Show[]; loadi
 }
 
 function ConceptRow({id,icon:Icon,title,desc,shows,extra,loading,emptyText}:{id:string;icon:ComponentType<{className?:string}>;title:string;desc:string;shows:Show[];extra?:React.ReactNode;loading?:boolean;emptyText:string}){
-  const ref=useRef<HTMLDivElement>(null);const [left,setLeft]=useState(false);const [right,setRight]=useState(false);
+  const ref=useRef<HTMLDivElement>(null);useDragScroll(ref);const [left,setLeft]=useState(false);const [right,setRight]=useState(false);
   const update=()=>{const el=ref.current;if(!el)return;setLeft(el.scrollLeft>4);setRight(el.scrollLeft+el.clientWidth<el.scrollWidth-4)};
   useEffect(()=>{update();const ro=new ResizeObserver(update);if(ref.current)ro.observe(ref.current);window.addEventListener("resize",update);return()=>{ro.disconnect();window.removeEventListener("resize",update)}},[shows.length]);
   const move=(d:1|-1)=>ref.current?.scrollBy({left:d*Math.max(320,(ref.current?.clientWidth||600)*.82),behavior:"smooth"});
