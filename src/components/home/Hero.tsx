@@ -550,20 +550,29 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   const summary=[companion!=="상관없음"?companion:null, periodLabel, region, genre!=="전체"?genre:null, companion==="아이와"&&childAge?childAge:null, discovery!=="전체"?discovery:null, discovery==="가격대별"?price:null].filter(Boolean).join(" · ");
 
   return <section id="show-search" className="border-b border-line bg-surface">
-    <div className="relative overflow-hidden bg-[#512a20]">
-      <div className="pointer-events-none absolute inset-0 opacity-40"><img src="/showday-hero-audience.png" alt="" className="h-full w-full object-cover"/></div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#422118]/95 via-[#512a20]/82 to-[#512a20]/38"/>
-      <div className="relative mx-auto flex min-h-[285px] max-w-[1280px] items-center px-4 py-10 sm:min-h-[330px] sm:px-6 sm:py-14 lg:min-h-[390px]">
-        <div className="max-w-2xl">
-          <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · EASY SEARCH</p>
-          <h1 className="font-display font-black leading-[1.08]">
-            <span className="block text-[clamp(1.8rem,7vw,3.9rem)] text-white sm:whitespace-nowrap">보고 싶은 공연, 바로 찾기</span>
-          </h1>
-          <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 알려주세요.</p>
-          <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">SHOWDAY가 지금 볼 만한 공연·전시·체험·축제를 먼저 골라드려요.</p>
-          <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-            <a href="#quick-search" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-[#512a20] shadow-sm">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
+    <div className="showday-hero-premium">
+      <div className="showday-hero-premium__media"><img src="/showday-hero-audience.png" alt=""/></div>
+      <div className="showday-hero-premium__veil"/>
+      <div className="showday-hero-premium__orb showday-hero-premium__orb--one"/>
+      <div className="showday-hero-premium__orb showday-hero-premium__orb--two"/>
+      <div className="showday-hero-premium__inner">
+        <div className="showday-hero-premium__copy">
+          <p className="showday-hero-premium__eyebrow"><span>SHOWDAY PICK</span><i/>이번 주말의 문화생활을 더 쉽게</p>
+          <h1>이번 주말,<br/><strong>누구와 어디 갈까요?</strong></h1>
+          <p className="showday-hero-premium__lead">공연부터 전시·축제·무료 행사까지.<br className="hidden sm:block"/> 몇 가지만 고르면 SHOWDAY가 지금 갈 만한 곳을 먼저 골라드려요.</p>
+          <div className="showday-hero-premium__cta">
+            <a href="#quick-search">나에게 맞는 공연 찾기 <ArrowIcon className="h-4 w-4"/></a>
+            <button type="button" onClick={()=>applyQuickAction("free_start")}>무료 공연·행사 <span>FREE</span></button>
           </div>
+          <div className="showday-hero-premium__trust">
+            <span>이번 주말</span><span>내 주변</span><span>무료</span><span>아이와</span><span>부모님과</span>
+          </div>
+        </div>
+        <div className="showday-hero-premium__panel" aria-hidden="true">
+          <div className="showday-hero-premium__panel-top"><span>SHOWDAY CURATION</span><b>지금, 나에게 맞는 하루</b></div>
+          <div className="showday-hero-premium__panel-card showday-hero-premium__panel-card--main"><small>01 · WHO</small><strong>누구와 함께 가세요?</strong><div><i>아이와</i><i>부모님과</i><i>연인과</i></div></div>
+          <div className="showday-hero-premium__panel-row"><div className="showday-hero-premium__panel-card"><small>02 · WHEN</small><strong>이번 주말</strong><span>가까운 일정부터</span></div><div className="showday-hero-premium__panel-card"><small>03 · SPECIAL</small><strong>무료 공연</strong><span>놓치지 않게</span></div></div>
+          <div className="showday-hero-premium__panel-foot"><SparkIcon className="h-4 w-4"/><span>SHOWDAY가 조건에 맞는 순서로 추천합니다.</span></div>
         </div>
       </div>
     </div>
@@ -581,11 +590,10 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     </div>
 
     <div id="quick-search" className="relative z-10 mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-10">
-      <div className="rounded-2xl border border-line bg-white/55 p-4 shadow-sm sm:p-6">
-        <div className="mb-5">
-          <p className="text-[11px] font-bold tracking-[.18em] text-gold">QUICK FIND</p>
-          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">자주 찾는 조건으로 바로 시작하세요.</h2>
-          <p className="mt-1 text-xs leading-5 text-muted">빠른 선택을 누르거나 말로 원하는 문화생활을 찾아보세요.</p>
+      <div className="showday-find-shell">
+        <div className="showday-find-head">
+          <div><p>QUICK FIND · 01</p><h2>누구와 함께 가세요?</h2><span>먼저 함께 갈 사람을 고르면, SHOWDAY가 다음 선택을 줄여드려요.</span></div>
+          <div className="showday-find-head__mark"><SparkIcon className="h-4 w-4"/><b>상황형 추천</b></div>
         </div>
 
         <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-[#e8d7c7] bg-[#fff8f0] p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -597,7 +605,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <button type="button" onClick={startVoiceSearch} disabled={listening} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black transition ${listening?"bg-[#ead7c6] text-[#8b5b3d]":"bg-paper text-white hover:bg-gold"}`}><MicIcon className="h-4 w-4"/>{listening?"듣고 있어요…":"말로 찾기"}</button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="showday-person-grid">
           <Quick label="아이와" active={quickMode==="companion"&&companion==="아이와"} onClick={()=>chooseQuickCompanion("아이와")}/>
           <Quick label="부모님과" active={quickMode==="companion"&&companion==="부모님과"} onClick={()=>chooseQuickCompanion("부모님과")}/>
           <Quick label="연인과" active={quickMode==="companion"&&companion==="연인과"} onClick={()=>chooseQuickCompanion("연인과")}/>
@@ -1437,7 +1445,7 @@ function Quick({label,onClick,active=false}:{label:string;onClick:()=>void;activ
     type="button"
     aria-pressed={active}
     {...mobilePress(onClick)}
-    className={`relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none rounded-full border px-3.5 py-2 text-xs font-bold transition ${active?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/55 text-muted hover:border-gold/60 hover:text-paper"}`}
+    className={`showday-person-pill ${active?"is-active":""}`}
     style={{WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}
   >{label}</button>
 }

@@ -35,22 +35,22 @@ export default function SectionQuickNav(){
     setMobileOpen(false);
   }
 
-  const MoveButton=({id,label}:{id:string;label:string})=><button type="button" onClick={()=>go(id)}><span className="section-quick-nav__dot" aria-hidden="true"/><span>{label}</span></button>;
+  const MoveButton=({id,label,num}:{id:string;label:string;num?:string})=><button type="button" onClick={()=>go(id)}>{num?<span className="section-quick-nav__num">{num}</span>:<span className="section-quick-nav__dot" aria-hidden="true"/>}<span>{label}</span></button>;
 
   return <>
     <nav className="section-quick-nav" aria-label="SHOWDAY 빠른 이동">
       <div className="section-quick-nav__rail">
-        <div className="section-quick-nav__label">QUICK · 빠른 이동</div>
-        <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}><span className="section-quick-nav__dot" aria-hidden="true"/><span>상단으로</span></button>
-        <MoveButton id="show-search" label="공연 찾기"/>
-        <MoveButton id="popular-now" label="많이 선택되는 공연"/>
-        <MoveButton id="discover" label="이번 주말 · 장르"/>
-        <MoveButton id="my-area" label="내 주변 공연·행사"/>
-        <MoveButton id="showday-now" label="티켓오픈·공연소식"/>
-        <MoveButton id="today-shows" label="오늘 공연"/>
-        <MoveButton id="upcoming-shows" label="진행·예정 공연"/>
+        <div className="section-quick-nav__brand"><span>SHOWDAY</span><b>INDEX</b></div>
+        <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}><span className="section-quick-nav__num">00</span><span>TOP</span></button>
+        <MoveButton id="show-search" label="FIND" num="01"/>
+        <MoveButton id="popular-now" label="POPULAR" num="02"/>
+        <MoveButton id="discover" label="WEEKEND" num="03"/>
+        <MoveButton id="my-area" label="NEAR ME" num="04"/>
+        <MoveButton id="showday-now" label="TICKET OPEN" num="05"/>
+        <MoveButton id="today-shows" label="TODAY" num="06"/>
+        <MoveButton id="upcoming-shows" label="UPCOMING" num="07"/>
         <div className="section-quick-nav__divider"/>
-        <div className="section-quick-nav__label section-quick-nav__label--accent">빠른찾기</div>
+        <div className="section-quick-nav__label section-quick-nav__label--accent">FOR YOU</div>
         <button type="button" className="section-quick-nav__quick" onClick={()=>quick("child_weekend")}><span className="section-quick-nav__dot"/><span>아이와</span></button>
         <button type="button" className="section-quick-nav__quick" onClick={()=>quick("parent_weekend")}><span className="section-quick-nav__dot"/><span>부모님과</span></button>
         <button type="button" className="section-quick-nav__quick" onClick={()=>quick("free_start")}><span className="section-quick-nav__dot"/><span>무료 공연·행사</span></button>
