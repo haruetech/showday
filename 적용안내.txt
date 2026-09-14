@@ -1,40 +1,36 @@
-SHOWDAY 판매상품 관리 기능 - 적용 안내
-기준: 사용자가 제공한 최신 showday-main (1).zip
+SHOWDAY 판매상품 + 관리자 하단 링크 보완 패치
 
-[교체/추가 파일]
+이번 패치는 기존 최신 프로젝트와 이미 GitHub에 올린 상품관리 패치를 안전하게 보완합니다.
+
+핵심 보완
+1. 기존에 노출되던 SHOWDAY PICK 상품을 유지합니다.
+2. Supabase 상품 테이블에 기존 상품을 중복 없이 1회 이관합니다.
+3. 관리자에서 추가한 상품이 있으면 관리자 상품을 우선 노출합니다.
+4. DB/API 오류 또는 등록상품이 0개인 경우에도 기존 상품이 사라지지 않습니다.
+5. 고객 화면 Footer 맨 아래에 작고 눈에 띄지 않는 '관리자' 링크를 추가합니다.
+   클릭 시 /admin 으로 이동합니다. 로그인 상태면 관리자 화면, 아니면 관리자 로그인 화면이 표시됩니다.
+
+교체/추가 파일
 - src/app/admin/AdminNav.tsx
 - src/app/admin/products/page.tsx
 - src/app/api/admin/products/route.ts
 - src/app/api/admin/products/[id]/route.ts
 - src/app/api/products/route.ts
 - src/components/promotion/FloatingProductPromo.tsx
+- src/components/layout/Footer.tsx
 - supabase/migrations/0012_shop_products.sql
 
-[중요: 최초 1회]
-Supabase SQL Editor에서 supabase/migrations/0012_shop_products.sql 내용을 실행해야 합니다.
-실행하지 않으면 admin 판매상품 저장과 고객화면 상품 노출이 동작하지 않습니다.
-
-[관리자]
-/admin/products
-- 상품 등록/수정/삭제
-- 이미지 직접 업로드 또는 이미지 URL
-- 상품 링크
-- 가격/혜택 문구
-- 카테고리
-- 노출/숨김
-- 대표상품
-- 노출 순서
-
-[고객 화면]
-기존 하드코딩 상품을 제거하고 /api/products에서 관리자가 등록한 활성 상품만 노출합니다.
-대표상품이 우선 노출되며 여러 상품이 있으면 다음 상품으로 넘길 수 있습니다.
-기존처럼 메인 페이지에서 일정 스크롤 이후 추천상품 플로팅 카드가 나타납니다.
-
-[배포]
-1. 동일 경로에 파일 교체/추가
-2. Supabase SQL 실행
+적용 순서
+1. ZIP의 파일을 같은 경로에 덮어쓰기
+2. Supabase SQL Editor에서 0012_shop_products.sql 전체 실행
+   - 예전에 같은 SQL을 실행했어도 다시 실행해도 됩니다.
+   - create table if not exists + where not exists 구조라 기존 데이터는 삭제하지 않습니다.
 3. GitHub commit/push
-4. Vercel 배포 확인
-5. /admin/products에서 상품 등록 후 메인에서 확인
+4. Vercel 배포 완료 후 /admin/products 확인
+5. 기존 '하루에 렌야...' 상품이 목록에 보이는지 확인
+6. 홈페이지 하단 '관리자' 링크와 고객 화면 상품 노출 확인
 
-참고: 제공된 프로젝트에는 node_modules가 없어 이 작업 환경에서 전체 Next.js 빌드는 검증하지 못했습니다.
+주의
+- 기존 shop_products 데이터는 삭제하지 않습니다.
+- 이미 등록한 새 상품도 유지됩니다.
+- 기존 하드코딩 상품도 안전장치로 남아 있어, DB 문제 시에도 고객 화면에서 사라지지 않습니다.
