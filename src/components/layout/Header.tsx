@@ -66,7 +66,7 @@ export default function Header({
 
         <nav className="hidden items-center gap-5 text-sm lg:flex xl:gap-7">
           <a href="/#showday-now" className={navClass(false)}>
-            공연 소식
+            티켓오픈·공연소식
           </a>
           <a href="/artists" className={navClass(pathname === "/artists")} aria-current={pathname === "/artists" ? "page" : undefined}>
             관심 아티스트

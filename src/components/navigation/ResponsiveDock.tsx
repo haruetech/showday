@@ -2,31 +2,22 @@
 
 import { CalendarIcon, PinIcon, SearchIcon, TicketIcon } from "@/components/common/Icons";
 
-const items = [
-  { href: "/#show-search", label: "찾기", icon: SearchIcon },
-  { href: "/#my-area", label: "내 주변", icon: PinIcon },
-  { href: "/#showday-now", label: "공연 소식", icon: CalendarIcon },
-  { href: "/my", label: "MY", icon: TicketIcon },
-];
-
 export default function ResponsiveDock() {
+  function quickFree(){
+    if(window.location.pathname!=="/"){
+      sessionStorage.setItem("showday:pending-quick","free_near");
+      window.location.href="/#quick-search";
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("showday:quick-search",{detail:"free_near"}));
+  }
   return (
     <nav className="showday-responsive-dock" aria-label="모바일 빠른 메뉴">
-      {items.map(({ href, label, icon: Icon }) => (
-        <a key={href} href={href} className="showday-dock-item">
-          <Icon className="h-[19px] w-[19px]" />
-          <span>{label}</span>
-        </a>
-      ))}
-      <a
-        href="https://arena.showday.kr"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="showday-dock-item"
-      >
-        <TicketIcon className="h-[19px] w-[19px]" />
-        <span>ARENA</span>
-      </a>
+      <a href="/#show-search" className="showday-dock-item"><SearchIcon className="h-[19px] w-[19px]"/><span>찾기</span></a>
+      <a href="/#my-area" className="showday-dock-item"><PinIcon className="h-[19px] w-[19px]"/><span>내 주변</span></a>
+      <button type="button" onClick={quickFree} className="showday-dock-item"><span className="showday-dock-free" aria-hidden="true">₩0</span><span>무료</span></button>
+      <a href="/#showday-now" className="showday-dock-item"><CalendarIcon className="h-[19px] w-[19px]"/><span>티켓·소식</span></a>
+      <a href="/my" className="showday-dock-item"><TicketIcon className="h-[19px] w-[19px]"/><span>MY</span></a>
     </nav>
   );
 }
