@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import ResponsiveDock from "@/components/navigation/ResponsiveDock";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getFollowedArtistIds } from "@/lib/favorites";
@@ -92,24 +95,32 @@ export default function MyShowdayPage(){
   ];
 
   if(!authReady){
-    return <MyGate title="MY SHOWDAY 확인 중" desc="로그인 상태를 확인하고 있습니다." loading/>;
+    return <>
+      <Header />
+      <MyGate title="MY SHOWDAY 확인 중" desc="로그인 상태를 확인하고 있습니다." loading/>
+      <Footer />
+      <ResponsiveDock />
+    </>;
   }
 
   if(!user){
-    return <MyGate
-      title="MY SHOWDAY는 로그인 후 이용할 수 있어요"
-      desc="좋아요한 공연·전시·체험, 관심 아티스트, 저장한 검색조건과 알림을 한곳에서 관리합니다."
-      onLogin={()=>signInWithKakao()}
-    />;
+    return <>
+      <Header />
+      <MyGate
+        title="MY SHOWDAY는 로그인 후 이용할 수 있어요"
+        desc="좋아요한 공연·전시·체험, 관심 아티스트, 저장한 검색조건과 알림을 한곳에서 관리합니다."
+        onLogin={()=>signInWithKakao()}
+      />
+      <Footer />
+      <ResponsiveDock />
+    </>;
   }
 
-  return <main className="min-h-screen bg-[#f8f6f2] text-[#251b16]">
-    <div className="border-b border-[#e8dfd7] bg-white/95">
-      <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" className="font-black tracking-tight text-xl">SHOWDAY</Link>
-        <Link href="/" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-xs font-black hover:border-[#c77b46]">← SHOWDAY 홈</Link>
-      </div>
-    </div>
+  return <>
+    <div id="my-showday-top" />
+    <Header mode="member" />
+    <main className="min-h-screen bg-[#f8f6f2] pb-20 text-[#251b16] lg:pb-0">
+      <MyPageQuickNav onTabChange={setTab} />
 
     <section className="mx-auto max-w-[1180px] px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
       <div className="rounded-[28px] bg-[#241a16] px-5 py-7 text-white shadow-sm sm:px-8 sm:py-9">
@@ -162,17 +173,52 @@ export default function MyShowdayPage(){
         </section>}
       </div>
     </section>
-  </main>
+    </main>
+    <Footer />
+    <ResponsiveDock />
+    <ScrollToTopButton />
+  </>;
+}
+
+function MyPageQuickNav({onTabChange}:{onTabChange:(tab:Tab)=>void}){
+  const items=[
+    ["좋아요","likes"],
+    ["관심 아티스트","artists"],
+    ["저장한 검색","searches"],
+    ["알림 설정","alerts"],
+  ] as const;
+
+  function openTab(tab:Tab){
+    const next=new URL(window.location.href);
+    next.searchParams.set("tab",tab);
+    window.history.replaceState(null,"",next.toString());
+    onTabChange(tab);
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  return <nav aria-label="MY SHOWDAY 바로가기" className="fixed right-5 top-1/2 z-40 hidden -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[#e8dfd7] bg-white/95 p-2 shadow-2xl backdrop-blur-xl xl:flex">
+    <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} className="rounded-xl px-3 py-2.5 text-left text-[11px] font-black text-[#b46f3d] hover:bg-[#fff7ef]">↑ 상단으로</button>
+    <a href="/" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">메인</a>
+    {items.map(([label,id])=><button key={id} type="button" onClick={()=>openTab(id)} className="rounded-xl px-3 py-2.5 text-left text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">{label}</button>)}
+    <a href="/#showday-now" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">공연 소식</a>
+    <a href="/#arena-now" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">ARENA NOW</a>
+  </nav>;
+}
+
+function ScrollToTopButton(){
+  const [visible,setVisible]=useState(false);
+  useEffect(()=>{
+    const onScroll=()=>setVisible(window.scrollY>520);
+    onScroll();
+    window.addEventListener("scroll",onScroll,{passive:true});
+    return()=>window.removeEventListener("scroll",onScroll);
+  },[]);
+  if(!visible)return null;
+  return <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} aria-label="페이지 상단으로 이동" className="fixed bottom-24 right-4 z-40 grid h-11 w-11 place-items-center rounded-full border border-[#e2d6cd] bg-white/95 text-sm font-black text-[#251b16] shadow-xl backdrop-blur transition hover:border-[#c77b46] lg:bottom-6 lg:right-6">↑</button>;
 }
 
 function MyGate({title,desc,onLogin,loading=false}:{title:string;desc:string;onLogin?:()=>void;loading?:boolean}){
-  return <main className="min-h-screen bg-[#f8f6f2] text-[#251b16]">
-    <div className="border-b border-[#e8dfd7] bg-white/95">
-      <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" className="font-black tracking-tight text-xl">SHOWDAY</Link>
-        <Link href="/" className="rounded-full border border-[#dfd4ca] px-4 py-2 text-xs font-black hover:border-[#c77b46]">SHOWDAY 홈</Link>
-      </div>
-    </div>
+  return <main className="min-h-screen bg-[#f8f6f2] pb-20 text-[#251b16] lg:pb-0">
     <section className="mx-auto grid min-h-[72vh] max-w-[760px] place-items-center px-4 py-12 sm:px-6">
       <div className="w-full rounded-[30px] border border-[#eadfd6] bg-white p-6 text-center shadow-sm sm:p-10">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fff3e7] text-xl font-black text-[#c77b46]">MY</div>
