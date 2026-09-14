@@ -75,7 +75,7 @@ export default function AdminChannel() {
           <div className="rounded-2xl border border-[#e7dcc9] bg-white p-6 text-center shadow-[0_1px_2px_rgba(36,26,16,0.04)]">
             <div className="flex flex-col items-center gap-3">
               <KakaoChannelButton />
-              <KakaoChannelQr />
+              <KakaoChannelQr responsive={false} />
             </div>
             <p className="mt-3 text-[11px] text-[#8a7360]">실제로는 하단(Footer)에 노출됩니다. QR은 PC 사용자용이에요.</p>
           </div>
