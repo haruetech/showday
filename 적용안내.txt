@@ -1,20 +1,40 @@
-SHOWDAY 모바일 검색결과 UI 최종 개선
+SHOWDAY 판매상품 관리 기능 - 적용 안내
+기준: 사용자가 제공한 최신 showday-main (1).zip
 
-교체 파일
-1. src/components/home/Hero.tsx
-2. src/app/page.tsx
+[교체/추가 파일]
+- src/app/admin/AdminNav.tsx
+- src/app/admin/products/page.tsx
+- src/app/api/admin/products/route.ts
+- src/app/api/admin/products/[id]/route.ts
+- src/app/api/products/route.ts
+- src/components/promotion/FloatingProductPromo.tsx
+- supabase/migrations/0012_shop_products.sql
 
-핵심 수정
-- 모바일 검색 완료 후 Hero 비주얼과 큰 검색영역 자동 접힘
-- 선택 조건은 작은 요약바로만 표시, '조건 수정'으로 다시 펼치기
-- 결과 상단을 간소화하여 첫 공연 카드가 빠르게 보이도록 개선
-- 전체/공연/전시/체험·교육/축제·행사 탭은 가로 스크롤 유지
-- 무료공연 신청상태 및 세부분류는 모바일에서 기본 접힘 → '세부 필터'로 필요할 때만 열기
-- 검색 결과를 보는 동안 모바일에서는 홈의 인기공연/내주변/50+ 등의 후속 섹션을 숨겨 결과에 집중
-- '결과 접기' 시 기존 홈 화면 복귀
-- 결과 하단 '조건 바꿔 다시 찾기' 버튼으로 검색조건 편집
-- PC 화면은 기존 구조 유지
+[중요: 최초 1회]
+Supabase SQL Editor에서 supabase/migrations/0012_shop_products.sql 내용을 실행해야 합니다.
+실행하지 않으면 admin 판매상품 저장과 고객화면 상품 노출이 동작하지 않습니다.
 
-적용 방법
-ZIP 내부의 src 폴더 구조 그대로 기존 프로젝트에 덮어쓰기 후 GitHub에 커밋/푸시하세요.
-Vercel Preview 또는 빌드 로그 확인 후 Production 반영을 권장합니다.
+[관리자]
+/admin/products
+- 상품 등록/수정/삭제
+- 이미지 직접 업로드 또는 이미지 URL
+- 상품 링크
+- 가격/혜택 문구
+- 카테고리
+- 노출/숨김
+- 대표상품
+- 노출 순서
+
+[고객 화면]
+기존 하드코딩 상품을 제거하고 /api/products에서 관리자가 등록한 활성 상품만 노출합니다.
+대표상품이 우선 노출되며 여러 상품이 있으면 다음 상품으로 넘길 수 있습니다.
+기존처럼 메인 페이지에서 일정 스크롤 이후 추천상품 플로팅 카드가 나타납니다.
+
+[배포]
+1. 동일 경로에 파일 교체/추가
+2. Supabase SQL 실행
+3. GitHub commit/push
+4. Vercel 배포 확인
+5. /admin/products에서 상품 등록 후 메인에서 확인
+
+참고: 제공된 프로젝트에는 node_modules가 없어 이 작업 환경에서 전체 Next.js 빌드는 검증하지 못했습니다.
