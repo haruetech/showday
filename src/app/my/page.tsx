@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ResponsiveDock from "@/components/navigation/ResponsiveDock";
 import { useEffect, useMemo, useState } from "react";
@@ -72,6 +71,12 @@ export default function MyShowdayPage(){
   },[user]);
 
   const likedItems=useMemo(()=>likedKeys.map(key=>details[key]||{key,title:"좋아요한 콘텐츠",savedAt:""}).sort((a,b)=>(b.savedAt||"").localeCompare(a.savedAt||"")),[likedKeys,details]);
+  const enabledAlertCount=useMemo(()=>[
+    alertPrefs.artistNewShow,
+    alertPrefs.ticketOpen,
+    alertPrefs.freeNearby,
+    alertPrefs.savedSearch,
+  ].filter(Boolean).length,[alertPrefs]);
 
   function saveAlertPrefs(patch:Partial<AlertPrefs>){
     const next={...alertPrefs,...patch}; setAlertPrefs(next); localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(next)); setAlertNotice("알림 설정을 저장했습니다."); setTimeout(()=>setAlertNotice(""),2000);
@@ -96,7 +101,7 @@ export default function MyShowdayPage(){
 
   if(!authReady){
     return <>
-      <Header />
+      <MyTopBar />
       <MyGate title="MY SHOWDAY 확인 중" desc="로그인 상태를 확인하고 있습니다." loading/>
       <Footer />
       <ResponsiveDock />
@@ -105,7 +110,7 @@ export default function MyShowdayPage(){
 
   if(!user){
     return <>
-      <Header />
+      <MyTopBar />
       <MyGate
         title="MY SHOWDAY는 로그인 후 이용할 수 있어요"
         desc="좋아요한 공연·전시·체험, 관심 아티스트, 저장한 검색조건과 알림을 한곳에서 관리합니다."
@@ -118,25 +123,37 @@ export default function MyShowdayPage(){
 
   return <>
     <div id="my-showday-top" />
-    <Header mode="member" />
+    <MyTopBar />
     <main className="min-h-screen bg-[#f8f6f2] pb-20 text-[#251b16] lg:pb-0">
-      <MyPageQuickNav onTabChange={setTab} />
+      <MyPageQuickNav currentTab={tab} onTabChange={setTab} />
 
     <section className="mx-auto max-w-[1180px] px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
-      <div className="rounded-[28px] bg-[#241a16] px-5 py-7 text-white shadow-sm sm:px-8 sm:py-9">
-        <p className="text-[11px] font-black tracking-[.2em] text-[#e5a16f]">MY SHOWDAY</p>
-        <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-4xl">내가 좋아한 문화생활을 한곳에서</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">좋아요한 콘텐츠, 관심 아티스트, 저장한 검색조건과 알림을 모아 관리합니다. 다시 찾을 때 처음부터 검색하지 않아도 됩니다.</p>
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:max-w-xl sm:gap-3">
+      <div className="rounded-[28px] bg-[#241a16] px-5 py-6 text-white shadow-sm sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] font-black tracking-[.2em] text-[#e5a16f]">MY SHOWDAY</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-4xl">내 공연생활, 여기서 한 번에</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">좋아요, 관심 아티스트, 저장한 검색과 알림을 필요한 것만 간단하게 관리하세요.</p>
+          </div>
+          <Link href="/#show-search" className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#251b16] transition hover:bg-[#fff4e7]">새 공연 찾기 →</Link>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           <Summary value={likedKeys.length} label="좋아요"/>
           <Summary value={artists.length} label="관심 아티스트"/>
           <Summary value={searches.length} label="저장한 검색"/>
+          <Summary value={enabledAlertCount} label="켜진 알림"/>
         </div>
       </div>
 
-      <div className="sticky top-0 z-20 -mx-4 mt-6 border-y border-[#e8dfd7] bg-[#f8f6f2]/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-3">
+      <div className="sticky top-0 z-20 -mx-4 mt-5 border-y border-[#e8dfd7] bg-[#f8f6f2]/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {tabs.map(([id,label,desc])=><button key={id} onClick={()=>setTab(id)} className={`min-h-[48px] rounded-xl px-3 py-2 text-left transition ${tab===id?"bg-[#251b16] text-white shadow-sm":"bg-white text-[#251b16] hover:bg-[#fff7ef]"}`}><b className="block text-xs sm:text-sm">{label}</b><span className={`mt-0.5 hidden text-[10px] sm:block ${tab===id?"text-white/60":"text-[#8f8177]"}`}>{desc}</span></button>)}
+          {tabs.map(([id,label,desc])=>{
+            const count=id==="likes"?likedKeys.length:id==="artists"?artists.length:id==="searches"?searches.length:enabledAlertCount;
+            return <button key={id} onClick={()=>setTab(id)} className={`min-h-[54px] rounded-xl px-3 py-2.5 text-left transition ${tab===id?"bg-[#251b16] text-white shadow-sm":"bg-white text-[#251b16] hover:bg-[#fff7ef]"}`}>
+              <span className="flex items-center justify-between gap-2"><b className="text-xs sm:text-sm">{label}</b><span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${tab===id?"bg-white/15 text-white":"bg-[#f4eee9] text-[#806d60]"}`}>{count}</span></span>
+              <span className={`mt-1 hidden text-[10px] sm:block ${tab===id?"text-white/60":"text-[#8f8177]"}`}>{desc}</span>
+            </button>;
+          })}
         </div>
       </div>
 
@@ -169,7 +186,7 @@ export default function MyShowdayPage(){
             <AlertSwitch title="저장한 검색조건 새 소식" desc="저장한 조건과 맞는 신규 콘텐츠가 들어오면 다시 확인할 수 있도록 알림 대상으로 저장합니다." checked={alertPrefs.savedSearch} onChange={v=>saveAlertPrefs({savedSearch:v})}/>
           </div>
           {alertPrefs.ticketOpen&&<div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4"><b className="text-xs text-[#251b16]">티켓 오픈 사전 알림</b><p className="mt-1 text-[11px] leading-5 text-[#8f8177]">한 번만 알리는 방식이 아니라 필요한 시점을 여러 개 선택할 수 있습니다.</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={()=>saveAlertPrefs({ticketAnnouncement:!alertPrefs.ticketAnnouncement})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAnnouncement?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>일정 발표 즉시</button>{([["7d","7일 전"],["3d","3일 전"],["1d","하루 전"],["3h","3시간 전"],["1h","1시간 전"],["10m","10분 전"]] as const).map(([v,label])=><button key={v} onClick={()=>toggleLeadTime(v)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketLeadTimes.includes(v)?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>{label}</button>)}<button onClick={()=>saveAlertPrefs({ticketAtOpen:!alertPrefs.ticketAtOpen})} className={`rounded-full border px-3 py-2 text-[11px] font-black ${alertPrefs.ticketAtOpen?"border-[#c77b46] bg-[#fff0e3] text-[#b96730]":"border-[#dfd4ca] bg-white text-[#715a4a]"}`}>오픈 즉시</button></div><p className="mt-3 text-[10px] leading-5 text-[#9a8b80]">추천: 일정 발표 즉시 · 7일 전 · 하루 전 · 1시간 전 · 오픈 즉시. 무료공연/인기공연처럼 빠르게 마감되는 콘텐츠에 유리합니다.</p></div>}
-          <div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4 text-xs leading-5 text-[#715a4a]">설정값은 저장되어 관심 아티스트 화면과 공유됩니다. 실제 웹푸시·카카오 발송은 발송 서버와 해당 채널이 연결된 항목부터 동작합니다. 공식 예매 오픈 시간이 없는 공연은 임의 시간을 만들지 않고 ‘미확인’으로 표시합니다.</div>
+          <div className="mt-4 rounded-2xl border border-[#ead7c6] bg-[#fff8f0] p-4 text-xs leading-5 text-[#715a4a]">선택한 설정은 관심 아티스트 화면과 함께 사용됩니다. 실제 웹푸시·카카오 알림은 발송 채널이 연결된 항목부터 동작합니다. 공식 오픈 시간이 확인되지 않은 공연은 임의 시간을 만들지 않습니다.</div>
         </section>}
       </div>
     </section>
@@ -180,7 +197,19 @@ export default function MyShowdayPage(){
   </>;
 }
 
-function MyPageQuickNav({onTabChange}:{onTabChange:(tab:Tab)=>void}){
+function MyTopBar(){
+  return <header className="sticky top-0 z-50 border-b border-[#eadfd6] bg-white/95 backdrop-blur">
+    <div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between px-4 sm:px-6">
+      <Link href="/" className="text-lg font-black tracking-tight text-[#251b16]">SHOWDAY</Link>
+      <div className="flex items-center gap-2">
+        <span className="hidden text-[11px] font-bold text-[#9a8b80] sm:inline">MY SHOWDAY</span>
+        <Link href="/#show-search" className="rounded-full border border-[#dfd4ca] bg-white px-3.5 py-2 text-[11px] font-black text-[#5f4e43] transition hover:border-[#c77b46]">공연 찾기</Link>
+      </div>
+    </div>
+  </header>;
+}
+
+function MyPageQuickNav({currentTab,onTabChange}:{currentTab:Tab;onTabChange:(tab:Tab)=>void}){
   const items=[
     ["좋아요","likes"],
     ["관심 아티스트","artists"],
@@ -197,11 +226,9 @@ function MyPageQuickNav({onTabChange}:{onTabChange:(tab:Tab)=>void}){
   }
 
   return <nav aria-label="MY SHOWDAY 바로가기" className="fixed right-5 top-1/2 z-40 hidden -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[#e8dfd7] bg-white/95 p-2 shadow-2xl backdrop-blur-xl xl:flex">
-    <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} className="rounded-xl px-3 py-2.5 text-left text-[11px] font-black text-[#b46f3d] hover:bg-[#fff7ef]">↑ 상단으로</button>
-    <a href="/" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">메인</a>
-    {items.map(([label,id])=><button key={id} type="button" onClick={()=>openTab(id)} className="rounded-xl px-3 py-2.5 text-left text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">{label}</button>)}
-    <a href="/#showday-now" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">공연 소식</a>
-    <a href="/#arena-now" className="rounded-xl px-3 py-2.5 text-[11px] font-bold text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]">ARENA NOW</a>
+    <span className="px-3 pb-2 pt-1 text-[9px] font-black tracking-[.16em] text-[#b46f3d]">MY SHOWDAY</span>
+    <button type="button" onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} className="rounded-xl px-3 py-2.5 text-left text-[11px] font-black text-[#6f5e52] hover:bg-[#fff7ef]">↑ 상단으로</button>
+    {items.map(([label,id])=><button key={id} type="button" onClick={()=>openTab(id)} className={`rounded-xl px-3 py-2.5 text-left text-[11px] font-bold transition ${currentTab===id?"bg-[#251b16] text-white":"text-[#7f7066] hover:bg-[#fff7ef] hover:text-[#251b16]"}`}>{label}</button>)}
   </nav>;
 }
 
