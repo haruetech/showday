@@ -475,8 +475,8 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <h1 className="font-display font-black leading-[1.08]">
             <span className="block text-[clamp(1.8rem,7vw,3.9rem)] text-white sm:whitespace-nowrap">보고 싶은 공연, 바로 찾기</span>
           </h1>
-          <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 선택하세요.</p>
-          <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">공연부터 전시·체험·축제까지 SHOWDAY가 찾아드려요.</p>
+          <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 알려주세요.</p>
+          <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">SHOWDAY가 지금 볼 만한 공연·전시·체험·축제를 먼저 골라드려요.</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
             <a href="#quick-search" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-[#512a20] shadow-sm">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
           </div>
@@ -485,27 +485,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     </div>
 
     <div className="relative z-20 mx-auto -mb-2 max-w-[1280px] px-4 pt-4 sm:px-6">
-      {!isMember ? (
-        <div className="rounded-2xl border border-[#ead8c8] bg-[#fffaf4] px-4 py-4 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-5">
-          <div className="min-w-0">
-            <p className="text-[11px] font-black tracking-[.14em] text-[#b46f3d]">MY SHOWDAY</p>
-            <p className="mt-1 text-sm font-black text-paper sm:text-[15px]">로그인하면 내 취향과 놓치기 쉬운 공연 소식을 한곳에서 볼 수 있어요.</p>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-[#75665b]">
-              <span>📍 현재 위치 기준 거리</span>
-              <span>♥ 관심 아티스트</span>
-              <span>🔔 티켓·무료공연 오픈 알림</span>
-              <span>★ 좋아요·검색조건 모아보기</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={()=>signInWithKakao()}
-            className="mt-3 inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full bg-[#FEE500] px-5 text-xs font-black text-[#191600] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:mt-0"
-          >
-            카카오로 간편 시작
-          </button>
-        </div>
-      ) : (
+      {isMember&&(
         <a href="/my" className="flex items-center justify-between gap-3 rounded-2xl border border-[#ead8c8] bg-[#fffaf4] px-4 py-3.5 shadow-sm transition hover:border-[#d5b698] sm:px-5">
           <div>
             <p className="text-[11px] font-black tracking-[.14em] text-[#b46f3d]">MY SHOWDAY</p>
@@ -521,7 +501,16 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         <div className="mb-5">
           <p className="text-[11px] font-bold tracking-[.18em] text-gold">QUICK FIND</p>
           <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">자주 찾는 조건으로 바로 시작하세요.</h2>
-          <p className="mt-1 text-xs leading-5 text-muted">빠른 선택을 누른 뒤 필요한 조건만 조금 더 바꿔도 됩니다.</p>
+          <p className="mt-1 text-xs leading-5 text-muted">빠른 선택을 누르거나 말로 원하는 문화생활을 찾아보세요.</p>
+        </div>
+
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-[#e8d7c7] bg-[#fff8f0] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-black text-paper">🎙 말로 찾아보세요</p>
+            <p className="mt-1 text-xs leading-5 text-muted">예: “이번 주말 아이와 볼 만한 무료 공연 찾아줘”</p>
+            {voiceMsg&&<p className="mt-2 text-[11px] font-semibold leading-5 text-[#8b5b3d]">{voiceMsg}</p>}
+          </div>
+          <button type="button" onClick={startVoiceSearch} disabled={listening} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black transition ${listening?"bg-[#ead7c6] text-[#8b5b3d]":"bg-paper text-white hover:bg-gold"}`}><MicIcon className="h-4 w-4"/>{listening?"듣고 있어요…":"말로 찾기"}</button>
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -557,15 +546,16 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
 
 
         <div className="mt-6 border-t border-line pt-5">
-          <div className="grid gap-2 lg:grid-cols-[1fr_auto_auto]">
-            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="공연명·아티스트를 입력하거나 음성으로 말해보세요" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
-            <button type="button" onClick={startVoiceSearch} disabled={listening} className={`relative z-10 inline-flex min-h-[50px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl border px-5 text-sm font-black transition ${listening?"border-gold bg-[#fff8f0] text-gold":"border-line bg-white text-paper hover:border-gold"}`}><MicIcon className="h-4 w-4"/>{listening?"듣고 있어요…":"음성으로 찾기"}</button>
+          <div className="grid gap-2 lg:grid-cols-[1fr_auto]">
+            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="공연명·아티스트를 입력하세요" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
             <button type="button" onClick={searchShows} className="relative z-10 inline-flex min-h-[50px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl bg-paper px-7 text-sm font-black text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>이 조건으로 찾기</button>
           </div>
-          {voiceMsg&&<p className="mt-3 rounded-lg bg-surface-raised/70 px-3 py-2 text-xs font-semibold leading-5 text-muted">{voiceMsg}</p>}
 
           <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px]"><span className="text-muted">선택 조건</span>{companion!=="상관없음"&&<Chip icon={<SparkIcon className="h-3.5 w-3.5"/>}>{companion}</Chip>}<Chip icon={<PinIcon className="h-3.5 w-3.5"/>}>{region}</Chip><Chip icon={<CalendarIcon className="h-3.5 w-3.5"/>}>{periodLabel}</Chip>{genre!=="전체"&&<Chip>{genre}</Chip>}{companion==="아이와"&&childAge&&<Chip>{childAge}</Chip>}{discovery!=="전체"&&<Chip>{discovery}</Chip>}{discovery==="가격대별"&&<Chip>{price}</Chip>}</div>
-          <p className="mt-3 text-[11px] leading-5 text-muted">{summary} 기준으로 검색합니다. 아이와 검색은 관람연령이 확인된 공연만, 내 주변은 위치 권한이 허용된 경우 가까운 공연을 우선합니다.</p>
+          <div className="mt-3 space-y-1 text-[11px] leading-5 text-muted">
+            {companion==="아이와"&&<p>아이와 함께 볼 수 있도록 관람 가능 연령이 확인된 콘텐츠를 우선 보여드려요.</p>}
+            {region==="내 주변"&&<p>내 주변은 위치 권한을 허용하면 현재 위치 기준 가까운 순으로 확인할 수 있어요.</p>}
+          </div>
         </div>
 
       </div>
@@ -1132,7 +1122,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,freeM
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[11px] font-bold tracking-[.14em] text-gold">MY SHOWDAY RESULTS</p>
+            <p className="text-[11px] font-bold tracking-[.14em] text-gold">SHOWDAY 추천 결과</p>
             {tab==="전체"&&preferred&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">{preferred} 우선</span>}
           </div>
           <h3 className="mt-1 text-base font-black text-paper sm:text-lg">{resultTitle(companion)}</h3>
@@ -1145,18 +1135,19 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,freeM
       </div>
 
       {locationMsg&&<p className="mt-3 rounded-lg bg-surface-raised/70 px-3 py-2 text-[11px] font-semibold text-muted sm:text-xs">{locationMsg}</p>}
+      {companion==="아이와"&&<p className="mt-2 rounded-lg bg-[#fff8f0] px-3 py-2 text-[11px] font-semibold leading-5 text-[#7b5a45] sm:text-xs">아이와 함께 볼 수 있도록 관람 가능 연령이 확인된 콘텐츠를 우선 보여드려요.</p>}
 
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="검색 결과 대분류">
         {RESULT_TABS.map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>chooseTab(t)} className={`min-h-[40px] rounded-full border px-3 py-2 text-[11px] font-black sm:text-xs ${tab===t?"border-paper bg-paper text-white":"border-line bg-white text-muted"}`}><span>{t}</span>{!loading&&<span className={`ml-1.5 text-[10px] ${tab===t?"text-white/70":"text-muted/70"}`}>{counts[t]}</span>}</button>)}
       </div>
 
       {freeMode&&<div className="mt-3 rounded-xl border border-[#ead7c6] bg-[#fff8f0] p-3">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-black text-paper">무료공연 신청·예매 상태</p><p className="mt-0.5 text-[10px] leading-4 text-muted">공연일이 아니라 실제 신청 가능 여부를 먼저 확인합니다. 신청마감 공연은 기본 화면에서 제외됩니다.</p></div><a href="/my?tab=alerts" className="text-[10px] font-black text-[#a65f31]">MY 알림 관리 →</a></div>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-black text-paper">무료공연 신청·예매 상태</p><p className="mt-0.5 text-[10px] leading-4 text-muted">공연 날짜보다 지금 신청할 수 있는지를 먼저 확인해 보여드려요.</p></div><a href="/my?tab=alerts" className="text-[10px] font-black text-[#a65f31]">MY 알림 관리 →</a></div>
         <div className="mt-2 flex flex-wrap gap-1.5">{(["지금 신청 가능","곧 신청 오픈","일정 미공개","신청마감","전체 무료"] as FreeApplyTab[]).map(item=><button type="button" key={item} onClick={()=>{setFreeApplyTab(item);setResultJumpSeq(v=>v+1)}} className={`min-h-[36px] rounded-full border px-3 py-1.5 text-[10px] font-black sm:text-[11px] ${freeApplyTab===item?"border-[#251b16] bg-[#251b16] text-white":"border-[#dfc8b7] bg-white text-[#755f50]"}`}>{item}<span className="ml-1.5 opacity-70">{freeCounts[item]}</span></button>)}</div>
         {freeApplyTab==="지금 신청 가능"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">⚡ 공식 신청기간이 확인되어 현재 신청할 수 있는 무료공연만 보여드립니다.</p>}
         {freeApplyTab==="곧 신청 오픈"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">🔔 신청 시작일이 확인된 공연입니다. 카드에서 오픈 알림을 MY SHOWDAY에 저장하세요.</p>}
-        {freeApplyTab==="일정 미공개"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">📅 공식 신청일정이 아직 데이터에 없습니다. 임의 시간을 만들지 않고 일정 확인 알림으로 저장합니다.</p>}
-        {freeApplyTab==="신청마감"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">마감된 무료공연입니다. 일반 결과에서는 숨기고, 다음 신청 기회를 위한 알림만 받을 수 있습니다.</p>}
+        {freeApplyTab==="일정 미공개"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">📅 신청 일정이 아직 공개되지 않았어요. 일정이 확인되면 알림으로 챙길 수 있습니다.</p>}
+        {freeApplyTab==="신청마감"&&<p className="mt-2 text-[10px] font-semibold text-[#8b6b55]">현재 신청이 끝난 무료공연입니다. 다음 신청 기회를 위한 알림을 받을 수 있습니다.</p>}
       </div>}
 
       {subTabs.length>0&&<div className="mt-2 rounded-xl bg-surface-raised/65 p-2.5">
@@ -1173,7 +1164,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,freeM
             const performanceShows=(tab==="전체"||tab==="공연")?showFiltered:[];
             const total=performanceEvents.length+performanceShows.length;
             if(total===0)return null;
-            return <div key="공연" id="result-performance" data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연 DB와 SHOWDAY 공연을 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">KOPIS 공연</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
+            return <div key="공연" id="result-performance" data-result-group><div className="mb-4 flex items-end justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2">{index===0&&tab==="전체"&&<span className="rounded-full bg-[#fff4e7] px-2 py-1 text-[10px] font-black text-paper">먼저 보기</span>}<h4 className="text-base font-black text-paper">{groupTitle("공연")}</h4></div><p className="mt-1 text-[11px] text-muted">공연·예매 정보를 한곳에서 함께 보여드려요.</p></div><span className="shrink-0 text-[11px] text-muted">{total}건</span></div><div className="space-y-5">{performanceEvents.length>0&&<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{performanceEvents.map(e=><EventCard key={e.id} event={e}/>)}</div>}{performanceShows.length>0&&<div><p className="mb-2 text-[10px] font-bold tracking-[.1em] text-gold">공연 정보</p><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{performanceShows.map(show=><ResultCard key={show.id} show={show}/>)}</div></div>}</div></div>;
           }
           const items=eventFiltered.filter(e=>groupLabel(e)===label);
           if(!items.length)return null;
