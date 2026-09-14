@@ -168,6 +168,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   const [voiceMsg,setVoiceMsg]=useState("");
   const [restored,setRestored]=useState(false);
   const [isMember,setIsMember]=useState(false);
+  const [showDetailedFilters,setShowDetailedFilters]=useState(false);
 
   useEffect(()=>{
     if(!isAuthConfigured) return;
@@ -468,7 +469,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     <div className="relative overflow-hidden bg-[#512a20]">
       <div className="pointer-events-none absolute inset-0 opacity-40"><img src="/showday-hero-audience.png" alt="" className="h-full w-full object-cover"/></div>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#422118]/95 via-[#512a20]/82 to-[#512a20]/38"/>
-      <div className="relative mx-auto flex min-h-[330px] max-w-[1280px] items-center px-4 py-14 sm:px-6 lg:min-h-[390px]">
+      <div className="relative mx-auto flex min-h-[285px] max-w-[1280px] items-center px-4 py-10 sm:min-h-[330px] sm:px-6 sm:py-14 lg:min-h-[390px]">
         <div className="max-w-2xl">
           <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · EASY SEARCH</p>
           <h1 className="font-display font-black leading-[1.08]">
@@ -477,8 +478,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 선택하세요.</p>
           <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">공연부터 전시·체험·축제까지 SHOWDAY가 찾아드려요.</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-            <a href="#quick-search" className="inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
-            <a href="/simple-search" className="relative z-20 inline-flex min-h-[44px] items-center rounded-full border border-white/45 bg-black/20 px-4 text-xs font-bold text-white sm:hidden">구형 iPhone 간편검색</a>
+            <a href="#quick-search" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-[#512a20] shadow-sm">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
           </div>
         </div>
       </div>
@@ -518,13 +518,26 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
 
     <div id="quick-search" className="relative z-10 mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-10">
       <div className="rounded-2xl border border-line bg-white/55 p-4 shadow-sm sm:p-6">
-        <div className="mb-6">
-          <p className="text-[11px] font-bold tracking-[.18em] text-gold">EASY SEARCH</p>
-          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">내 목적에 맞는 공연을 찾아보세요.</h2>
-          <p className="mt-1 text-xs leading-5 text-muted">누구와 · 언제 · 어디서 · 무엇을 · 어떤 공연을 찾는지 순서대로 고르세요.</p>
+        <div className="mb-5">
+          <p className="text-[11px] font-bold tracking-[.18em] text-gold">QUICK FIND</p>
+          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">자주 찾는 조건으로 바로 시작하세요.</h2>
+          <p className="mt-1 text-xs leading-5 text-muted">빠른 선택을 누른 뒤 필요한 조건만 조금 더 바꿔도 됩니다.</p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
+          <Quick label="부모님과 공연" onClick={()=>{chooseCompanion("부모님과");setGenre("전체");setDiscovery("전체")}}/>
+          <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
+          <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
+          <Quick label="아이와 전시·체험" onClick={()=>{chooseCompanion("아이와");setGenre("전시");setDiscovery("전체")}}/>
+          <Quick label="연인과 전시·데이트" onClick={()=>{chooseCompanion("연인과");setGenre("전시");setDiscovery("전체")}}/>
+        </div>
+
+        <button type="button" onClick={()=>setShowDetailedFilters(v=>!v)} className="mt-5 flex min-h-[46px] w-full items-center justify-between rounded-xl border border-line bg-white px-4 text-sm font-black text-paper lg:hidden">
+          <span>조건으로 더 찾아보기</span><span className="text-gold">{showDetailedFilters?"접기 ↑":"펼치기 ↓"}</span>
+        </button>
+
+        <div className={`${showDetailedFilters?"grid":"hidden"} mt-5 gap-5 lg:grid lg:grid-cols-2`}>
           <div>
             <Choice label="1. 누구와" options={companions} value={companion} setValue={chooseCompanion}/>
             {companion==="아이와"&&<ChildAgeChoice value={childAge} setValue={setChildAge}/>}
@@ -555,12 +568,6 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <p className="mt-3 text-[11px] leading-5 text-muted">{summary} 기준으로 검색합니다. 아이와 검색은 관람연령이 확인된 공연만, 내 주변은 위치 권한이 허용된 경우 가까운 공연을 우선합니다.</p>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2 pb-1">
-          <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
-          <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
-          <Quick label="부모님과 이번 주말" onClick={()=>{chooseCompanion("부모님과");setTiming("이번 주말");setGenre("전체");setDiscovery("전체")}}/>
-          <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
-        </div>
       </div>
 
       {searched&&<SearchResults
