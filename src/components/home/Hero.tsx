@@ -14,6 +14,13 @@ type Companion = "상관없음" | "아이와" | "연인과" | "친구·부부" |
 type ChildAge = "1세" | "2세" | "3세" | "4세" | "5세" | "6세" | "7세" | "8세" | "9세" | "10세" | "11세" | "12세" | "13세";
 type Price = "1만원 이하" | "3만원 이하" | "5만원 이하" | "10만원 이하";
 type Discovery = "전체" | "지금 예매 가능" | "곧 티켓오픈" | "무료 공연·행사" | "가격대별";
+type QuickAction =
+  | "child_weekend" | "child_exhibit" | "child_free" | "child_near"
+  | "parent_good" | "parent_free" | "parent_weekend" | "parent_near"
+  | "couple_weekend" | "couple_exhibit" | "couple_free" | "couple_near"
+  | "friends_weekend" | "friends_festival" | "friends_free" | "friends_near"
+  | "solo_good" | "solo_today" | "solo_free" | "solo_near"
+  | "free_near" | "free_weekend" | "free_child" | "free_parent";
 
 const timings: Timing[] = ["오늘", "이번 주말", "이번 주", "이번 달", "날짜 선택"];
 const regions: Region[] = ["내 주변", "서울", "경기", "인천", "부산", "전국"];
@@ -169,6 +176,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   const [restored,setRestored]=useState(false);
   const [isMember,setIsMember]=useState(false);
   const [showDetailedFilters,setShowDetailedFilters]=useState(false);
+  const [pendingQuickSearch,setPendingQuickSearch]=useState(false);
 
   useEffect(()=>{
     if(!isAuthConfigured) return;
@@ -246,6 +254,56 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     if(v==="내 주변") void requestCurrentLocation();
     else setLocationMsg("");
   }
+
+  function applyQuickAction(action:QuickAction){
+    setQuery("");
+    setDiscovery("전체");
+    setGenre("전체");
+
+    if(action.startsWith("child_") || action==="free_child") chooseCompanion("아이와");
+    else if(action.startsWith("parent_") || action==="free_parent") chooseCompanion("부모님과");
+    else if(action.startsWith("couple_")) chooseCompanion("연인과");
+    else if(action.startsWith("friends_")) chooseCompanion("친구·부부");
+    else if(action.startsWith("solo_")) chooseCompanion("혼자");
+
+    if(action.includes("weekend") || action==="free_weekend") setTiming("이번 주말");
+    if(action==="solo_today") setTiming("오늘");
+    if(action.includes("near") || action==="free_near") chooseRegion("내 주변");
+
+    if(action==="child_exhibit" || action==="couple_exhibit") setGenre("전시회");
+    if(action==="friends_festival") setGenre("축제");
+    if(action==="child_weekend") setGenre("체험·가족행사");
+
+    if(action.includes("free") || action.startsWith("free_")) setDiscovery("무료 공연·행사");
+
+    setShowDetailedFilters(true);
+    setPendingQuickSearch(true);
+    window.setTimeout(()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"}),20);
+  }
+
+  useEffect(()=>{
+    try{
+      const pending=sessionStorage.getItem("showday:pending-quick") as QuickAction|null;
+      if(pending){ sessionStorage.removeItem("showday:pending-quick"); applyQuickAction(pending); }
+    }catch{}
+    const handler=(event:Event)=>{
+      const action=(event as CustomEvent<QuickAction>).detail;
+      if(action) applyQuickAction(action);
+    };
+    window.addEventListener("showday:quick-search",handler);
+    return()=>window.removeEventListener("showday:quick-search",handler);
+  },[]);
+
+  useEffect(()=>{
+    if(!pendingQuickSearch)return;
+    setPendingQuickSearch(false);
+    if(companion==="아이와" && !childAge){
+      setVoiceMsg("아이와 볼 공연은 관람연령 확인이 중요합니다. 아이 나이를 선택하면 바로 검색할 수 있습니다.");
+      window.setTimeout(()=>document.getElementById("child-age-filter")?.scrollIntoView({behavior:"smooth",block:"center"}),80);
+      return;
+    }
+    void searchShows();
+  },[pendingQuickSearch,companion,childAge,timing,region,genre,discovery]);
 
   function applyVoiceCommand(text:string){
     const t=text.replace(/\s+/g," ").trim();
@@ -514,13 +572,15 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
-          <Quick label="부모님과" onClick={()=>{chooseCompanion("부모님과");setGenre("전체");setDiscovery("전체")}}/>
-          <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
-          <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
-          <Quick label="아이와 전시·체험" onClick={()=>{chooseCompanion("아이와");setGenre("전시회");setDiscovery("전체")}}/>
-          <Quick label="연인과 전시·데이트" onClick={()=>{chooseCompanion("연인과");setGenre("전시회");setDiscovery("전체")}}/>
+          <Quick label="아이와" onClick={()=>{chooseCompanion("아이와");setShowDetailedFilters(true)}}/>
+          <Quick label="부모님과" onClick={()=>{chooseCompanion("부모님과");setShowDetailedFilters(true)}}/>
+          <Quick label="연인과" onClick={()=>{chooseCompanion("연인과");setShowDetailedFilters(true)}}/>
+          <Quick label="친구·부부" onClick={()=>{chooseCompanion("친구·부부");setShowDetailedFilters(true)}}/>
+          <Quick label="혼자" onClick={()=>{chooseCompanion("혼자");setShowDetailedFilters(true)}}/>
+          <Quick label="무료 공연·행사" onClick={()=>applyQuickAction("free_weekend")}/>
         </div>
+
+        {companion!=="상관없음"&&<ContextQuick companion={companion} onSelect={applyQuickAction}/>}
 
         <button type="button" onClick={()=>setShowDetailedFilters(v=>!v)} className="mt-5 flex min-h-[46px] w-full items-center justify-between rounded-xl border border-line bg-white px-4 text-sm font-black text-paper lg:hidden">
           <span>조건으로 더 찾아보기</span><span className="text-gold">{showDetailedFilters?"접기 ↑":"펼치기 ↓"}</span>
@@ -555,6 +615,20 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <div className="mt-3 space-y-1 text-[11px] leading-5 text-muted">
             {companion==="아이와"&&<p>아이와 함께 볼 수 있도록 관람 가능 연령이 확인된 콘텐츠를 우선 보여드려요.</p>}
             {region==="내 주변"&&<p>내 주변은 위치 권한을 허용하면 현재 위치 기준 가까운 순으로 확인할 수 있어요.</p>}
+          </div>
+        </div>
+
+        <div className="quick-feature mt-5">
+          <div className="quick-feature__copy">
+            <p className="quick-feature__eyebrow">자주 찾는 조건</p>
+            <b>무료로 즐길 수 있는 공연·행사</b>
+            <span>가까운 곳부터 가족·부모님 나들이까지 바로 찾아보세요.</span>
+          </div>
+          <div className="quick-feature__actions">
+            <Quick label="내 주변 무료" onClick={()=>applyQuickAction("free_near")}/>
+            <Quick label="이번 주말 무료" onClick={()=>applyQuickAction("free_weekend")}/>
+            <Quick label="아이와 무료" onClick={()=>applyQuickAction("free_child")}/>
+            <Quick label="부모님과 무료" onClick={()=>applyQuickAction("free_parent")}/>
           </div>
         </div>
 
@@ -1254,6 +1328,47 @@ function Choice<T extends string>({label,options,value,setValue}:{label:string;o
     </div>
   </div>
 }
+function ContextQuick({companion,onSelect}:{companion:Companion;onSelect:(action:QuickAction)=>void}){
+  const map:Partial<Record<Companion,{label:string;action:QuickAction}[]>>={
+    "아이와":[
+      {label:"아이와 이번 주말",action:"child_weekend"},
+      {label:"아이와 전시·체험",action:"child_exhibit"},
+      {label:"아이와 무료",action:"child_free"},
+      {label:"아이와 가까운 곳",action:"child_near"},
+    ],
+    "부모님과":[
+      {label:"부모님과 가기 좋은 공연",action:"parent_good"},
+      {label:"부모님과 무료 나들이",action:"parent_free"},
+      {label:"부모님과 이번 주말",action:"parent_weekend"},
+      {label:"부모님과 가까운 곳",action:"parent_near"},
+    ],
+    "연인과":[
+      {label:"이번 주말 데이트",action:"couple_weekend"},
+      {label:"전시·공연",action:"couple_exhibit"},
+      {label:"무료 데이트",action:"couple_free"},
+      {label:"가까운 곳",action:"couple_near"},
+    ],
+    "친구·부부":[
+      {label:"이번 주말",action:"friends_weekend"},
+      {label:"공연·축제",action:"friends_festival"},
+      {label:"무료",action:"friends_free"},
+      {label:"가까운 곳",action:"friends_near"},
+    ],
+    "혼자":[
+      {label:"혼자 보기 좋은",action:"solo_good"},
+      {label:"오늘",action:"solo_today"},
+      {label:"무료",action:"solo_free"},
+      {label:"가까운 곳",action:"solo_near"},
+    ],
+  };
+  const items=map[companion]||[];
+  if(!items.length)return null;
+  return <div className="context-quick" aria-label={`${companion} 빠른찾기`}>
+    <div className="context-quick__head"><b>{companion} 빠른찾기</b><span>원하는 조건을 누르면 바로 적용됩니다.</span></div>
+    <div className="context-quick__grid">{items.map(item=><button key={item.action} type="button" {...mobilePress(()=>onSelect(item.action))}>{item.label}</button>)}</div>
+  </div>;
+}
+
 function Quick({label,onClick}:{label:string;onClick:()=>void}){
   return <button
     type="button"
