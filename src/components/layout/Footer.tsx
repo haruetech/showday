@@ -8,6 +8,28 @@ type BusinessInfo = {
   mail_order_no?: string; address?: string; support_contact?: string;
 };
 
+function isEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
+const LINK_GROUPS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: "서비스",
+    links: [
+      { label: "공연 찾기", href: "/#show-search" },
+      { label: "내 주변 공연·행사", href: "/my-area" },
+      { label: "MY SHOWDAY", href: "/my" },
+    ],
+  },
+  {
+    title: "이용 정보",
+    links: [
+      { label: "이용약관", href: "/terms" },
+      { label: "개인정보처리방침", href: "/privacy" },
+    ],
+  },
+];
+
 export default function Footer() {
   const [biz, setBiz] = useState<BusinessInfo>({});
 
@@ -16,22 +38,45 @@ export default function Footer() {
   }, []);
 
   const has = biz.business_name || biz.ceo_name || biz.business_reg_no;
+  const contact = (biz.support_contact || "").trim();
+  const contactHref = contact ? (isEmail(contact) ? `mailto:${contact}` : undefined) : undefined;
 
   return (
     <footer className="border-t border-line py-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 text-xs text-muted">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 text-xs text-muted">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="col-span-2 sm:col-span-1">
             <p className="font-display font-bold text-sm text-paper">SHOWDAY — 하루애</p>
-            <p className="mt-1">공연을 찾게 하지 않고, 지금 볼 만한 선택지를 먼저 보여드립니다.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <a href="/terms" className="hover:text-paper">이용약관</a>
-            <a href="/privacy" className="font-semibold text-paper hover:text-gold">개인정보처리방침</a>
-            <div className="flex items-center gap-2">
+            <p className="mt-2 leading-6">공연을 찾게 하지 않고, 지금 볼 만한 선택지를 먼저 보여드립니다.</p>
+            <div className="mt-4 flex items-center gap-2">
               <KakaoChannelButton />
               <KakaoChannelQr />
             </div>
+          </div>
+
+          {LINK_GROUPS.map((group) => (
+            <div key={group.title}>
+              <p className="text-[11px] font-black tracking-[.08em] text-paper">{group.title}</p>
+              <ul className="mt-3 space-y-2">
+                {group.links.map((l) => (
+                  <li key={l.href}><a href={l.href} className="hover:text-gold">{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div>
+            <p className="text-[11px] font-black tracking-[.08em] text-paper">제휴 · 비즈니스</p>
+            <ul className="mt-3 space-y-2">
+              <li><a href="/register" className="hover:text-gold">공연 등록 (주최·기획사)</a></li>
+              <li>
+                {contactHref ? (
+                  <a href={contactHref} className="hover:text-gold">제휴·광고 문의</a>
+                ) : (
+                  <span>제휴·광고 문의{contact ? ` · ${contact}` : " (준비 중)"}</span>
+                )}
+              </li>
+            </ul>
           </div>
         </div>
 
