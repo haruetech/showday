@@ -9,6 +9,7 @@ const items = [
   { href: "/admin/notices", label: "홍보·공지 팝업", desc: "자유 형식 공지·이벤트", icon: BellIcon },
   { href: "/admin/channel", label: "채널 설정", desc: "카카오톡 채널 연결", icon: BellIcon },
   { href: "/admin/business", label: "사업자 정보", desc: "하단(Footer) 표시 정보", icon: PinIcon },
+  { href: "/admin/partnership", label: "제휴·광고 문의", desc: "/partnership 접수 내역", icon: TicketIcon },
   { href: "/admin/clicks", label: "예매 클릭 통계", desc: "제휴 협상 근거자료", icon: TicketIcon },
 ];
 

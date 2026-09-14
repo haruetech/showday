@@ -8,10 +8,6 @@ type BusinessInfo = {
   mail_order_no?: string; address?: string; support_contact?: string;
 };
 
-function isEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-}
-
 const LINK_GROUPS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "서비스",
@@ -38,8 +34,6 @@ export default function Footer() {
   }, []);
 
   const has = biz.business_name || biz.ceo_name || biz.business_reg_no;
-  const contact = (biz.support_contact || "").trim();
-  const contactHref = contact ? (isEmail(contact) ? `mailto:${contact}` : undefined) : undefined;
 
   return (
     <footer className="border-t border-line py-10">
@@ -69,13 +63,7 @@ export default function Footer() {
             <p className="text-[11px] font-black tracking-[.08em] text-paper">제휴 · 비즈니스</p>
             <ul className="mt-3 space-y-2">
               <li><a href="/register" className="hover:text-gold">공연 등록 (주최·기획사)</a></li>
-              <li>
-                {contactHref ? (
-                  <a href={contactHref} className="hover:text-gold">제휴·광고 문의</a>
-                ) : (
-                  <span>제휴·광고 문의{contact ? ` · ${contact}` : " (준비 중)"}</span>
-                )}
-              </li>
+              <li><a href="/partnership" className="hover:text-gold">제휴·광고 문의</a></li>
             </ul>
           </div>
         </div>
