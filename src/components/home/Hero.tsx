@@ -529,8 +529,8 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           <Quick label="부모님과 공연" onClick={()=>{chooseCompanion("부모님과");setGenre("전체");setDiscovery("전체")}}/>
           <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
           <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
-          <Quick label="아이와 전시·체험" onClick={()=>{chooseCompanion("아이와");setGenre("전시");setDiscovery("전체")}}/>
-          <Quick label="연인과 전시·데이트" onClick={()=>{chooseCompanion("연인과");setGenre("전시");setDiscovery("전체")}}/>
+          <Quick label="아이와 전시·체험" onClick={()=>{chooseCompanion("아이와");setGenre("전시회");setDiscovery("전체")}}/>
+          <Quick label="연인과 전시·데이트" onClick={()=>{chooseCompanion("연인과");setGenre("전시회");setDiscovery("전체")}}/>
         </div>
 
         <button type="button" onClick={()=>setShowDetailedFilters(v=>!v)} className="mt-5 flex min-h-[46px] w-full items-center justify-between rounded-xl border border-line bg-white px-4 text-sm font-black text-paper lg:hidden">
