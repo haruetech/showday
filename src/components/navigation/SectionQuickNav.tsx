@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 type SortKind="recommend"|"distance"|"date";
-type QuickAction="child_weekend"|"parent_weekend"|"free_weekend"|"free_near";
+type QuickAction="child_weekend"|"parent_weekend"|"free_start"|"free_near";
 
 export default function SectionQuickNav(){
   const [hasResults,setHasResults]=useState(false);
@@ -53,7 +53,7 @@ export default function SectionQuickNav(){
         <div className="section-quick-nav__label section-quick-nav__label--accent">빠른찾기</div>
         <button type="button" className="section-quick-nav__quick" onClick={()=>quick("child_weekend")}><span className="section-quick-nav__dot"/><span>아이와</span></button>
         <button type="button" className="section-quick-nav__quick" onClick={()=>quick("parent_weekend")}><span className="section-quick-nav__dot"/><span>부모님과</span></button>
-        <button type="button" className="section-quick-nav__quick" onClick={()=>quick("free_weekend")}><span className="section-quick-nav__dot"/><span>무료 공연·행사</span></button>
+        <button type="button" className="section-quick-nav__quick" onClick={()=>quick("free_start")}><span className="section-quick-nav__dot"/><span>무료 공연·행사</span></button>
         {hasResults&&<>
           <div className="section-quick-nav__divider"/>
           <MoveButton id="search-results" label="검색 결과"/>
@@ -77,7 +77,7 @@ export default function SectionQuickNav(){
         <div className="section-quick-nav-mobile__grid section-quick-nav-mobile__grid--quick">
           <button type="button" onClick={()=>quick("child_weekend")}>아이와</button>
           <button type="button" onClick={()=>quick("parent_weekend")}>부모님과</button>
-          <button type="button" onClick={()=>quick("free_weekend")}>무료 공연·행사</button>
+          <button type="button" onClick={()=>quick("free_start")}>무료 공연·행사</button>
           <button type="button" onClick={()=>quick("free_near")}>내 주변 무료</button>
         </div>
         <p className="section-quick-nav-mobile__subhead">페이지 이동</p>

@@ -20,7 +20,7 @@ type QuickAction =
   | "couple_weekend" | "couple_exhibit" | "couple_free" | "couple_near"
   | "friends_weekend" | "friends_festival" | "friends_free" | "friends_near"
   | "solo_good" | "solo_today" | "solo_free" | "solo_near"
-  | "free_near" | "free_weekend" | "free_child" | "free_parent";
+  | "free_start" | "free_near" | "free_weekend" | "free_child" | "free_parent";
 
 const timings: Timing[] = ["오늘", "이번 주말", "이번 주", "이번 달", "날짜 선택"];
 const regions: Region[] = ["내 주변", "서울", "경기", "인천", "부산", "전국"];
@@ -177,6 +177,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   const [isMember,setIsMember]=useState(false);
   const [showDetailedFilters,setShowDetailedFilters]=useState(false);
   const [pendingQuickSearch,setPendingQuickSearch]=useState(false);
+  const [quickMode,setQuickMode]=useState<"companion"|"free">("companion");
 
   useEffect(()=>{
     if(!isAuthConfigured) return;
@@ -228,6 +229,24 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     if(v!=="아이와") setChildAge(null);
   }
 
+  function chooseQuickCompanion(v:Exclude<Companion,"상관없음">){
+    setQuickMode("companion");
+    setDiscovery("전체");
+    chooseCompanion(v);
+    setShowDetailedFilters(true);
+  }
+
+  function startFreeQuickFind(){
+    setQuickMode("free");
+    setQuery("");
+    setCompanion("상관없음");
+    setChildAge(null);
+    setDiscovery("무료 공연·행사");
+    setGenre("전체");
+    setShowDetailedFilters(false);
+    setVoiceMsg("");
+  }
+
   async function requestCurrentLocation(){
     if(!navigator.geolocation){
       setLocationMsg("이 브라우저에서는 현재 위치를 사용할 수 없습니다.");
@@ -256,9 +275,16 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
   }
 
   function applyQuickAction(action:QuickAction){
+    if(action==="free_start"){
+      startFreeQuickFind();
+      window.setTimeout(()=>document.getElementById("quick-search")?.scrollIntoView({behavior:"smooth",block:"start"}),20);
+      return;
+    }
+
     setQuery("");
     setDiscovery("전체");
     setGenre("전체");
+    setQuickMode(action.startsWith("free_") ? "free" : "companion");
 
     if(action.startsWith("child_") || action==="free_child") chooseCompanion("아이와");
     else if(action.startsWith("parent_") || action==="free_parent") chooseCompanion("부모님과");
@@ -572,15 +598,17 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          <Quick label="아이와" onClick={()=>{chooseCompanion("아이와");setShowDetailedFilters(true)}}/>
-          <Quick label="부모님과" onClick={()=>{chooseCompanion("부모님과");setShowDetailedFilters(true)}}/>
-          <Quick label="연인과" onClick={()=>{chooseCompanion("연인과");setShowDetailedFilters(true)}}/>
-          <Quick label="친구·부부" onClick={()=>{chooseCompanion("친구·부부");setShowDetailedFilters(true)}}/>
-          <Quick label="혼자" onClick={()=>{chooseCompanion("혼자");setShowDetailedFilters(true)}}/>
-          <Quick label="무료 공연·행사" onClick={()=>applyQuickAction("free_weekend")}/>
+          <Quick label="아이와" active={quickMode==="companion"&&companion==="아이와"} onClick={()=>chooseQuickCompanion("아이와")}/>
+          <Quick label="부모님과" active={quickMode==="companion"&&companion==="부모님과"} onClick={()=>chooseQuickCompanion("부모님과")}/>
+          <Quick label="연인과" active={quickMode==="companion"&&companion==="연인과"} onClick={()=>chooseQuickCompanion("연인과")}/>
+          <Quick label="친구·부부" active={quickMode==="companion"&&companion==="친구·부부"} onClick={()=>chooseQuickCompanion("친구·부부")}/>
+          <Quick label="혼자" active={quickMode==="companion"&&companion==="혼자"} onClick={()=>chooseQuickCompanion("혼자")}/>
+          <Quick label="무료 공연·행사" active={quickMode==="free"} onClick={startFreeQuickFind}/>
         </div>
 
-        {companion!=="상관없음"&&<ContextQuick companion={companion} onSelect={applyQuickAction}/>}
+        {quickMode==="free"
+          ? <FreeQuick companion={companion} onCompanion={chooseCompanion} onSelect={applyQuickAction}/>
+          : companion!=="상관없음"&&<ContextQuick companion={companion} onSelect={applyQuickAction}/>}
 
         <button type="button" onClick={()=>setShowDetailedFilters(v=>!v)} className="mt-5 flex min-h-[46px] w-full items-center justify-between rounded-xl border border-line bg-white px-4 text-sm font-black text-paper lg:hidden">
           <span>조건으로 더 찾아보기</span><span className="text-gold">{showDetailedFilters?"접기 ↑":"펼치기 ↓"}</span>
@@ -618,19 +646,6 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
           </div>
         </div>
 
-        <div className="quick-feature mt-5">
-          <div className="quick-feature__copy">
-            <p className="quick-feature__eyebrow">자주 찾는 조건</p>
-            <b>무료로 즐길 수 있는 공연·행사</b>
-            <span>가까운 곳부터 가족·부모님 나들이까지 바로 찾아보세요.</span>
-          </div>
-          <div className="quick-feature__actions">
-            <Quick label="내 주변 무료" onClick={()=>applyQuickAction("free_near")}/>
-            <Quick label="이번 주말 무료" onClick={()=>applyQuickAction("free_weekend")}/>
-            <Quick label="아이와 무료" onClick={()=>applyQuickAction("free_child")}/>
-            <Quick label="부모님과 무료" onClick={()=>applyQuickAction("free_parent")}/>
-          </div>
-        </div>
 
       </div>
 
@@ -1369,11 +1384,60 @@ function ContextQuick({companion,onSelect}:{companion:Companion;onSelect:(action
   </div>;
 }
 
-function Quick({label,onClick}:{label:string;onClick:()=>void}){
+function FreeQuick({companion,onCompanion,onSelect}:{companion:Companion;onCompanion:(v:Companion)=>void;onSelect:(action:QuickAction)=>void}){
+  const people:Exclude<Companion,"상관없음">[]=["아이와","부모님과","연인과","친구·부부","혼자"];
+  const freeOptions:Partial<Record<Companion,{label:string;action:QuickAction}[]>>={
+    "아이와":[
+      {label:"아이와 무료",action:"free_child"},
+      {label:"이번 주말 무료",action:"free_weekend"},
+      {label:"가까운 무료",action:"free_near"},
+    ],
+    "부모님과":[
+      {label:"부모님과 무료 나들이",action:"free_parent"},
+      {label:"이번 주말 무료",action:"free_weekend"},
+      {label:"가까운 무료",action:"free_near"},
+    ],
+    "연인과":[
+      {label:"무료 데이트",action:"couple_free"},
+      {label:"이번 주말 무료",action:"free_weekend"},
+      {label:"가까운 무료",action:"free_near"},
+    ],
+    "친구·부부":[
+      {label:"함께 즐기는 무료",action:"friends_free"},
+      {label:"이번 주말 무료",action:"free_weekend"},
+      {label:"가까운 무료",action:"free_near"},
+    ],
+    "혼자":[
+      {label:"혼자 즐기는 무료",action:"solo_free"},
+      {label:"이번 주말 무료",action:"free_weekend"},
+      {label:"가까운 무료",action:"free_near"},
+    ],
+  };
+  const options=companion!=="상관없음"?freeOptions[companion]||[]:[];
+  return <div className="free-quick" aria-label="무료 공연·행사 빠른찾기">
+    <div className="free-quick__title">
+      <div><span>무료 공연·행사 빠른찾기</span><b>1. 누구와 함께 갈까요?</b></div>
+      <p>먼저 함께 갈 사람을 선택해주세요.</p>
+    </div>
+    <div className="free-quick__people">
+      {people.map(person=>{
+        const selected=companion===person;
+        return <button key={person} type="button" aria-pressed={selected} {...mobilePress(()=>onCompanion(person))} className={selected?"is-active":""}>{person}</button>;
+      })}
+    </div>
+    {companion!=="상관없음"&&<div className="free-quick__step2">
+      <div className="free-quick__step2-head"><b>2. 어떤 무료 나들이를 찾을까요?</b><span>선택하면 바로 조건이 적용됩니다.</span></div>
+      <div className="free-quick__options">{options.map(item=><button key={item.label} type="button" {...mobilePress(()=>onSelect(item.action))}>{item.label}</button>)}</div>
+    </div>}
+  </div>;
+}
+
+function Quick({label,onClick,active=false}:{label:string;onClick:()=>void;active?:boolean}){
   return <button
     type="button"
+    aria-pressed={active}
     {...mobilePress(onClick)}
-    className="relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none rounded-full border border-line bg-white/55 px-3.5 py-2 text-xs font-semibold text-muted hover:border-gold/60 hover:text-paper"
+    className={`relative z-10 min-h-[44px] shrink-0 cursor-pointer select-none rounded-full border px-3.5 py-2 text-xs font-bold transition ${active?"border-paper bg-paper text-white shadow-sm":"border-line bg-white/55 text-muted hover:border-gold/60 hover:text-paper"}`}
     style={{WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}
   >{label}</button>
 }

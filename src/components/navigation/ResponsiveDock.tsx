@@ -5,11 +5,11 @@ import { CalendarIcon, PinIcon, SearchIcon, TicketIcon } from "@/components/comm
 export default function ResponsiveDock() {
   function quickFree(){
     if(window.location.pathname!=="/"){
-      sessionStorage.setItem("showday:pending-quick","free_near");
+      sessionStorage.setItem("showday:pending-quick","free_start");
       window.location.href="/#quick-search";
       return;
     }
-    window.dispatchEvent(new CustomEvent("showday:quick-search",{detail:"free_near"}));
+    window.dispatchEvent(new CustomEvent("showday:quick-search",{detail:"free_start"}));
   }
   return (
     <nav className="showday-responsive-dock" aria-label="모바일 빠른 메뉴">
