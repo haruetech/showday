@@ -137,7 +137,7 @@ export default function MyAreaSection({fullPage=false}:{fullPage?:boolean}){
       </div>
 
       {geoState==="denied"&&<p className="my-area-note">위치 권한을 사용할 수 없습니다. 관심 지역을 직접 선택해도 동일하게 이용할 수 있습니다.</p>}
-      {!configured&&<div className="my-area-empty"><SparkIcon className="h-5 w-5"/><div><strong>서울시 문화행사 API 연결 준비 중</strong><p>Vercel 환경변수에 SEOUL_OPEN_DATA_API_KEY를 추가하면 MY AREA가 자동으로 활성화됩니다.</p></div></div>}
+      {!configured&&<div className="my-area-empty"><SparkIcon className="h-5 w-5"/><div><strong>서울 공연·행사 정보 준비 중</strong><p>곧 서울시 공식 데이터와 연동해 가까운 공연·행사를 보여드릴게요.</p></div></div>}
       {configured&&loading&&<div className="my-area-empty">가까운 공연과 행사를 불러오고 있습니다.</div>}
       {configured&&!loading&&visible.length===0&&<div className="my-area-empty">선택한 조건에 맞는 현재·예정 공연이나 행사가 없습니다. 반경이나 지역을 넓혀보세요.</div>}
 

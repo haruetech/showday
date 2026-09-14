@@ -6,7 +6,6 @@ import Hero from "@/components/home/Hero";
 import SectionRow from "@/components/show/SectionRow";
 import ShowCard from "@/components/show/ShowCard";
 import ArenaNowBanner from "@/components/home/ArenaNowBanner";
-import AlertsPanel from "@/components/home/AlertsPanel";
 import Footer from "@/components/layout/Footer";
 import ShowdayTrends from "@/components/home/ShowdayTrends";
 import ShowdayNow from "@/components/home/ShowdayNow";
@@ -63,7 +62,6 @@ export default function Home(){
     </>}
     {searchActive&&<ShowdayNow/>}
 
-    {mode==="member"&&<div id="alerts-nav" className="scroll-mt-24"><AlertsPanel/></div>}
     <ParentsFiftyPlusSection/>
     <ArenaNowBanner/>
   </main><SectionQuickNav/><Footer/></>

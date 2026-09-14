@@ -36,6 +36,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-line pt-4 leading-6">
+          {/* 사업자 정보 미입력 시 아래 안내 문구가 고객에게 그대로 노출됩니다. /admin/business 에서 입력해주세요. */}
           {has ? (
             <>
               <p>
@@ -55,7 +56,7 @@ export default function Footer() {
             </>
           ) : (
             <p className="text-muted/70">
-              사업자 정보 준비 중입니다. (관리자 화면 &quot;사업자 정보&quot;에서 입력하면 여기 표시됩니다.)
+              사업자 정보 등록 준비 중입니다.
             </p>
           )}
           <p className="mt-3 text-[11px] text-muted/70">공연 데이터 제공: 공연예술통합전산망(KOPIS)</p>

@@ -5,6 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const KNOWN_KEYS = [
   "kakao_channel_id",
   "business_name", "ceo_name", "business_reg_no", "mail_order_no", "address", "support_contact",
+  "policy_effective_date", // 이용약관·개인정보처리방침 시행일
+  "fiftyplus_visible", // "true"/"false" — 홈 화면 SHOWDAY 50+ LIFE 섹션 노출 여부 (기본 true)
+  "fiftyplus_cards", // 50+ LIFE 카드 4개 각각의 제목/설명/상태 문구 (JSON 문자열)
 ] as const;
 
 // 공개 조회 — 카카오톡 채널 버튼, 하단 사업자 정보 등 메인 사이트가 이 값들을 가져다 씁니다.

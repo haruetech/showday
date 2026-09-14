@@ -1,8 +1,23 @@
 "use client";
+import { useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
+type Settings = {
+  ceo_name?: string;
+  support_contact?: string;
+  policy_effective_date?: string;
+};
+
 export default function PrivacyPage() {
+  const [s, setS] = useState<Settings>({});
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" }).then((r) => r.json()).then(setS).catch(() => {});
+  }, []);
+
+  const officer = s.ceo_name || "준비 중";
+  const contact = s.support_contact || "준비 중";
+
   return (
     <>
       <Header mode="guest" onModeChange={() => {}} />
@@ -10,7 +25,7 @@ export default function PrivacyPage() {
         <p className="text-[11px] font-bold tracking-[.16em] text-gold">SHOWDAY</p>
         <h1 className="mt-2 text-3xl font-black text-paper">개인정보처리방침</h1>
         <p className="mt-2 text-sm text-muted">
-          시행일: [ 예: 2026년 O월 O일 ] — 아래는 표준 뼈대이며, 실제 수집·이용 항목에 맞춰 검토·수정 후 게시해주세요.
+          시행일: {s.policy_effective_date || "준비 중"}
         </p>
 
         <div className="mt-10 space-y-8 text-sm leading-7 text-paper">
@@ -52,7 +67,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-base font-black">6. 개인정보 보호책임자</h2>
             <p className="mt-2 text-muted">
-              성명: [ 담당자명 ] · 연락처: [ 이메일 또는 전화번호 ]
+              성명: {officer} · 연락처: {contact}
             </p>
           </section>
         </div>

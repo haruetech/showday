@@ -51,7 +51,7 @@ export default async function SimpleSearchPage({searchParams}:{searchParams:Prom
       <div className="mb-5 flex items-center justify-between gap-3"><Link href="/" className="font-display text-xl font-black">SHOWDAY</Link><Link href="/" className="text-xs font-bold text-muted">메인으로</Link></div>
       <section className="rounded-2xl border border-line bg-white/70 p-4 shadow-sm">
         <p className="text-[11px] font-bold tracking-[.14em] text-gold">SIMPLE SEARCH</p>
-        <h1 className="mt-2 text-xl font-black">구형 iPhone 간편검색</h1>
+        <h1 className="mt-2 text-xl font-black">간단 검색</h1>
         <p className="mt-2 text-xs leading-5 text-muted">오래된 Safari에서도 사용할 수 있도록 기본 선택창과 일반 전송 버튼만 사용합니다.</p>
         <form method="get" action="/simple-search" className="mt-5 grid gap-4">
           <input type="hidden" name="search" value="1"/>

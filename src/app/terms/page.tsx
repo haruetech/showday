@@ -1,8 +1,23 @@
 "use client";
+import { useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
+type Settings = {
+  business_name?: string;
+  support_contact?: string;
+  policy_effective_date?: string;
+};
+
 export default function TermsPage() {
+  const [s, setS] = useState<Settings>({});
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" }).then((r) => r.json()).then(setS).catch(() => {});
+  }, []);
+
+  const companyName = s.business_name || "SHOWDAY";
+  const contact = s.support_contact || "고객센터";
+
   return (
     <>
       <Header mode="guest" onModeChange={() => {}} />
@@ -10,14 +25,14 @@ export default function TermsPage() {
         <p className="text-[11px] font-bold tracking-[.16em] text-gold">SHOWDAY</p>
         <h1 className="mt-2 text-3xl font-black text-paper">이용약관</h1>
         <p className="mt-2 text-sm text-muted">
-          시행일: [ 예: 2026년 O월 O일 ] — 아래는 표준 뼈대이며, 실제 서비스 내용에 맞춰 검토·수정 후 게시해주세요.
+          시행일: {s.policy_effective_date || "준비 중"}
         </p>
 
         <div className="mt-10 space-y-8 text-sm leading-7 text-paper">
           <section>
             <h2 className="text-base font-black">제1조 (목적)</h2>
             <p className="mt-2 text-muted">
-              이 약관은 [ 회사명 ](이하 &quot;회사&quot;)이 운영하는 SHOWDAY(이하 &quot;서비스&quot;)의 이용조건 및 절차,
+              이 약관은 {companyName}(이하 &quot;회사&quot;)이 운영하는 SHOWDAY(이하 &quot;서비스&quot;)의 이용조건 및 절차,
               회사와 이용자의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
             </p>
           </section>
@@ -52,7 +67,7 @@ export default function TermsPage() {
           </section>
           <section>
             <h2 className="text-base font-black">제6조 (문의)</h2>
-            <p className="mt-2 text-muted">서비스 관련 문의: [ 이메일 또는 전화번호 ]</p>
+            <p className="mt-2 text-muted">서비스 관련 문의: {contact}</p>
           </section>
         </div>
       </main>
