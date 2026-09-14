@@ -538,13 +538,19 @@ a, button { -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior:smooth; }
 #show-search,#popular-now,#discover,#my-area,#showday-now,#today-shows,#upcoming-shows,#artists,#venues,#fiftyplus,#arena-now { scroll-margin-top:88px; }
 
-.section-quick-nav { position:fixed; z-index:45; right:18px; top:50%; transform:translateY(-50%); display:none; }
-.section-quick-nav__rail { display:flex; flex-direction:column; gap:2px; padding:9px 7px; border:1px solid rgba(60,36,27,.09); border-radius:18px; background:rgba(252,248,242,.82); box-shadow:0 12px 38px rgba(60,36,27,.09); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
-.section-quick-nav__rail button { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:7px; min-height:29px; max-width:132px; padding:0 7px; border-radius:10px; color:rgba(83,63,52,.64); font-size:10px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; transition:background .18s ease,color .18s ease,transform .18s ease; }
-.section-quick-nav__rail button:hover { background:rgba(184,95,53,.07); color:var(--paper); transform:translateX(-1px); }
-.section-quick-nav__rail button.is-active { background:rgba(184,95,53,.09); color:var(--gold-dim); }
-.section-quick-nav__dot { width:5px; height:5px; flex:0 0 auto; border-radius:999px; background:rgba(83,63,52,.24); transition:transform .18s ease,background .18s ease; }
-.section-quick-nav__rail button.is-active .section-quick-nav__dot { background:var(--gold-dim); transform:scale(1.35); }
+.section-quick-nav { position:fixed; z-index:45; right:16px; top:50%; transform:translateY(-50%); display:none; }
+.section-quick-nav__rail { display:flex; flex-direction:column; gap:3px; padding:10px 8px 11px; border:1px solid rgba(184,95,53,.18); border-radius:18px; background:rgba(255,251,246,.94); box-shadow:0 14px 42px rgba(60,36,27,.14); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.section-quick-nav__title { display:flex; align-items:baseline; justify-content:flex-end; gap:5px; margin:0 5px 5px; padding:0 1px 7px; border-bottom:1px solid rgba(184,95,53,.12); white-space:nowrap; }
+.section-quick-nav__title span { color:#b46f3d; font-size:8px; font-weight:900; letter-spacing:.12em; }
+.section-quick-nav__title strong { color:rgba(54,39,31,.82); font-size:10px; font-weight:900; }
+.section-quick-nav__rail button { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:7px; min-height:30px; max-width:142px; padding:0 8px; border-radius:10px; color:rgba(68,50,40,.76); font-size:10.5px; font-weight:850; letter-spacing:-.01em; white-space:nowrap; transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease; }
+.section-quick-nav__rail button:hover { background:rgba(184,95,53,.10); color:var(--paper); transform:translateX(-2px); }
+.section-quick-nav__rail button.is-active { background:rgba(184,95,53,.11); color:var(--gold-dim); }
+.section-quick-nav__rail button.section-quick-nav__featured { background:rgba(184,95,53,.055); color:#8f542f; }
+.section-quick-nav__rail button.section-quick-nav__featured:hover { background:rgba(184,95,53,.13); color:#6f3d20; }
+.section-quick-nav__dot { width:5px; height:5px; flex:0 0 auto; border-radius:999px; background:rgba(83,63,52,.32); transition:transform .18s ease,background .18s ease; }
+.section-quick-nav__rail button.section-quick-nav__featured .section-quick-nav__dot { background:#c77b46; }
+.section-quick-nav__rail button:hover .section-quick-nav__dot,.section-quick-nav__rail button.is-active .section-quick-nav__dot { background:var(--gold-dim); transform:scale(1.35); }
 
 .section-quick-nav-mobile { position:fixed; z-index:58; right:12px; bottom:calc(82px + env(safe-area-inset-bottom)); display:block; }
 .section-quick-nav-mobile__toggle { display:flex; align-items:center; gap:6px; min-height:38px; padding:0 11px; border:1px solid rgba(60,36,27,.10); border-radius:999px; background:rgba(252,248,242,.91); color:var(--paper); box-shadow:0 8px 26px rgba(60,36,27,.11); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); font-size:10px; font-weight:900; }

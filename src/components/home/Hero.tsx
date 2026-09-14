@@ -515,7 +515,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <Quick label="아이와 이번 주말" onClick={()=>{chooseCompanion("아이와");setTiming("이번 주말");setGenre("체험·가족행사");setDiscovery("전체")}}/>
-          <Quick label="부모님과 공연" onClick={()=>{chooseCompanion("부모님과");setGenre("전체");setDiscovery("전체")}}/>
+          <Quick label="부모님과" onClick={()=>{chooseCompanion("부모님과");setGenre("전체");setDiscovery("전체")}}/>
           <Quick label="오늘 내 주변" onClick={()=>{chooseRegion("내 주변");setTiming("오늘");setDiscovery("전체")}}/>
           <Quick label="무료 공연·행사" onClick={()=>{setDiscovery("무료 공연·행사");setGenre("전체")}}/>
           <Quick label="아이와 전시·체험" onClick={()=>{chooseCompanion("아이와");setGenre("전시회");setDiscovery("전체")}}/>
