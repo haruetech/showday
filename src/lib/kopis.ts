@@ -271,6 +271,7 @@ export async function fetchBoxOffice(params: {
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
       status: row.prfstate?.trim() || undefined,
+      startDate: normalizeDateInput(row.prfpdfrom) || undefined,
       endDate: normalizeDateInput(row.prfpdto) || undefined,
     })
   );
@@ -380,6 +381,7 @@ export async function fetchPerformanceList(params: {
       posterTo: "#d2691e",
       posterUrl: normalizePosterUrl(row.poster),
       status: row.prfstate?.trim() || undefined,
+      startDate: normalizeDateInput(row.prfpdfrom) || undefined,
       endDate: normalizeDateInput(row.prfpdto) || undefined,
     })
   );
