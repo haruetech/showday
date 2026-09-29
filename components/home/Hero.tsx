@@ -331,7 +331,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     else if(/5\s*만\s*원|오만원/.test(t)){ setDiscovery("가격대별"); setPrice("5만원 이하"); }
     else if(/10\s*만\s*원|십만원/.test(t)){ setDiscovery("가격대별"); setPrice("10만원 이하"); }
 
-    setVoiceMsg(`“${t}”에서 검색 조건을 적용했습니다. 조건을 확인한 뒤 ‘이 조건으로 찾기’를 눌러주세요.`);
+    setVoiceMsg(`“${t}”에서 검색 조건을 읽었습니다. 바로 결과를 찾아볼게요.`);
   }
 
   function startVoiceSearch(){
@@ -461,14 +461,15 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#422118]/95 via-[#512a20]/82 to-[#512a20]/38"/>
       <div className="relative mx-auto flex min-h-[330px] max-w-[1280px] items-center px-4 py-14 sm:px-6 lg:min-h-[390px]">
         <div className="max-w-2xl">
-          <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · EASY SEARCH</p>
+          <p className="mb-4 text-[11px] font-semibold tracking-[.24em] text-[#f3b37f]">SHOWDAY · AI SEARCH</p>
           <h1 className="font-display font-black leading-[1.08]">
-            <span className="block text-[clamp(1.8rem,7vw,3.9rem)] text-white sm:whitespace-nowrap">보고 싶은 공연, 바로 찾기</span>
+            <span className="block text-[clamp(1.8rem,7vw,3.9rem)] text-white sm:whitespace-nowrap">오늘, 어디 갈까요?</span>
           </h1>
-          <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">날짜 · 지역 · 누구와 함께할지만 선택하세요.</p>
-          <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">공연부터 전시·체험·축제까지 SHOWDAY가 찾아드려요.</p>
+          <p className="mt-5 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-semibold leading-7 text-white/90">찾고 싶은 것을 말하듯 입력해보세요.</p>
+          <p className="mt-2 max-w-2xl text-[clamp(13px,1.55vw,17px)] font-black leading-7 text-[#f3b37f]">공연·전시·축제·체험을 AI 검색과 지도에서 쉽게 찾아보세요.</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-            <a href="#quick-search" className="inline-flex items-center gap-2 border-b border-[#f3b37f] pb-1 text-sm font-bold text-white">바로 찾기 <ArrowIcon className="h-4 w-4"/></a>
+            <a href="#quick-search" className="inline-flex min-h-[46px] items-center gap-2 rounded-full bg-white px-5 text-sm font-black text-[#422118]">✦ AI로 찾기 <ArrowIcon className="h-4 w-4"/></a>
+            <a href="https://map.showday.kr" className="inline-flex min-h-[46px] items-center gap-2 rounded-full border border-white/55 bg-black/20 px-5 text-sm font-black text-white">지도에서 보기 →</a>
             <a href="/simple-search" className="relative z-20 inline-flex min-h-[44px] items-center rounded-full border border-white/45 bg-black/20 px-4 text-xs font-bold text-white sm:hidden">구형 iPhone 간편검색</a>
           </div>
         </div>
@@ -478,9 +479,9 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
     <div id="quick-search" className="relative z-10 mx-auto max-w-[1280px] px-4 py-7 sm:px-6 sm:py-10">
       <div className="rounded-2xl border border-line bg-white/55 p-4 shadow-sm sm:p-6">
         <div className="mb-6">
-          <p className="text-[11px] font-bold tracking-[.18em] text-gold">EASY SEARCH</p>
-          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">내 목적에 맞는 공연을 찾아보세요.</h2>
-          <p className="mt-1 text-xs leading-5 text-muted">누구와 · 언제 · 어디서 · 무엇을 · 어떤 공연을 찾는지 순서대로 고르세요.</p>
+          <p className="text-[11px] font-bold tracking-[.18em] text-gold">AI SEARCH</p>
+          <h2 className="mt-2 text-xl font-black text-paper sm:text-2xl">말하듯 검색해보세요.</h2>
+          <p className="mt-1 text-xs leading-5 text-muted">예: “이번 주말 부모님과 무료 공연”, “오늘 서울에서 전시 보고 싶어”</p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
@@ -505,7 +506,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
 
         <div className="mt-6 border-t border-line pt-5">
           <div className="grid gap-2 lg:grid-cols-[1fr_auto_auto]">
-            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="공연명·아티스트를 입력하거나 음성으로 말해보세요" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
+            <label className="relative"><SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchShows()} placeholder="예: 오늘 부모님과 무료 공연 · 이번 주말 서울 전시" className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-sm text-paper outline-none transition focus:border-gold"/></label>
             <button type="button" onClick={startVoiceSearch} disabled={listening} className={`relative z-10 inline-flex min-h-[50px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl border px-5 text-sm font-black transition ${listening?"border-gold bg-[#fff8f0] text-gold":"border-line bg-white text-paper hover:border-gold"}`}><MicIcon className="h-4 w-4"/>{listening?"듣고 있어요…":"음성으로 찾기"}</button>
             <button type="button" onClick={searchShows} className="relative z-10 inline-flex min-h-[50px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl bg-paper px-7 text-sm font-black text-white transition hover:bg-gold"><SearchIcon className="h-4 w-4"/>이 조건으로 찾기</button>
           </div>
