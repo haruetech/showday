@@ -212,6 +212,25 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         }
       }
     }catch{}
+    // MAP에서 넘어온 검색 상태를 그대로 이어받는다. URL 값이 있으면 저장된 검색보다 우선한다.
+    try{
+      const p=new URLSearchParams(window.location.search);
+      const incomingQ=p.get("q")?.trim();
+      const incomingW=(p.get("w")||"").split(",").filter(Boolean);
+      const incomingA=p.get("a");
+      const incomingC=p.get("c");
+      const incomingD=p.get("d");
+      if(incomingQ) setQuery(incomingQ);
+      if(incomingW.includes("today")) setTiming("오늘");
+      else if(incomingW.includes("weekend")) setTiming("이번 주말");
+      if(incomingW.includes("free")) setDiscovery("무료 공연·행사");
+      if(incomingA==="아이·가족") setCompanion("아이와");
+      else if(incomingA==="시니어") setCompanion("부모님과");
+      else if(incomingA==="어른") setCompanion("친구·부부");
+      if(incomingC && ["공연","전시","체험","축제"].includes(incomingC)) setGenre(incomingC as (typeof genres)[number]);
+      if(incomingD) setRegion(incomingD as Region);
+      if(incomingQ||incomingW.length||incomingA||incomingC||incomingD) setPendingQuickSearch(true);
+    }catch{}
     setRestored(true);
   },[onSearchStateChange]);
 
@@ -561,6 +580,19 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
 
   const periodLabel=timing==="날짜 선택"?customDate:timing;
   const summary=[companion!=="상관없음"?companion:null, periodLabel, region, genre!=="전체"?genre:null, companion==="아이와"&&childAge?childAge:null, discovery!=="전체"?discovery:null, discovery==="가격대별"?price:null].filter(Boolean).join(" · ");
+  const mapParams=new URLSearchParams();
+  if(query.trim()) mapParams.set("q",query.trim());
+  const mapWhen:string[]=[];
+  if(timing==="오늘") mapWhen.push("today");
+  if(timing==="이번 주말") mapWhen.push("weekend");
+  if(discovery==="무료 공연·행사") mapWhen.push("free");
+  if(mapWhen.length) mapParams.set("w",mapWhen.join(","));
+  if(companion==="아이와") mapParams.set("a","아이·가족");
+  else if(companion==="부모님과") mapParams.set("a","시니어");
+  else if(["연인과","친구·부부","혼자"].includes(companion)) mapParams.set("a","어른");
+  if(["공연","전시","체험","축제"].includes(genre)) mapParams.set("c",genre);
+  if(/구$/.test(region)) { mapParams.set("d",region); mapParams.set("r","5"); }
+  const mapUrl=`https://map.showday.kr${mapParams.toString()?`?${mapParams.toString()}`:""}`;
 
   return <section id="show-search" className="border-b border-line bg-surface">
     <div className={`showday-hero-premium ${searched&&mobileSearchCollapsed?"hidden md:block":""}`}>
@@ -689,6 +721,7 @@ export default function Hero({onSearchStateChange}:{onSearchStateChange?:(search
         summary={summary}
         locationMsg={locationMsg}
         freeMode={discovery==="무료 공연·행사"}
+        mapUrl={mapUrl}
         onEditSearch={openSearchEditor}
         onClose={()=>{setSearched(false);setMobileSearchCollapsed(false);onSearchStateChange?.(false)}}
       />}
@@ -1120,7 +1153,7 @@ function FreeShowAlertButton({show}:{show:Show}){
 }
 
 type FreeApplyTab="전체 무료"|"지금 신청 가능"|"곧 신청 오픈"|"일정 미공개"|"신청마감";
-function SearchResults({shows,events,loading,companion,summary,locationMsg,freeMode,onEditSearch,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;freeMode:boolean;onEditSearch:()=>void;onClose:()=>void}){
+function SearchResults({shows,events,loading,companion,summary,locationMsg,freeMode,mapUrl,onEditSearch,onClose}:{shows:Show[];events:ShowdayEvent[];loading:boolean;companion:Companion;summary:string;locationMsg:string;freeMode:boolean;mapUrl:string;onEditSearch:()=>void;onClose:()=>void}){
   const [tab,setTab]=useState<ResultTab>("전체");
   const [freeApplyTab,setFreeApplyTab]=useState<FreeApplyTab>("지금 신청 가능");
   const [subTab,setSubTab]=useState("전체");
@@ -1256,6 +1289,7 @@ function SearchResults({shows,events,loading,companion,summary,locationMsg,freeM
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
+          <a href={mapUrl} className="rounded-full bg-paper px-3 py-1.5 text-[10px] font-black text-white transition hover:bg-gold sm:px-4 sm:text-[11px]">지도에서 보기 →</a>
           <button type="button" onClick={onEditSearch} className="rounded-full border border-line bg-white px-2.5 py-1.5 text-[10px] font-bold text-paper sm:px-3 sm:text-[11px]">조건 수정</button>
           <button type="button" onClick={onClose} className="rounded-full border border-line bg-white px-2.5 py-1.5 text-[10px] font-semibold text-muted sm:px-3 sm:text-[11px]">결과 접기</button>
         </div>

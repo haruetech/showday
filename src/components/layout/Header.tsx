@@ -59,19 +59,19 @@ export default function Header({
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
-        <a href="https://map.showday.kr" className="flex items-baseline gap-1" aria-label="SHOWDAY 지도 홈">
+        <a href="/" className="flex items-baseline gap-1" aria-label="SHOWDAY 홈">
           <span className="font-display text-[21px] font-bold tracking-tight text-paper sm:text-2xl">SHOWDAY</span>
           <span className="hidden text-xs text-muted sm:inline">문화생활 비서</span>
         </a>
 
         <nav className="hidden items-center gap-5 text-sm lg:flex xl:gap-7">
           <a href="https://map.showday.kr" className={navClass(false)}>
-            지도
+            지도에서 찾기
           </a>
-          <a href="/search" className={navClass(pathname === "/search")} aria-current={pathname === "/search" ? "page" : undefined}>
+          <a href="/" className={navClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
             공연검색
           </a>
-          <a href="/search#showday-now" className={navClass(false)}>
+          <a href="/#showday-now" className={navClass(false)}>
             티켓오픈·공연소식
           </a>
           <a href="/artists" className={navClass(pathname === "/artists")} aria-current={pathname === "/artists" ? "page" : undefined}>
@@ -80,7 +80,7 @@ export default function Header({
           <a href="/my" className={navClass(pathname === "/my")} aria-current={pathname === "/my" ? "page" : undefined}>
             MY SHOWDAY
           </a>
-          <a href="https://arena.showday.kr" className="font-black text-gold hover:text-paper">
+          <a href="https://arena.showday.kr" className="font-black text-[#b86132] hover:text-paper">
             SEOUL ARENA
           </a>
         </nav>
