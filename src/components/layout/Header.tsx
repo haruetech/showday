@@ -68,10 +68,7 @@ export default function Header({
           <a href="https://map.showday.kr" className={navClass(false)}>
             지도에서 찾기
           </a>
-          <a href="/" className={navClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
-            공연검색
-          </a>
-          <a href="/#showday-now" className={navClass(false)}>
+          <a href="/search#showday-now" className={navClass(false)}>
             티켓오픈·공연소식
           </a>
           <a href="/artists" className={navClass(pathname === "/artists")} aria-current={pathname === "/artists" ? "page" : undefined}>
